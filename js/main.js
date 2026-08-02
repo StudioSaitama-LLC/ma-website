@@ -47,14 +47,15 @@
     if (overlay && openBtn) {
       var setOpen = function (open) {
         overlay.classList.toggle("open", open);
+        document.body.classList.toggle("menu-open", open);
+        overlay.setAttribute("aria-hidden", open ? "false" : "true");
         openBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        openBtn.setAttribute("aria-label", open ? "メニューを閉じる" : "メニューを開く");
       };
       setOpen(false);
 
-      openBtn.addEventListener("click", function () { setOpen(true); });
-      overlay.querySelector(".menu-close").addEventListener("click", function () {
-        setOpen(false);
-        openBtn.focus();
+      openBtn.addEventListener("click", function () {
+        setOpen(!overlay.classList.contains("open"));
       });
 
       // 同一ページ内アンカー(index.html#ma-lab 等)はページ遷移が起きないため、
@@ -75,7 +76,7 @@
     var digits = document.querySelector(".traffic .digits");
     if (digits) {
       var target = parseInt(digits.dataset.count || "2", 10);
-      var pad = function (n) { return String(n).padStart(6, "0").split("").join(" "); };
+      var pad = function (n) { return String(n).padStart(6, "0"); };
       var n = 0;
       digits.textContent = pad(0);
       var t = setInterval(function () {
@@ -83,6 +84,29 @@
         digits.textContent = pad(n);
         if (n >= target) clearInterval(t);
       }, 260);
+    }
+
+    // ---------- Home : スクロールに合わせて内容を順次表示 ----------
+    var revealItems = document.querySelectorAll(
+      ".home-page .poem, .home-page .logo-mark, .home-page .contents-head, .home-page .toc > li"
+    );
+    if (revealItems.length) {
+      revealItems.forEach(function (item) { item.classList.add("reveal-item"); });
+
+      if (!("IntersectionObserver" in window)) {
+        revealItems.forEach(function (item) { item.classList.add("is-visible"); });
+      } else {
+        var revealObserver = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-visible");
+              revealObserver.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.08, rootMargin: "0px 0px -8% 0px" });
+
+        revealItems.forEach(function (item) { revealObserver.observe(item); });
+      }
     }
   });
 })();
