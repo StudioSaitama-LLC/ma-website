@@ -563,6 +563,15 @@ html.light .logo-mark img { filter: invert(1); }
   background: var(--video-bg);
   display: block;
 }
+
+/* 公開済み動画の YouTube 埋め込み（プレースホルダーと同寸） */
+.video-embed {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  display: block;
+  background: var(--video-bg);
+}
 .video-ph .play {
   position: absolute;
   left: 50%;
