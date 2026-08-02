@@ -662,6 +662,25 @@ html.light .logo-mark img { filter: invert(1); }
   margin: 70px 0;
 }
 
+/* キャプション付き写真（取材後記） */
+.article-figure { margin: 70px 0; }
+.article-figure .article-photo { margin: 0; }
+.article-figure figcaption {
+  font-size: 13px;
+  line-height: 1.9;
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+/* クレジットロール（取材後記末尾） */
+.credits {
+  margin-top: 90px;
+  font-size: 13.5px;
+  line-height: 2.1;
+}
+.credits .c-head { font-weight: 500; margin-top: 26px; }
+.credits p { margin: 0; }
+
 /* ---------- Footer ---------- */
 
 .site-footer {
