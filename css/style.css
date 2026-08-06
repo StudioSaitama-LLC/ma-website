@@ -759,6 +759,267 @@ html.light .theme-toggle .knob { background: #f7f7f7; }
   transform: translateY(0);
 }
 
+/* ---------- MA Lab : 平場に浮かぶ3レイヤー ---------- */
+
+/* 仮データの告知。js/ma-lab-data.js の provisional が false になると出なくなる */
+.lab-provisional {
+  border: 1px dashed var(--line);
+  padding: 15px 18px 16px;
+  margin: 40px 0 0;
+  font-size: 13.5px;
+  line-height: 1.95;
+  color: var(--muted);
+}
+.lab-provisional .tag {
+  display: inline-block;
+  border: 1px solid var(--muted);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  padding: 0 8px 1px;
+  margin-right: 10px;
+  vertical-align: 1px;
+}
+
+/* ステージ = 平場 */
+.ma-stage { margin: 70px 0 0; }
+
+.ma-stage-tag[hidden] { display: none; }
+.ma-stage-tag {
+  display: inline-block;
+  border: 1px dashed var(--line);
+  color: var(--muted);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  padding: 1px 9px 2px;
+  margin-bottom: 14px;
+}
+
+.ma-field {
+  position: relative;
+  --px: 0px;
+  --py: 0px;
+}
+
+/* 奥行きの定義。この3行を入れ替えると重なり順が変わる */
+.ma-layer[data-layer="visual"]       { --z: 1; --pf: 0.28; --sc: 1.06; --op: 0.32; --bl: 2px; }
+.ma-layer[data-layer="word"]         { --z: 3; --pf: 0.65; --sc: 1.00; --op: 0.86; --bl: 0.2px; }
+.ma-layer[data-layer="onomatopoeia"] { --z: 4; --pf: 1.00; --sc: 1.00; --op: 1.00; --bl: 0; }
+
+/* 縦画面 = z の重なりを y の重なりに畳む（帯が少し重なって積まれる） */
+.ma-layer {
+  position: relative;
+  z-index: var(--z, 1);
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  padding: 22px 0 26px;
+}
+.ma-layer + .ma-layer { margin-top: -12px; }
+.ma-layer[hidden] { display: none; }
+
+.ma-layer-label {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.ma-layer-label .depth {
+  border: 1px solid var(--line);
+  font-size: 11px;
+  padding: 0 6px 1px;
+}
+
+.ma-items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 12px;
+}
+.ma-layer[data-layer="visual"] .ma-items {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+/* 語 */
+.ma-word {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  line-height: 1.5;
+  padding: 3px 11px 4px;
+}
+.ma-word .ma-w {
+  font-size: 15.5px;
+  font-weight: 400;
+}
+.ma-word .ma-mark {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* 印の出し分け : 色だけに頼らず「字間」そのものに意味を持たせる
+   （About「密がぎゅうぎゅうに圧縮された言葉なら、間はばらけて空間に浮かぶ言葉」に合わせる） */
+.mark-ma { color: var(--link); border: 1px solid var(--link); }
+.mark-ma .ma-w { letter-spacing: 0.40em; margin-right: -0.40em; }
+
+.mark-mitsu { background: var(--text); color: var(--bg); }
+.mark-mitsu .ma-w { letter-spacing: -0.05em; font-weight: 500; }
+
+.mark-x { color: var(--muted); border: 1px dashed var(--line); }
+.mark-x .ma-w { letter-spacing: 0; }
+
+/* 単語（印を持たない層。明朝でオノマトペと質を分ける） */
+.ma-word.is-word { padding: 3px 4px 4px; }
+.ma-word.is-word .ma-w {
+  font-family: var(--serif);
+  font-size: 16px;
+  letter-spacing: 0.06em;
+}
+
+/* ビジュアル */
+.ma-visual { margin: 0; }
+.ma-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* 縦画面では正方に揃えて、帯として読める形にする */
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+/* 凡例（レイヤーの表示/非表示を兼ねる） */
+.ma-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 36px;
+  margin-top: 30px;
+  font-size: 13px;
+}
+.ma-legend-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.ma-legend-label {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+.ma-toggle {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 300;
+  padding: 4px 13px 5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.25s, border-color 0.25s;
+}
+.ma-toggle[aria-pressed="true"] { color: var(--text); border-color: var(--text); }
+.ma-toggle .dot {
+  width: 7px;
+  height: 7px;
+  display: inline-block;
+  background: currentColor;
+}
+.ma-toggle[aria-pressed="false"] .dot {
+  background: none;
+  border: 1px solid currentColor;
+}
+.ma-toggle .depth { font-size: 11px; opacity: 0.7; }
+.ma-sample {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ma-sample .desc {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.ma-foot {
+  margin-top: 26px;
+  font-size: 13px;
+  line-height: 1.95;
+  color: var(--muted);
+}
+
+/* 横画面 = 平場に3レイヤーが重なって浮かぶ */
+@media (min-width: 761px) {
+  .ma-field {
+    height: clamp(520px, 74svh, 780px);
+    overflow: hidden;
+  }
+  .ma-field::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: radial-gradient(115% 88% at 50% 46%, transparent 36%, var(--bg) 100%);
+    transition: background 0.4s;
+  }
+
+  .ma-layer {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border-top: 0;
+    opacity: var(--op);
+    filter: blur(var(--bl));
+    transform: translate3d(calc(var(--px) * var(--pf)), calc(var(--py) * var(--pf)), 0) scale(var(--sc));
+    transition: opacity 0.9s ease-out, transform 0.45s ease-out;
+  }
+  .ma-layer + .ma-layer { margin-top: 0; }
+  .ma-layer-label { display: none; }
+
+  .ma-items,
+  .ma-layer[data-layer="visual"] .ma-items { display: block; }
+
+  /* --d は平場の奥行き（上ほど遠い・下ほど近い）。遠いものは小さく薄い */
+  .ma-item {
+    position: absolute;
+    left: var(--x, 50%);
+    top: var(--y, 50%);
+    opacity: calc(0.80 + var(--d, 0) * 0.20);
+    transform: translate(-50%, -50%) scale(calc(1 + var(--d, 0) * 0.08));
+  }
+  .ma-visual { width: calc(var(--vw, 30%) * (1 + var(--d, 0) * 0.22)); }
+  /* 写真の四角い縁を消して、平場からにじみ出るように置く */
+  .ma-visual img {
+    aspect-ratio: auto;
+    object-fit: fill;
+    -webkit-mask-image: radial-gradient(closest-side, #000 48%, transparent 100%);
+    mask-image: radial-gradient(closest-side, #000 48%, transparent 100%);
+  }
+  .ma-word .ma-w { font-size: calc(15.5px * var(--fit, 1)); }
+  .ma-word.is-word .ma-w { font-size: calc(16px * var(--fit, 1)); }
+
+  /* 読み込み直後は平場に伏せておき、奥のレイヤーから順に浮かび上がる */
+  .ma-field:not(.is-in) .ma-layer {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0) scale(var(--sc));
+  }
+  .ma-field.is-in .ma-layer[data-layer="word"] { transition-delay: 0.14s; }
+  .ma-field.is-in .ma-layer[data-layer="onomatopoeia"] { transition-delay: 0.28s; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
@@ -767,4 +1028,5 @@ html.light .theme-toggle .knob { background: #f7f7f7; }
     transition-duration: 0.01ms !important;
   }
   .home-page .reveal-item { opacity: 1; transform: none; }
+  .ma-field:not(.is-in) .ma-layer { opacity: var(--op); transform: none; }
 }
