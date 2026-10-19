@@ -13,10 +13,13 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.9"
+      - name: tools の構文確認
+        run: python -m py_compile tools/build.py tools/import_manifesto.py tools/import_device.py
       - name: tools/build.py --check
         run: python tools/build.py --check

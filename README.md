@@ -71,6 +71,10 @@ python3 tools/import_device.py <Device_YYYYMMDD.xlsx> --ids 2
 python3 tools/build.py
 ```
 
+PR と main への push では、GitHub Actions（`.github/workflows/check.yml`）が `tools/build.py --check` を実行する。
+src/ を直して生成し忘れた PR や、生成された HTML を直接直した PR はここで失敗する
+（マージを止めるには、main の保護設定でこの確認を必須にする）。
+
 ローカル確認は任意の静的サーバーで（`channel/` のような URL はファイルを直接開くと一覧表示になるため、サーバー経由で見る）:
 
 ```bash

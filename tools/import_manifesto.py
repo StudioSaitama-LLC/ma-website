@@ -105,6 +105,9 @@ def main():
             current = {"no": int(m.group(1)), "heading": text, "paragraphs": []}
             chapters.append(current)
             continue
+        if m and len(text) <= 20 and int(m.group(1)) == current["no"] + 1:
+            print("注意: 「%s」は章の見出しに見えますが、目次に第%s章が無いので第%d章の本文として取り込みました"
+                  "（目次を更新してから取り込み直してください）" % (text, m.group(1), current["no"]), file=sys.stderr)
         current["paragraphs"].append(raw.strip("\n"))
 
     titles = dict(toc)
