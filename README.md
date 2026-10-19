@@ -19,7 +19,7 @@ src/                           # 直すのはここ
   manifesto.json               # MA Notion のマニフェスト（tools/import_manifesto.py で docx から作る）
   device.json                  # Device の商品（tools/import_device.py で荒井さんの Device 表から作る）
   company.json                 # Company（まなかの軌道・会社概要・運営施設）と Contact us の窓口
-  articles/*.html              # Magazine 記事の本文（HTML の断片。画像の @/ はサイトの最上位）
+  articles/*.html              # Magazine 記事の本文（HTML の断片。画像の @/ はサイトの最上位。article-head の中に日付の目印 <!-- build:meta --> を置く）
 tools/
   build.py                     # src/ → 公開用 HTML（標準ライブラリだけ・Python 3.9 以上）
   import_manifesto.py          # Notion の docx → src/manifesto.json
@@ -48,8 +48,8 @@ about.html ほか 8 月版のページ   # 新しいページへ転送するだ�
 | `kind` | `tv` / `mag` / `radio` |
 | `program` | `programs.json` の `slug` |
 | `episode` | `programs.json` の回の `key`（同じゲストの TV・Magazine・Radio をまとめる）。無ければ 1 件で 1 回 |
-| `date` | 公開日（`YYYY-MM-DD`）。日付のあるものが Home の News に新しい順で 3 件まで出て、新しい 3 つの日付に `<NEW>` が付く |
-| `status` | `published`（公開）/ `editing`（編集中）/ `planned`（掲載予定）。公開以外は枠だけ出す |
+| `date` | 公開日（`YYYY-MM-DD`）。無ければ回（`programs.json` の episodes）の日付を引き継ぐ。Home の News には公開済みの回だけが新しい順に 3 件まで出る。`<NEW>` は日付の新しい 3 つのうち、いちばん新しい日付から 60 日以内のものに付く |
+| `status` | 必須。`published`（公開）/ `editing`（編集中）/ `planned`（掲載予定）。公開以外は枠だけ出す |
 | `title` `caption` `badge` `place` `recorded` | 表示する題・ひとこと・記事の種類・場所・収録日（`YYYY-MM-DD`） |
 | `youtube` | YouTube の動画 ID（11 文字）。公開のときだけ埋め込む |
 | `article` `excerpt` | Magazine の本文（`src/articles/` の断片）と抜き出し。公開のときだけ記事ページを作る |

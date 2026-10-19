@@ -64,6 +64,17 @@ def dotted(d):
     return d.replace("-", ".") if d else ""
 
 
+def bad_date(d):
+    """YYYY-MM-DD で、実在する日付でなければ True。"""
+    if not re.fullmatch(r"\d{4}-\d\d-\d\d", d or ""):
+        return True
+    try:
+        datetime.date.fromisoformat(d)
+    except ValueError:
+        return True
+    return False
+
+
 def id_key(item):
     return [int(x) for x in item["id"].split("-")]
 
@@ -101,7 +112,7 @@ class Site:
                 if e["key"] in episodes:
                     errors.append("programs.json: 回の key が重複: %s" % e["key"])
                 episodes[e["key"]] = p["slug"]
-                if e.get("date") and not re.fullmatch(r"\d{4}-\d\d-\d\d", e["date"]):
+                if e.get("date") and bad_date(e["date"]):
                     errors.append("programs.json %s: date は YYYY-MM-DD: %r" % (e["key"], e["date"]))
         seen = set()
         for c in self.contents:
@@ -120,7 +131,7 @@ class Site:
             if c.get("episode") and episodes.get(c["episode"]) != c.get("program"):
                 errors.append("contents.json #%s: 番組 %s に回 %r が無い（programs.json の episodes）"
                               % (cid, c.get("program"), c["episode"]))
-            if c.get("date") and not re.fullmatch(r"\d{4}-\d\d-\d\d", c["date"]):
+            if c.get("date") and bad_date(c["date"]):
                 errors.append("contents.json #%s: date は YYYY-MM-DD: %r" % (cid, c["date"]))
             if c.get("youtube") and not re.fullmatch(r"[A-Za-z0-9_-]{11}", c["youtube"]):
                 errors.append("contents.json #%s: YouTube の動画 ID（11 文字）ではない: %r" % (cid, c["youtube"]))
@@ -152,6 +163,9 @@ class Site:
             for v in prod["variants"]:
                 if not isinstance(v.get("price"), int):
                     errors.append("device.json %s（%s）: 販売価格が数字でない: %r" % (prod["name"], v.get("color"), v.get("price")))
+        for n in self.site.get("news", []):
+            if bad_date(n.get("date")):
+                errors.append("site.json news %r: date は実在する YYYY-MM-DD: %r" % (n.get("title"), n.get("date")))
         photo = self.company.get("photo", {}).get("src")
         if photo and not os.path.exists(os.path.join(ROOT, "assets", photo)):
             errors.append("company.json: assets/%s が無い" % photo)
@@ -703,7 +717,8 @@ class Site:
                 rows.append("""        <li class="news-item">
           {meta}
           <p class="news-title">{title}</p>{text}
-        </li>""".format(meta=self.entry_meta(self.item_date(c), self.item_path(c), c.get("status")), title=title,
+        </li>""".format(meta=self.entry_meta(self.item_date(c) if c.get("status") == "published" else "",
+                                           self.item_path(c), c.get("status")), title=title,
                         text=('\n          <p class="news-text">%s</p>' % esc(text)) if text else ""))
             latest.append("""    <section class="door" id="{key}">
       <h3 class="door-head">Door: {door} <strong>MA Channel / {en}</strong></h3>{blurb}
