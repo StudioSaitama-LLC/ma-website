@@ -118,7 +118,7 @@
     document.querySelectorAll(".article-hero").forEach(function (hero) {
       var imgs = hero.querySelectorAll(".hs-img");
       if (imgs.length < 2 || still) return;
-      // 2 枚目からは、切り替えるときだけ読み込む（動きを減らす設定のときは読まない）
+      // 2 枚目からは、切り替えが動くページでだけ、開いた時点でまとめて読み込む（動きを減らす設定・JS 無しでは読まない）
       imgs.forEach(function (im) { if (im.dataset.src) { im.src = im.dataset.src; im.removeAttribute("data-src"); } });
       var i = 0;
       var show = function () {
