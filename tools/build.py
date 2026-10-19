@@ -29,6 +29,7 @@ NEW_COUNT = 3  # 日付の新しい順にこの件数だけ <NEW> を付ける
 NEW_DAYS = 60  # ただし、いちばん新しい日付からこの日数より古いものには付けない
 SLUG = r"[a-z0-9][a-z0-9-]*"  # URL と id に入る名前（番組・回・お店）
 IMAGE_NAME = r"[A-Za-z0-9_-]+\.(?:jpg|jpeg|png|webp)"
+BLANK_GIF = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"  # 1px の透明な画像
 ARTICLE_META = "<!-- build:meta -->"  # 記事の断片で、日付の行を入れる場所
 
 
@@ -127,6 +128,8 @@ class Site:
                 errors.append("programs.json %s: logo は \"\"・\"top\"・\"end\" のどれか: %r" % (p["slug"], p.get("logo")))
             if p.get("illust_sp", "top") not in ("top", "end"):
                 errors.append("programs.json %s: illust_sp は \"top\" か \"end\": %r" % (p["slug"], p.get("illust_sp")))
+            if p.get("illust_sp") == "end" and not p.get("illust"):
+                errors.append("programs.json %s: illust_sp を \"end\" にするなら illust（絵の名前）も書く" % p["slug"])
             for e in p.get("episodes", []):
                 if not re.fullmatch(SLUG, e.get("key", "")):
                     errors.append("programs.json %s: 回の key は英小文字・数字・ハイフンだけ: %r" % (p["slug"], e.get("key")))
@@ -328,8 +331,11 @@ class Site:
             # 取り決め: 先頭の <svg> に viewBox、絵の本体は <symbol id="art">（ページは <use href="…#art"> で呼ぶ）
             text = open(path, encoding="utf-8").read()
             m = re.search(r'<svg\b[^>]*\bviewBox="([^"]+)"', text)
-            if not m or not re.search(r'<symbol\b[^>]*\bid="art"', text):
-                raise SystemExit("assets/illust/%s.svg: <svg viewBox=…> と <symbol id=\"art\"> が要る（README の「手描きの絵」）" % name)
+            sym = re.search(r'<symbol\b(?=[^>]*\bid="art")[^>]*\bviewBox="([^"]+)"', text)
+            if not m or not sym:
+                raise SystemExit("assets/illust/%s.svg: <svg viewBox=…> と <symbol id=\"art\" viewBox=…> が要る（README の「手描きの絵」）" % name)
+            if m.group(1) != sym.group(1):
+                raise SystemExit("assets/illust/%s.svg: <svg> と <symbol id=\"art\"> の viewBox が違う" % name)
             self._vb[name] = m.group(1)
         return self._vb[name]
 
@@ -872,9 +878,11 @@ class Site:
             if not re.match(r'\s*<(h2 class="article-answer"|div class="article-body")', rest):
                 raise SystemExit("src/%s: article-head の次は <h2 class=\"article-answer\"> か <div class=\"article-body\"> にする（右の矢印と重ならない余白がそこに付く）" % item["article"])
             # 冒頭の写真は、参考（tei-ku.com）と同じく、ゆっくり拡大しながら次の写真へ溶け替える（動きは js/main.js）
-            # 2 枚目からは data-src に置き、写真を切り替えるとき（js/main.js）だけ読む
-            slides = "\n".join('      <img class="hs-img%s" %s="%s" alt="" decoding="async">' % (
-                " is-on" if i == 0 else "", "src" if i == 0 else "data-src", esc(h("assets/" + name)))
+            # 2 枚目からは data-src に置き、切り替えが動くとき（js/main.js がページを開いた時点で）に読む。
+            # 動きを減らす設定や JS 無しでは 1 枚目だけを出し、残りは読まない（src は 1px の透明な画像）
+            slides = "\n".join('      <img class="hs-img%s" src="%s"%s alt="" decoding="async">' % (
+                " is-on" if i == 0 else "", esc(h("assets/" + name)) if i == 0 else BLANK_GIF,
+                "" if i == 0 else ' data-src="%s"' % esc(h("assets/" + name)))
                 for i, name in enumerate(item.get("hero", [])))
             hero = ('    <div class="article-hero" data-m="ahero" aria-hidden="true">\n%s\n    </div>\n' % slides) if slides else ""
             # 記事の終わりは、対象の人物の写真を画面いっぱいに出す（デザインの注記）

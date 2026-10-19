@@ -1,7 +1,8 @@
 /* 間｜MA — 2026-10-16 版デザイン（荒井さんの PC / Phone の PDF）どおりの見た目
    - 寸法はデザインの PDF から採寸した値（スマホは幅 375px、PC は幅 1920px の画面で描かれている）
      スマホ: 本文 15px / 行送り 28px / 左右 45px。PC: 本文 18px / 行送り 33px / 本文の幅 990px（中央）
-   - 768px 以上は PC の寸法。画面が 1920px より狭いときは、本文の幅を保ったまま左右の余白が縮む
+   - 1200px 以上は PC の寸法（1920px より狭いときは、本文の幅を保ったまま左右の余白が縮む）。
+     481〜1199px はスマホの寸法を 480px の列で中央に、360px 未満はページ全体を縮める
    - 青地に白文字。フッターの切り替えで灰地（html.light）にする（デザインの注記「色あいのみを拾って」） */
 
 @font-face {
@@ -131,7 +132,7 @@ html.light .logo-mark, html.light .home-logo { filter: brightness(0.55); }
 html:not(.js) .menu-btn, html:not(.js) .fold-toggle { display: none; }
 
 /* 360px 未満の小さい画面は、ページ全体を 375px の組みのまま縮める（絵や図の位置はスマホ 375px のデザインに合わせているため） */
-@media (max-width: 359px) { body { zoom: 0.8533; } }
+@media (max-width: 359.98px) { body { zoom: 0.8533; } }
 
 /* 481〜1199px（タブレットなど）はデザインが無い。PC の寸法は 1200px 以上でないと収まらないので、
    スマホの寸法のまま 480px の列にして中央に置く */
@@ -242,6 +243,8 @@ html:not(.js) .menu-btn, html:not(.js) .fold-toggle { display: none; }
 /* 題と閉じるボタンは上に貼り付けて、下までスクロールしても見える */
 .menu-overlay .bar { position: sticky; top: 0; z-index: 2; height: 46px; background: var(--bg); }
 .menu-overlay .site-title { position: absolute; }
+/* PC のメニューの人物の絵は、列の右（中央から 620px）に置く。1380px 未満では列に重なるので出さない */
+@media (min-width: 1200px) and (max-width: 1379.98px) { .menu-figure { display: none; } }
 /* スマホ: Home → Gate の行（見出しと副題を 1 行に）→ 番組・部屋 → Contact us / Company。PC: Gate を 4 列に */
 .menu-inner { position: relative; padding: 106px 28px 60px; }
 .menu-home { display: block; font-size: 15px; line-height: 21px; }
@@ -276,7 +279,7 @@ html:not(.js) .menu-btn, html:not(.js) .fold-toggle { display: none; }
   .mg-list, .mg-do .mg-list { margin-top: 18px; }
   .mg-list li { font-size: 19px; line-height: 33px; }
   .menu-links { display: flex; gap: 24px; margin-top: 68.5px; }
-  .menu-figure { width: 67px; right: auto; left: min(calc(50% + 620px), calc(100% - 100px)); top: 560px; }
+  .menu-figure { width: 67px; right: auto; left: calc(50% + 620px); top: 560px; }
 }
 
 /* ---------- フッター ---------- */
@@ -686,7 +689,7 @@ html:not(.js) .fold-end { display: none; }
 .program-lead p { margin: 0 0 var(--lh); }
 .program-lead p:last-child { margin-bottom: 0; }
 .program-top > .illust, .program-top > .logo-mark, .program-top > .arrow-btn { position: absolute; }
-.pg-ma-development-process .program-illust { left: min(calc(50% - 13.5px), calc(100% - 209px)); top: 500px; width: 205px; }
+.pg-ma-development-process .program-illust { left: min(calc(50% - 13.5px), calc(100% - 205px)); top: 500px; width: 205px; }
 .pg-beyond-the-vanishingpoint .program-illust { left: calc(50% - 176px); top: 646px; width: 394px; }
 .pg-ma-crosstalk .program-illust { left: calc(50% - 122.5px); top: 476px; width: 139px; }
 .lm-program { left: calc(50% - 102.5px); top: 553px; width: 30px; transform: rotate(-24deg); }
@@ -788,6 +791,7 @@ html:not(.js) .fold-end { display: none; }
 .article-figure .article-photo { margin: 0 -15px; }
 .article-figure figcaption { margin-top: 10px; font-size: 13px; line-height: 15px; }
 .indent { text-indent: 1em; }
+.fold-body:focus { outline: none; }
 .credits { margin-top: 70px; font-size: 13px; line-height: 22px; }
 .c-head { margin-top: 16px !important; font-weight: 700; }
 
@@ -953,6 +957,7 @@ html:not(.js) .fold-end { display: none; }
   .pr-stack-sp dt, .pr-stack-sp dd, .pr-stack-sp .seg-line, .seg { display: inline; }
   .company-page + .site-footer { margin-top: 272px; }
   .seg-bracket { margin-left: -0.45em; }
+  .seg-bracket + .seg { margin-left: -0.27em; }
   .desks { grid-template-columns: 358px 401px 1fr; gap: 0; margin-top: 33px; }
   .contact-group:first-of-type { margin-top: 83.5px; }
   .contact-group + .contact-group { margin-top: 52px; }

@@ -149,6 +149,15 @@
       var slides = track.querySelectorAll("li");
       var now = document.querySelector(".gc-now");
       var thumbs = document.querySelectorAll(".gallery-thumbs .thumb");
+      // 今どの写真が見えているかは、枠の左端にいちばん近い写真で決める（画面の拡大・縮小があっても合う）
+      var nearest = function () {
+        var left = track.getBoundingClientRect().left, best = 0, d = Infinity;
+        slides.forEach(function (li, k) {
+          var x = Math.abs(li.getBoundingClientRect().left - left);
+          if (x < d) { d = x; best = k; }
+        });
+        return best;
+      };
       var mark = function (i) {
         if (now) now.textContent = String(i + 1);
         thumbs.forEach(function (x, k) { x.setAttribute("aria-pressed", k === i ? "true" : "false"); });
@@ -159,7 +168,7 @@
         t.addEventListener("click", function () {
           goal = i;
           clearTimeout(goalTimer);
-          goalTimer = setTimeout(function () { goal = null; }, 1000);
+          goalTimer = setTimeout(function () { goal = null; mark(nearest()); }, 1000);
           track.scrollTo({ left: i * track.clientWidth, behavior: still ? "auto" : "smooth" });
           mark(i);
         });
@@ -169,7 +178,7 @@
         if (tick) return;
         tick = setTimeout(function () {
           tick = null;
-          var i = Math.max(0, Math.min(slides.length - 1, Math.round(track.scrollLeft / Math.max(1, track.clientWidth))));
+          var i = nearest();
           if (goal !== null) { if (i !== goal) return; goal = null; }
           mark(i);
         }, 80);
