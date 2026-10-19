@@ -6,9 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Company | Indies Lifestyle Media 間｜MA</title>
 <meta name="robots" content="noindex, nofollow">
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("ma-theme")==="light")document.documentElement.classList.add("light")}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;500&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
 <meta name="description" content="合理化の極致にある現代社会に、&quot;間&quot; という新しい文化を届けるインディーズ・ライフスタイルメディア。">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Indies Lifestyle Media 間｜MA">
@@ -16,6 +17,7 @@
 <meta property="og:description" content="合理化の極致にある現代社会に、&quot;間&quot; という新しい文化を届けるインディーズ・ライフスタイルメディア。">
 <meta property="og:image" content="../assets/apple-touch-icon.png">
 <meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#1414dc">
 <link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="../assets/favicon.png">
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
@@ -24,64 +26,122 @@
 <body>
 
 <header class="site-header">
-  <div class="header-inner">
+  <div class="bar">
     <a class="site-title" href="../">Indies Lifestyle Media 間｜MA</a>
-    <div class="header-right">
-      <nav class="global-nav">
-        <a class="nav-item" href="../notion/">MA Notion</a>
-        <span class="nav-item dim">1 MA Lab</span>
-        <a class="nav-item" href="../channel/">2 MA Channel</a>
-        <a class="nav-item" href="../do/">3 MA Do</a>
-      </nav>
-      <button class="menu-btn" aria-label="メニューを開く">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
+    <button class="menu-btn" type="button" aria-controls="site-menu" aria-expanded="false" aria-label="メニューを開く">
+      <span></span><span></span><span></span>
+    </button>
   </div>
+  <nav class="gate-tabs" aria-label="Gate">
+    <a class="gate-tab gt-lab" href="../lab/"><span class="gt-no">Gate 1:</span><span class="gt-box">MA Lab</span></a>
+    <a class="gate-tab gt-channel" href="../channel/"><span class="gt-no">Gate 2:</span><span class="gt-box">MA Channel</span></a>
+    <a class="gate-tab gt-do" href="../do/"><span class="gt-no">Gate 3:</span><span class="gt-box">MA Do</span></a>
+  </nav>
 </header>
 
-<div class="menu-overlay">
-  <nav>
-    <a href="../">HOME</a>
-    <a href="../notion/">MA Notion / 間の一次情報</a>
-    <span class="dim">1&ensp;MA Lab / 間の定義化</span>
-    <span class="menu-child dim">1.1&ensp;Dictionary / 感覚と感情の往復</span>
-    <span class="menu-child dim">1.2&ensp;Reference / 過去の資料庫</span>
-    <span class="menu-child dim">1.3&ensp;Research / 間の未来を検証</span>
-    <a href="../channel/">2&ensp;MA Channel / 間の流通化</a>
-    <a class="menu-child" href="../channel/beyond-the-vanishingpoint/">Beyond the Vanishing point / 死を、教えてくれ。</a>
-    <a class="menu-child" href="../channel/ma-development-process/">MA Development Process / 間を、喰う。</a>
-    <a class="menu-child" href="../channel/ma-crosstalk/">MA Crosstalk / 異能の表現者たち</a>
-    <a href="../do/">3&ensp;MA Do / 間の個人化</a>
-    <span class="menu-child dim">3.1&ensp;Tips / 間の作法</span>
-    <a class="menu-child" href="../do/device/">3.2&ensp;Device / 装置</a>
-    <a href="../company/">Company / 株式会社まなかについて</a>
-    <a href="../contact/">Contact us / お問い合わせ</a>
+<div class="menu-overlay" id="site-menu" aria-hidden="true">
+  <div class="bar">
+    <a class="site-title" href="../">Indies Lifestyle Media 間｜MA</a>
+    <button class="menu-close" type="button" aria-label="メニューを閉じる"><span></span><span></span></button>
+  </div>
+  <nav class="menu-inner" aria-label="サイトの案内">
+    <a class="menu-home" href="../">Home</a>
+    <div class="menu-gates">
+      <div class="menu-gate">
+        <a class="mg-head" href="../notion/"><span class="gh-no">Gate 0:</span> <strong>MA Notion</strong></a>
+        <p class="mg-sub">/ 間、当事者化への提案</p>
+      </div>
+      <div class="menu-gate is-dim">
+        <a class="mg-head is-dim" href="../lab/"><span class="gh-no">Gate 1:</span> <strong>MA Lab</strong></a>
+        <p class="mg-sub">/ 間、定義化への試み</p>
+      </div>
+      <div class="menu-gate">
+        <a class="mg-head" href="../channel/"><span class="gh-no">Gate 2:</span> <strong>MA Channel</strong></a>
+        <p class="mg-sub">/ 間、流通化への多手</p>
+        <ul class="mg-list">
+          <li><a href="../channel/ma-development-process/"><span class="en">MA Development Process</span> / 間を、喰う</a></li>
+          <li><a href="../channel/beyond-the-vanishingpoint/"><span class="en">Beyond the Vanishing point</span> / 死を、教えてくれ。</a></li>
+          <li><a href="../channel/ma-crosstalk/"><span class="en">MA Crosstalk</span> / 異能の表現者たち</a></li>
+        </ul>
+      </div>
+      <div class="menu-gate">
+        <a class="mg-head" href="../do/"><span class="gh-no">Gate 3:</span> <strong>MA Do</strong></a>
+        <p class="mg-sub">/ 間、個人化への導線</p>
+        <ul class="mg-list">
+          <li class="is-dim"><span class="en">Tips Room</span></li>
+          <li><a href="../do/device/"><span class="en">Device Room</span></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="menu-links"><a href="../contact/">Contact us</a><a href="../company/">Company</a></div>
   </nav>
+  <img class="illust menu-figure" src="../assets/illust/figure.png" width="321" height="1207" alt="" loading="lazy" decoding="async">
 </div>
 
-<main class="page">
+<main class="page" id="main">
   <div class="content">
-    <h1 class="section-head">Company / 株式会社まなかについて</h1>
-    <p class="pending-note">準備中です。</p>
+    <div class="simple-head">
+      <h1 class="sh-en">Company</h1>
+      <p class="sh-ja">まなかの軌道</p>
+    </div>
+    <img class="company-photo" src="../assets/company-founders.jpg" width="660" height="552" decoding="async" alt="株式会社まなかの宮嶋 良任と宮嶋 孝尚">
+
+    <section class="fold chapter" id="ch1">
+      <h2 class="fold-head">第 1 章 : 「はじまりの合図」<button class="fold-toggle" type="button" aria-expanded="true" aria-controls="ch1-body" aria-label="第 1 章を開く・閉じる"></button></h2>
+      <div class="fold-body prose" id="ch1-body">
+        <p>遡ること 16 年前の春まなかは、両親の基盤を引き継ぎ経営を勤しむ兄に、弟が気軽な心持ちで賛画する形で出航します。</p>
+        <p>当時2010年頃の、時代を象徴するキーワードしてオバマ、アラブの春、リーマンショック、ビットコイン、いいね、リツイート、サブスクリプション、ノームコア、AKB48、秋葉原無差別殺傷、後期高齢者等の現代史において切り離すことの出来ないパワーワードが。インターネットが当に一般化し、スマートフォン普及によるデジタルイノベーションが大きくそして良くも悪くも暮らしに影響を及ぼし始めた頃だったように思います。</p>
+        <p>東日本大震災未曽有の天災が日本を襲ったのもこの頃です。当時三鷹のオフィスの窓から見た、バスが公道に緊急停止しなす術もなく、地面と呼応するかのように激しく上下に揺れていたシーンは忘れることはありません。</p>
+        <p>そんな時代背景の中まなかの二人の宮嶋も右往左往していたことを覚えています。</p>
+        <p>起業精神の柱をどこに置くのか。</p>
+        <p>凄まじい進化をみせるデジタルテクノロジー周辺の衛星として全体成功の一端として貢献する。これが王道であり資本主義的にも正解でした。当時多くの起業家がその道を選択し闊歩していきました。その成果なのかはわかりませんが、今となっては AI を老若男女が使いこなすまでとなっております。世界は合理化や生産性の追求の先に人々の幸せがあることを証明し続けています。</p>
+        <p>一方の二人。</p>
+        <p>天邪鬼なのか幼稚な原理主義者なのか。そう言った素養はあるかもしれませんが、我々が下した判断は違いました。</p>
+        <p>あの頃二人の目の前には、合理化推奨、暮らしの歩幅が少しずつ広がり続ける中、これまでの人間の在り方が紡いできた尊重、慈愛、葛藤、伝統、知恵、丁寧、手間等と言った少し面倒で古臭く感じてしまう感性やニュアンスがまざまざと希薄から消滅していくのではという予感が対峙していました。</p>
+        <p>その予感を感じていたのは私達だけではないはずです。</p>
+        <p>どこか世の中の体温が少しずつ下がっている実感値を見て取れた人が少なからずいて、言葉に出来ずともそのことが今後の社会問題の真因として顕在化するタイミングがくるのではないか、そんな気運は確かにあったのです。</p>
+        <p>そこで二人は、そんな巻き起こるかもわからない、社会問題に小石を投げる判断をしてしまいます。そもそも起業家（少し恥ずかしい）としての根っこに、ひたすら利益追求することより自分たちが生み出す価値で世の中を良くしたい残したいが強かった事実はあります。</p>
+        <p>であるなら、非合理的で回り道を推奨するような価値の意味を立証し、人がより人らしく、暮らしの体温をあげられるような価値を創出する企業をやってみない？二人の新生まなかがスタートした合図でした。</p>
+      </div>
+    </section>
+    <p class="pending-note">第 2 章以降は準備中です。</p>
+
+    <section class="profile">
+      <h2 class="line-head">会社概要</h2>
+      <dl class="profile-list">
+        <div class="pr-row"><dt>会社名 :</dt><dd>株式会社まなか</dd></div>
+        <div class="pr-row"><dt>所在地 :</dt><dd>[ 本社 ]〒104-0061 東京都中央区銀座 1 丁目 15-4 ヒューリック銀座一丁目 昭和通りビル 9F<br>[ 四谷オフィス ]〒160-0004 東京都新宿区四谷 2 丁目 11-6 FORECAST 四谷 7F</dd></div>
+        <div class="pr-row"><dt>設立 :</dt><dd>2000 年 1 月 31 日</dd></div>
+        <div class="pr-row"><dt>資本金 :</dt><dd>1,000 万円</dd></div>
+        <div class="pr-row"><dt>代表取締役 :</dt><dd>宮嶋良任</dd></div>
+        <div class="pr-row"><dt>従業員数 :</dt><dd>70 名</dd></div>
+        <div class="pr-row"><dt>事業内容 :</dt><dd>葬祭事業 / 墓石事業 / 仏壇事業 / 香り事業 / 寺院コンサルティング事業</dd></div>
+        <div class="pr-row"><dt>Tel :</dt><dd>03-6300-4711 ( 代表 )</dd></div>
+        <div class="pr-row"><dt>取引銀行 :</dt><dd>三菱 UFJ 銀行 / りそな銀行</dd></div>
+        <div class="pr-row"><dt>関連会社 :</dt><dd>株式会社ONDO 〒103-0026 東京都中央区日本橋兜町 17-1</dd></div>
+      </dl>
+      <p class="fac-label">運営施設 :</p>
+      <ul class="facilities">
+        <li><p class="fac-name">祈りの道具屋 まなか</p><ul><li>銀座ショールーム</li><li>横浜ショールーム</li></ul></li>
+        <li><p class="fac-name">まなかのお葬式相談サロン</p><ul><li>銀座サロン ( 銀座ショールーム内 )</li><li>新宿サロン ( 新宿ショールーム内 )</li></ul></li>
+        <li><p class="fac-name">まなかのお墓</p><ul><li>川口納骨堂 八聖殿</li><li>川口草加霊園 はじまりの杜</li><li>日野宿 みちの墓苑</li><li>大田区霊園 百月院</li><li>府中市霊園 ようようの杜</li><li>巣鴨霊園 陽の葉や</li><li>早稲田霊園 想咲手水 花手水のお墓</li><li>墨田区霊園 想盆 盆栽のお墓</li><li>中野区霊園 石想居 青空のお墓</li></ul></li>
+      </ul>
+      <img class="logo-mark lm-company" src="../assets/logo.png" width="496" height="512" alt="間｜MA ロゴマーク" loading="lazy" decoding="async">
+    </section>
   </div>
 </main>
 
 <footer class="site-footer">
-  <div class="footer-inner">
-    <div class="footer-left">
-      <div class="f-title">Indies Lifestyle Media 間｜MA</div>
-      <div>Follow us on <a href="https://www.youtube.com/@ma_jpn_com" target="_blank" rel="noopener">YouTube</a> , Podcast and <a href="https://note.com/" target="_blank" rel="noopener">note</a>.</div>
-      <div class="copyright">©2026, Manaka Ltd.　β版（関係者確認用）</div>
-    </div>
-    <button class="theme-toggle" aria-label="明るさを切り替える">
-      <span class="t-label">Light ☀</span><span class="knob"></span>
-    </button>
-    <div class="footer-links">
-      <a href="../company/">Company</a>
-      <a href="../contact/">Contact us</a>
-    </div>
+  <img class="footer-logo" src="../assets/logo.png" width="496" height="512" alt="間｜MA ロゴマーク" loading="lazy" decoding="async">
+  <div class="footer-credit">
+    <p>Indies Lifestyle Media 間｜MA</p>
+    <p>Follow us on <a href="https://www.youtube.com/@ma_jpn_com" target="_blank" rel="noopener">YouTube</a> , <b>Podcast</b> and <a href="https://note.com/" target="_blank" rel="noopener">note</a>.</p>
+    <p>©2026, Manaka Ltd.　β版（関係者確認用）</p>
   </div>
+  <button class="theme-toggle" type="button" aria-label="表示の色を切り替える">
+    <span class="tt-knob"></span><span class="tt-label">Dark</span><span class="tt-icon" aria-hidden="true">☾</span>
+  </button>
+  <div class="footer-links"><a href="../contact/">Contact us</a><a href="../company/">Company</a></div>
 </footer>
 
 <script src="../js/main.js"></script>

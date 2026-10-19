@@ -13,27 +13,30 @@ Indies Lifestyle Media 間｜MA のウェブサイト（株式会社まなか ×
 
 ```
 src/                           # 直すのはここ
-  site.json                    # サイト名・Home の言葉・セクション名・NEWS・Device の事業一覧
-  programs.json                # 番組（死を、教えてくれ。／間を、喰う。／異能の表現者たち）
-  contents.json                # コンテンツ（#2-1-3 など。種類・番組・状態・YouTube・記事）
+  site.json                    # サイト名・Gate と Door・Home の言葉・NEWS・Notion の図の言葉・お店の一覧・値段の表示
+  programs.json                # 番組（間を、喰う／死を、教えてくれ。／異能の表現者たち）と回（ゲストごとのまとまり）
+  contents.json                # コンテンツ（#2-1-3 など。種類・番組・回・状態・YouTube・記事）
   manifesto.json               # MA Notion のマニフェスト（tools/import_manifesto.py で docx から作る）
   device.json                  # Device の商品（tools/import_device.py で荒井さんの Device 表から作る）
+  company.json                 # Company（まなかの軌道・会社概要・運営施設）と Contact us の窓口
   articles/*.html              # Magazine 記事の本文（HTML の断片。画像の @/ はサイトの最上位）
 tools/
   build.py                     # src/ → 公開用 HTML（標準ライブラリだけ・Python 3.9 以上）
   import_manifesto.py          # Notion の docx → src/manifesto.json
   import_device.py             # Device 表の xlsx → src/device.json
   generated.txt                # build.py が生成したファイルの一覧
-css/ js/ assets/               # 見た目と画像（assets/device/ は Device の写真）
+css/ js/ assets/               # 見た目と画像（assets/device/ は Device の写真、assets/illust/ は手描きの絵）
 
 # 生成されるページ（URL）
 index.html                     # Home
-notion/                        # MA Notion / 間の一次情報（マニフェスト）
-channel/                       # 2 MA Channel（番組の一覧と、TV・Magazine・Radio ごとの一覧）
-channel/<番組>/                # 番組ごとのページ
+notion/                        # Gate 0: MA Notion（マニフェスト・密と間・三段の図）
+lab/                           # Gate 1: MA Lab（準備中）
+channel/                       # Gate 2: MA Channel（番組の一覧と、TV・Magazine・Radio ごとの新着）
+channel/<番組>/                # 番組ごとのページ（回ごとに開閉。#ep-<回> で開いた状態で来られる）
 channel/<番組>/<番号>/         # Magazine 記事
-do/  do/device/  do/device/manaka-store/   # 3 MA Do / Device / 祈りの道具屋まなか
-company/  contact/             # 準備中
+do/  do/device/                # Gate 3: MA Do / Device Room（検索・お店で絞り込み）
+do/device/<お店>/<商品ID>/     # 商品のページ
+company/  contact/             # Company / Contact us
 about.html ほか 8 月版のページ   # 新しいページへ転送するだけのページ
 ```
 
@@ -44,6 +47,8 @@ about.html ほか 8 月版のページ   # 新しいページへ転送するだ�
 | `id` | 番号。`2-1-3` の形（2.1 TV・2.2 Magazine・2.3 Radio）。重複不可 |
 | `kind` | `tv` / `mag` / `radio` |
 | `program` | `programs.json` の `slug` |
+| `episode` | `programs.json` の回の `key`（同じゲストの TV・Magazine・Radio をまとめる）。無ければ 1 件で 1 回 |
+| `date` | 公開日（`YYYY-MM-DD`）。日付のあるものが Home の News に新しい順で 3 件まで出て、新しい 3 つの日付に `<NEW>` が付く |
 | `status` | `published`（公開）/ `editing`（編集中）/ `planned`（掲載予定）。公開以外は枠だけ出す |
 | `title` `caption` `badge` `place` `recorded` | 表示する題・ひとこと・記事の種類・場所・収録日（`YYYY-MM-DD`） |
 | `youtube` | YouTube の動画 ID（11 文字）。公開のときだけ埋め込む |
@@ -55,6 +60,13 @@ about.html ほか 8 月版のページ   # 新しいページへ転送するだ�
 `build.py` は生成の前にこれらを検査し、綴り違い・未登録の番組・画像の置き忘れがあると止まる。
 
 Device の写真は `assets/device/` にファイル名のまま置く（Device 表の「メイン画像」「特徴 N 画像」の名前と一致させる）。
+
+### 見た目について（2026-10-16 版デザイン）
+
+- 荒井さんの PC / Phone の PDF（10/16）に合わせている。色は青地（`#1414dc`）に白、リンクと選ばれている所は水色。フッターの切り替えで灰地になる
+- `assets/illust/` の手描きの絵は、PDF の画面から切り出して白線だけにした仮のもの。元データ（ai の書き出し）が届いたら同じ名前で置き換える
+- Home の Ryan Gander の引用は、掲載の可否を確かめてから `src/site.json` の `quote.lines` に入れる（空のあいだは案内の一文が出る）
+- 商品の値段は Device 表では税抜なので、`src/site.json` の `price` の決まりで税込にして出す（総額表示）
 
 ## 更新のしかた
 

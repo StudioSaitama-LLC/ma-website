@@ -4,18 +4,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Device | Indies Lifestyle Media 間｜MA</title>
+<title>Device Room | Indies Lifestyle Media 間｜MA</title>
 <meta name="robots" content="noindex, nofollow">
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("ma-theme")==="light")document.documentElement.classList.add("light")}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;500&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
 <meta name="description" content="合理化の極致にある現代社会に、&quot;間&quot; という新しい文化を届けるインディーズ・ライフスタイルメディア。">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Indies Lifestyle Media 間｜MA">
-<meta property="og:title" content="Device | Indies Lifestyle Media 間｜MA">
+<meta property="og:title" content="Device Room | Indies Lifestyle Media 間｜MA">
 <meta property="og:description" content="合理化の極致にある現代社会に、&quot;間&quot; という新しい文化を届けるインディーズ・ライフスタイルメディア。">
 <meta property="og:image" content="../../assets/apple-touch-icon.png">
 <meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#1414dc">
 <link rel="icon" href="../../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="../../assets/favicon.png">
 <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png">
@@ -24,72 +26,99 @@
 <body>
 
 <header class="site-header">
-  <div class="header-inner">
+  <div class="bar">
     <a class="site-title" href="../../">Indies Lifestyle Media 間｜MA</a>
-    <div class="header-right">
-      <nav class="global-nav">
-        <a class="nav-item" href="../../notion/">MA Notion</a>
-        <span class="nav-item dim">1 MA Lab</span>
-        <a class="nav-item" href="../../channel/">2 MA Channel</a>
-        <a class="nav-item" href="../../do/">3 MA Do</a>
-      </nav>
-      <button class="menu-btn" aria-label="メニューを開く">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
+    <button class="menu-btn" type="button" aria-controls="site-menu" aria-expanded="false" aria-label="メニューを開く">
+      <span></span><span></span><span></span>
+    </button>
   </div>
+  <nav class="gate-tabs" aria-label="Gate">
+    <a class="gate-tab gt-lab" href="../../lab/"><span class="gt-no">Gate 1:</span><span class="gt-box">MA Lab</span></a>
+    <a class="gate-tab gt-channel" href="../../channel/"><span class="gt-no">Gate 2:</span><span class="gt-box">MA Channel</span></a>
+    <a class="gate-tab gt-do is-active" href="../../do/" aria-current="page"><span class="gt-no">Gate 3:</span><span class="gt-box">MA Do</span></a>
+  </nav>
 </header>
 
-<div class="menu-overlay">
-  <nav>
-    <a href="../../">HOME</a>
-    <a href="../../notion/">MA Notion / 間の一次情報</a>
-    <span class="dim">1&ensp;MA Lab / 間の定義化</span>
-    <span class="menu-child dim">1.1&ensp;Dictionary / 感覚と感情の往復</span>
-    <span class="menu-child dim">1.2&ensp;Reference / 過去の資料庫</span>
-    <span class="menu-child dim">1.3&ensp;Research / 間の未来を検証</span>
-    <a href="../../channel/">2&ensp;MA Channel / 間の流通化</a>
-    <a class="menu-child" href="../../channel/beyond-the-vanishingpoint/">Beyond the Vanishing point / 死を、教えてくれ。</a>
-    <a class="menu-child" href="../../channel/ma-development-process/">MA Development Process / 間を、喰う。</a>
-    <a class="menu-child" href="../../channel/ma-crosstalk/">MA Crosstalk / 異能の表現者たち</a>
-    <a href="../../do/">3&ensp;MA Do / 間の個人化</a>
-    <span class="menu-child dim">3.1&ensp;Tips / 間の作法</span>
-    <a class="menu-child" href="../../do/device/">3.2&ensp;Device / 装置</a>
-    <a href="../../company/">Company / 株式会社まなかについて</a>
-    <a href="../../contact/">Contact us / お問い合わせ</a>
+<div class="menu-overlay" id="site-menu" aria-hidden="true">
+  <div class="bar">
+    <a class="site-title" href="../../">Indies Lifestyle Media 間｜MA</a>
+    <button class="menu-close" type="button" aria-label="メニューを閉じる"><span></span><span></span></button>
+  </div>
+  <nav class="menu-inner" aria-label="サイトの案内">
+    <a class="menu-home" href="../../">Home</a>
+    <div class="menu-gates">
+      <div class="menu-gate">
+        <a class="mg-head" href="../../notion/"><span class="gh-no">Gate 0:</span> <strong>MA Notion</strong></a>
+        <p class="mg-sub">/ 間、当事者化への提案</p>
+      </div>
+      <div class="menu-gate is-dim">
+        <a class="mg-head is-dim" href="../../lab/"><span class="gh-no">Gate 1:</span> <strong>MA Lab</strong></a>
+        <p class="mg-sub">/ 間、定義化への試み</p>
+      </div>
+      <div class="menu-gate">
+        <a class="mg-head" href="../../channel/"><span class="gh-no">Gate 2:</span> <strong>MA Channel</strong></a>
+        <p class="mg-sub">/ 間、流通化への多手</p>
+        <ul class="mg-list">
+          <li><a href="../../channel/ma-development-process/"><span class="en">MA Development Process</span> / 間を、喰う</a></li>
+          <li><a href="../../channel/beyond-the-vanishingpoint/"><span class="en">Beyond the Vanishing point</span> / 死を、教えてくれ。</a></li>
+          <li><a href="../../channel/ma-crosstalk/"><span class="en">MA Crosstalk</span> / 異能の表現者たち</a></li>
+        </ul>
+      </div>
+      <div class="menu-gate">
+        <a class="mg-head" href="../../do/"><span class="gh-no">Gate 3:</span> <strong>MA Do</strong></a>
+        <p class="mg-sub">/ 間、個人化への導線</p>
+        <ul class="mg-list">
+          <li class="is-dim"><span class="en">Tips Room</span></li>
+          <li><a href="../../do/device/"><span class="en">Device Room</span></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="menu-links"><a href="../../contact/">Contact us</a><a href="../../company/">Company</a></div>
   </nav>
+  <img class="illust menu-figure" src="../../assets/illust/figure.png" width="321" height="1207" alt="" loading="lazy" decoding="async">
 </div>
 
-<main class="page">
-  <div class="content">
-    <div class="crumb"><a href="../../do/">3&ensp;MA Do</a></div>
-    <h1 class="section-head">3.2&ensp;Device / 装置</h1>
-    <div class="lead"><p>まなかの事業、サービス・プロダクト（仏壇・供養・空間装置）を並べる場所です。</p></div>
-    <ol class="toc">
-      <li class="lv2"><a href="../../do/device/manaka-store/">祈りの道具屋まなか</a></li>
-      <li class="lv2 dim">はじめてのお葬式 <span class="status">準備中</span></li>
-      <li class="lv2 dim">まなかのぼえん葬 <span class="status">準備中</span></li>
-      <li class="lv2 dim">まなかのお墓 <span class="status">準備中</span></li>
-      <li class="lv2 dim">日々香好日 TOKYO <span class="status">準備中</span></li>
-    </ol>
+<main class="page" id="main">
+  <div class="content wide">
+    <p class="crumb"><a href="../../">Home</a> › <a href="../../do/">MA Do</a> › Device</p>
+    <h1 class="visually-hidden">Device Room</h1>
+    <form class="dev-search" role="search" action="#">
+      <label class="visually-hidden" for="dev-q">MA Do / Device を検索</label>
+      <input id="dev-q" type="search" placeholder="MA Do / Device を検索" autocomplete="off">
+      <button type="submit" aria-label="検索"><span class="search-icon" aria-hidden="true"></span></button>
+    </form>
+    <div class="pills" role="group" aria-label="お店で絞り込む">
+      <button class="pill is-active" type="button" data-shop="">ALL</button>
+      <button class="pill" type="button" data-shop="manaka-store">祈りの道具屋 まなか</button>
+      <button class="pill is-empty" type="button" data-shop="hajioso">はじめてのお葬式</button>
+      <button class="pill is-empty" type="button" data-shop="manaka-ohaka">まなかのお墓</button>
+      <button class="pill is-empty" type="button" data-shop="hibiko">日々香好日 TOKYO</button>
+      <button class="pill is-empty" type="button" data-shop="manaka-net">まなかのぼえん葬</button>
+    </div>
+    <ul class="dev-grid">
+      <li class="dev-card" data-shop="manaka-store" data-text="星牌® 石 祈りの道具屋まなか お位牌 あの人を感じる唯一無二の天然石のお位牌">
+        <a class="dc-img" href="../../do/device/manaka-store/2/"><img src="../../assets/device/seihai_g01.jpg" width="720" height="720" loading="lazy" decoding="async" alt="星牌® 石"></a>
+        <p class="dc-shop">祈りの道具屋 まなか</p>
+        <p class="dc-name">星牌® 石</p>
+        <p class="price">¥55,000~ <span class="tax">税込</span></p>
+        <a class="dc-btn" href="../../do/device/manaka-store/2/">詳細</a>
+      </li>
+    </ul>
+    <p class="pending-note dev-empty" hidden>該当する商品は、まだ載せていません（順に追加します）。</p>
   </div>
 </main>
 
 <footer class="site-footer">
-  <div class="footer-inner">
-    <div class="footer-left">
-      <div class="f-title">Indies Lifestyle Media 間｜MA</div>
-      <div>Follow us on <a href="https://www.youtube.com/@ma_jpn_com" target="_blank" rel="noopener">YouTube</a> , Podcast and <a href="https://note.com/" target="_blank" rel="noopener">note</a>.</div>
-      <div class="copyright">©2026, Manaka Ltd.　β版（関係者確認用）</div>
-    </div>
-    <button class="theme-toggle" aria-label="明るさを切り替える">
-      <span class="t-label">Light ☀</span><span class="knob"></span>
-    </button>
-    <div class="footer-links">
-      <a href="../../company/">Company</a>
-      <a href="../../contact/">Contact us</a>
-    </div>
+  <img class="footer-logo" src="../../assets/logo.png" width="496" height="512" alt="間｜MA ロゴマーク" loading="lazy" decoding="async">
+  <div class="footer-credit">
+    <p>Indies Lifestyle Media 間｜MA</p>
+    <p>Follow us on <a href="https://www.youtube.com/@ma_jpn_com" target="_blank" rel="noopener">YouTube</a> , <b>Podcast</b> and <a href="https://note.com/" target="_blank" rel="noopener">note</a>.</p>
+    <p>©2026, Manaka Ltd.　β版（関係者確認用）</p>
   </div>
+  <button class="theme-toggle" type="button" aria-label="表示の色を切り替える">
+    <span class="tt-knob"></span><span class="tt-label">Dark</span><span class="tt-icon" aria-hidden="true">☾</span>
+  </button>
+  <div class="footer-links"><a href="../../contact/">Contact us</a><a href="../../company/">Company</a></div>
 </footer>
 
 <script src="../../js/main.js"></script>

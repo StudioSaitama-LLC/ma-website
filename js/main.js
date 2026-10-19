@@ -1,69 +1,59 @@
-/* 間｜MA — shared behaviors */
+/* 間｜MA — ページ共通の動き
+   - 色の切り替え（青地 / 灰地）。ページを読む前に <head> の小さなスクリプトが前回の選択を戻している
+   - メニュー（全画面）の開閉
+   - 章の開閉（最初は一部だけ見せ、矢印で全部 ↔ 一部）
+   - 番組の回（details）は、#ep-… で来たときに開く
+   - Device Room の検索とお店の絞り込み */
 
 (function () {
-  // ---------- Theme (Light / Dark : 2パターンの明るさ) ----------
   var root = document.documentElement;
-  var saved = null;
-  try { saved = localStorage.getItem("ma-theme"); } catch (e) {}
-  if (saved === "light") root.classList.add("light");
 
   function syncToggle() {
-    var btns = document.querySelectorAll(".theme-toggle");
-    var isLight = root.classList.contains("light");
-    btns.forEach(function (b) {
-      b.querySelector(".t-label").textContent = isLight ? "Dark ☾" : "Light ☀";
+    var light = root.classList.contains("light");
+    document.querySelectorAll(".theme-toggle").forEach(function (b) {
+      b.querySelector(".tt-label").textContent = light ? "Light" : "Dark";
+      b.querySelector(".tt-icon").textContent = light ? "☼" : "☾";
+      b.setAttribute("aria-pressed", light ? "true" : "false");
     });
+  }
+
+  function openFromHash() {
+    var id = decodeURIComponent(location.hash.slice(1));
+    if (!id) return;
+    var el = document.getElementById(id);
+    if (el && el.tagName === "DETAILS") el.open = true;
   }
 
   document.addEventListener("DOMContentLoaded", function () {
     syncToggle();
-
     document.querySelectorAll(".theme-toggle").forEach(function (b) {
       b.addEventListener("click", function () {
         root.classList.toggle("light");
         try {
-          localStorage.setItem(
-            "ma-theme",
-            root.classList.contains("light") ? "light" : "dark"
-          );
+          localStorage.setItem("ma-theme", root.classList.contains("light") ? "light" : "dark");
         } catch (e) {}
         syncToggle();
       });
     });
 
-    // ---------- Header : スクロールでタイトル行が消える ----------
-    var header = document.querySelector(".site-header");
-    if (header) {
-      var onScroll = function () {
-        header.classList.toggle("scrolled", window.scrollY > 60);
-      };
-      window.addEventListener("scroll", onScroll, { passive: true });
-      onScroll();
-    }
-
-    // ---------- Menu overlay ----------
-    var overlay = document.querySelector(".menu-overlay");
+    // ---------- メニュー ----------
+    var overlay = document.getElementById("site-menu");
     var openBtn = document.querySelector(".menu-btn");
-    if (overlay && openBtn) {
+    var closeBtn = overlay && overlay.querySelector(".menu-close");
+    if (overlay && openBtn && closeBtn) {
       var setOpen = function (open) {
         overlay.classList.toggle("open", open);
         document.body.classList.toggle("menu-open", open);
         overlay.setAttribute("aria-hidden", open ? "false" : "true");
         openBtn.setAttribute("aria-expanded", open ? "true" : "false");
-        openBtn.setAttribute("aria-label", open ? "メニューを閉じる" : "メニューを開く");
+        if (open) closeBtn.focus();
       };
-      setOpen(false);
-
-      openBtn.addEventListener("click", function () {
-        setOpen(!overlay.classList.contains("open"));
-      });
-
-      // 同一ページ内アンカー(index.html#ma-lab 等)はページ遷移が起きないため、
-      // リンクを踏んだら明示的に閉じないとオーバーレイが画面を覆ったままになる
+      openBtn.addEventListener("click", function () { setOpen(true); });
+      closeBtn.addEventListener("click", function () { setOpen(false); openBtn.focus(); });
+      // 同じページ内へのリンクではページが変わらないので、踏んだら閉じる
       overlay.querySelectorAll("a").forEach(function (a) {
         a.addEventListener("click", function () { setOpen(false); });
       });
-
       document.addEventListener("keydown", function (e) {
         if (e.key === "Escape" && overlay.classList.contains("open")) {
           setOpen(false);
@@ -72,41 +62,78 @@
       });
     }
 
-    // ---------- Traffic counter ----------
-    var digits = document.querySelector(".traffic .digits");
-    if (digits) {
-      var target = parseInt(digits.dataset.count || "2", 10);
-      var pad = function (n) { return String(n).padStart(6, "0"); };
-      var n = 0;
-      digits.textContent = pad(0);
-      var t = setInterval(function () {
-        n++;
-        digits.textContent = pad(n);
-        if (n >= target) clearInterval(t);
-      }, 260);
+    // ---------- 章の開閉 ----------
+    document.querySelectorAll(".fold").forEach(function (f) {
+      var btn = f.querySelector(".fold-toggle");
+      var body = f.querySelector(".fold-body");
+      if (!btn || !body) return;
+      if (body.scrollHeight <= 200) {
+        btn.hidden = true;
+        return;
+      }
+      var set = function (open) {
+        f.classList.toggle("is-folded", !open);
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+      };
+      set(false);
+      btn.addEventListener("click", function () {
+        var opening = f.classList.contains("is-folded");
+        set(opening);
+        if (!opening) f.scrollIntoView({ block: "start" });
+      });
+    });
+
+    // ---------- 番組の回 ----------
+    openFromHash();
+    window.addEventListener("hashchange", openFromHash);
+
+    // ---------- 商品の写真 ----------
+    var main = document.querySelector(".gallery-main");
+    if (main) {
+      var thumbs = document.querySelectorAll(".gallery-thumbs img");
+      thumbs.forEach(function (t, i) {
+        if (i === 0) t.classList.add("is-current");
+        t.addEventListener("click", function () {
+          main.src = t.src;
+          main.alt = t.alt;
+          thumbs.forEach(function (x) { x.classList.toggle("is-current", x === t); });
+        });
+      });
     }
 
-    // ---------- Home : スクロールに合わせて内容を順次表示 ----------
-    var revealItems = document.querySelectorAll(
-      ".home-page .poem, .home-page .logo-mark, .home-page .contents-head, .home-page .toc > li"
-    );
-    if (revealItems.length) {
-      revealItems.forEach(function (item) { item.classList.add("reveal-item"); });
-
-      if (!("IntersectionObserver" in window)) {
-        revealItems.forEach(function (item) { item.classList.add("is-visible"); });
-      } else {
-        var revealObserver = new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("is-visible");
-              revealObserver.unobserve(entry.target);
-            }
+    // ---------- Device Room ----------
+    var grid = document.querySelector(".dev-grid");
+    var q = document.getElementById("dev-q");
+    if (grid && q) {
+      var pills = document.querySelectorAll(".pill");
+      var empty = document.querySelector(".dev-empty");
+      var shop = "";
+      var apply = function () {
+        var term = (q.value || "").trim().toLowerCase();
+        var shown = 0;
+        grid.querySelectorAll(".dev-card").forEach(function (c) {
+          var ok = (!shop || c.dataset.shop === shop) &&
+            (!term || (c.dataset.text || "").toLowerCase().indexOf(term) >= 0);
+          c.hidden = !ok;
+          if (ok) shown++;
+        });
+        if (empty) empty.hidden = shown > 0;
+      };
+      pills.forEach(function (p) {
+        p.setAttribute("aria-pressed", p.classList.contains("is-active") ? "true" : "false");
+        p.addEventListener("click", function () {
+          shop = p.dataset.shop || "";
+          pills.forEach(function (x) {
+            x.classList.toggle("is-active", x === p);
+            x.setAttribute("aria-pressed", x === p ? "true" : "false");
           });
-        }, { threshold: 0.08, rootMargin: "0px 0px -8% 0px" });
-
-        revealItems.forEach(function (item) { revealObserver.observe(item); });
-      }
+          apply();
+        });
+      });
+      q.addEventListener("input", apply);
+      if (q.form) q.form.addEventListener("submit", function (e) { e.preventDefault(); apply(); });
+      var wanted = location.hash.slice(1);
+      pills.forEach(function (p) { if (wanted && p.dataset.shop === wanted) p.click(); });
     }
   });
 })();

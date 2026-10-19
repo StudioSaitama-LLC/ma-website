@@ -4,18 +4,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>間を、喰う。 | Indies Lifestyle Media 間｜MA</title>
+<title>MA Development Process / 間を、喰う | Indies Lifestyle Media 間｜MA</title>
 <meta name="robots" content="noindex, nofollow">
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("ma-theme")==="light")document.documentElement.classList.add("light")}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;500&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
 <meta name="description" content="合理化の極致にある現代社会に、&quot;間&quot; という新しい文化を届けるインディーズ・ライフスタイルメディア。">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Indies Lifestyle Media 間｜MA">
-<meta property="og:title" content="間を、喰う。 | Indies Lifestyle Media 間｜MA">
+<meta property="og:title" content="MA Development Process / 間を、喰う | Indies Lifestyle Media 間｜MA">
 <meta property="og:description" content="合理化の極致にある現代社会に、&quot;間&quot; という新しい文化を届けるインディーズ・ライフスタイルメディア。">
 <meta property="og:image" content="../../assets/apple-touch-icon.png">
 <meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#1414dc">
 <link rel="icon" href="../../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="../../assets/favicon.png">
 <link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png">
@@ -24,97 +26,126 @@
 <body>
 
 <header class="site-header">
-  <div class="header-inner">
+  <div class="bar">
     <a class="site-title" href="../../">Indies Lifestyle Media 間｜MA</a>
-    <div class="header-right">
-      <nav class="global-nav">
-        <a class="nav-item" href="../../notion/">MA Notion</a>
-        <span class="nav-item dim">1 MA Lab</span>
-        <a class="nav-item" href="../../channel/">2 MA Channel</a>
-        <a class="nav-item" href="../../do/">3 MA Do</a>
-      </nav>
-      <button class="menu-btn" aria-label="メニューを開く">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
+    <button class="menu-btn" type="button" aria-controls="site-menu" aria-expanded="false" aria-label="メニューを開く">
+      <span></span><span></span><span></span>
+    </button>
   </div>
+  <nav class="gate-tabs" aria-label="Gate">
+    <a class="gate-tab gt-lab" href="../../lab/"><span class="gt-no">Gate 1:</span><span class="gt-box">MA Lab</span></a>
+    <a class="gate-tab gt-channel is-active" href="../../channel/" aria-current="page"><span class="gt-no">Gate 2:</span><span class="gt-box">MA Channel</span></a>
+    <a class="gate-tab gt-do" href="../../do/"><span class="gt-no">Gate 3:</span><span class="gt-box">MA Do</span></a>
+  </nav>
 </header>
 
-<div class="menu-overlay">
-  <nav>
-    <a href="../../">HOME</a>
-    <a href="../../notion/">MA Notion / 間の一次情報</a>
-    <span class="dim">1&ensp;MA Lab / 間の定義化</span>
-    <span class="menu-child dim">1.1&ensp;Dictionary / 感覚と感情の往復</span>
-    <span class="menu-child dim">1.2&ensp;Reference / 過去の資料庫</span>
-    <span class="menu-child dim">1.3&ensp;Research / 間の未来を検証</span>
-    <a href="../../channel/">2&ensp;MA Channel / 間の流通化</a>
-    <a class="menu-child" href="../../channel/beyond-the-vanishingpoint/">Beyond the Vanishing point / 死を、教えてくれ。</a>
-    <a class="menu-child" href="../../channel/ma-development-process/">MA Development Process / 間を、喰う。</a>
-    <a class="menu-child" href="../../channel/ma-crosstalk/">MA Crosstalk / 異能の表現者たち</a>
-    <a href="../../do/">3&ensp;MA Do / 間の個人化</a>
-    <span class="menu-child dim">3.1&ensp;Tips / 間の作法</span>
-    <a class="menu-child" href="../../do/device/">3.2&ensp;Device / 装置</a>
-    <a href="../../company/">Company / 株式会社まなかについて</a>
-    <a href="../../contact/">Contact us / お問い合わせ</a>
+<div class="menu-overlay" id="site-menu" aria-hidden="true">
+  <div class="bar">
+    <a class="site-title" href="../../">Indies Lifestyle Media 間｜MA</a>
+    <button class="menu-close" type="button" aria-label="メニューを閉じる"><span></span><span></span></button>
+  </div>
+  <nav class="menu-inner" aria-label="サイトの案内">
+    <a class="menu-home" href="../../">Home</a>
+    <div class="menu-gates">
+      <div class="menu-gate">
+        <a class="mg-head" href="../../notion/"><span class="gh-no">Gate 0:</span> <strong>MA Notion</strong></a>
+        <p class="mg-sub">/ 間、当事者化への提案</p>
+      </div>
+      <div class="menu-gate is-dim">
+        <a class="mg-head is-dim" href="../../lab/"><span class="gh-no">Gate 1:</span> <strong>MA Lab</strong></a>
+        <p class="mg-sub">/ 間、定義化への試み</p>
+      </div>
+      <div class="menu-gate">
+        <a class="mg-head" href="../../channel/"><span class="gh-no">Gate 2:</span> <strong>MA Channel</strong></a>
+        <p class="mg-sub">/ 間、流通化への多手</p>
+        <ul class="mg-list">
+          <li><a href="../../channel/ma-development-process/"><span class="en">MA Development Process</span> / 間を、喰う</a></li>
+          <li><a href="../../channel/beyond-the-vanishingpoint/"><span class="en">Beyond the Vanishing point</span> / 死を、教えてくれ。</a></li>
+          <li><a href="../../channel/ma-crosstalk/"><span class="en">MA Crosstalk</span> / 異能の表現者たち</a></li>
+        </ul>
+      </div>
+      <div class="menu-gate">
+        <a class="mg-head" href="../../do/"><span class="gh-no">Gate 3:</span> <strong>MA Do</strong></a>
+        <p class="mg-sub">/ 間、個人化への導線</p>
+        <ul class="mg-list">
+          <li class="is-dim"><span class="en">Tips Room</span></li>
+          <li><a href="../../do/device/"><span class="en">Device Room</span></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="menu-links"><a href="../../contact/">Contact us</a><a href="../../company/">Company</a></div>
   </nav>
+  <img class="illust menu-figure" src="../../assets/illust/figure.png" width="321" height="1207" alt="" loading="lazy" decoding="async">
 </div>
 
-<main class="page">
+<main class="page" id="main">
   <div class="content">
-
-    <div class="crumb"><a href="../../channel/">2&ensp;MA Channel</a></div>
-    <h1 class="section-head">MA Development Process / 間を、喰う。</h1>
-
-    <div class="lead">
-      <p class="pending-note">番組の紹介文は準備中です。</p>
+    <div class="program-head">
+      <h1 class="ph-title"><span class="en">MA Development Process</span> <span class="ja">/ 間を、喰う</span></h1>
+      <p class="ph-sub">- 合理化の先で、何を叫ぶのか -</p>
     </div>
 
-    <div class="logo-mark" style="transform: rotate(140deg); margin-right: 10%;">
-  <img src="../../assets/logo.png" width="496" height="512" alt="間｜MA ロゴマーク">
-</div>
+    <div class="program-lead">
+      <div class="prose">
+        <p>あふれかえる情報と、<br>効率化された世界を生きる現在。<br>逃げ出すわけでも盲従するわけでもなく、<br>その濁流へ、あえて飛び込む。</p>
+        <p>失いかけた、生きている実感を<br>もう一度たぐり寄せる。<br>合理化の先で、何を叫ぶのか。</p>
+      </div>
+      <img class="illust program-illust" src="../../assets/illust/development-process.png" alt="" loading="lazy" decoding="async">
+    </div>
+    <a class="arrow-btn arrow-right" href="#entries" aria-label="コンテンツへ進む"><span aria-hidden="true">↓</span></a>
 
-    <div class="video-list">
-      <div class="video-card">
-        <div class="kind-label">TV</div>
-        <iframe class="video-embed" src="https://www.youtube-nocookie.com/embed/wtHW3PYv9Ik" title="MA Channel #2-1-1 About MA" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-        <div class="video-meta">
-          <div class="date">#2-1-1&ensp;収録 2026.05.11</div>
-          <div class="v-ttl">About MA</div>
-          <div class="v-cap">SPACE? BETWEEN? DISTANCE!? まなか宮嶋の思想 &quot;間&quot; の平場の中心に加藤が秒で立つ。メディア &quot;間｜MA&quot; とは何か？</div>
+    <div class="entries" id="entries">
+    <details class="entry" id="ep-2-1-1" open>
+      <summary>
+        <p class="entry-meta"><span class="em-path">MA Channel/TV/2-1-1</span></p>
+        <p class="entry-title">「About MA」</p>
+        <p class="entry-text">SPACE? BETWEEN? DISTANCE!? まなか宮嶋の思想 &quot;間&quot; の平場の中心に加藤が秒で立つ。メディア &quot;間｜MA&quot; とは何か？</p>
+        <span class="fold-btn" aria-hidden="true"></span>
+      </summary>
+      <div class="entry-body">
+      <section class="door">
+        <h3 class="door-head">Door: 2-1 <strong>MA Channel / TV</strong></h3>
+        <div class="door-item">
+          <p class="door-item-head"><span class="em-path">#2-1-1</span> <span class="dc-title">About MA</span></p>
+          <div class="video"><iframe src="https://www.youtube-nocookie.com/embed/wtHW3PYv9Ik" title="MA Channel #2-1-1 About MA" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
         </div>
-        <hr class="dashed">
+      </section>
       </div>
-      <div class="video-card">
-        <div class="kind-label">TV</div>
-        <iframe class="video-embed" src="https://www.youtube-nocookie.com/embed/AV7jnVH9m-c" title="MA Channel #2-1-2 Gateway Shuffle" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-        <div class="video-meta">
-          <div class="date">#2-1-2&ensp;収録 2026.05.25</div>
-          <div class="v-ttl">Gateway Shuffle</div>
-          <div class="v-cap">間と死の関係的なサムシング。</div>
+    </details>
+
+    <details class="entry" id="ep-2-1-2">
+      <summary>
+        <p class="entry-meta"><span class="em-path">MA Channel/TV/2-1-2</span></p>
+        <p class="entry-title">「Gateway Shuffle」</p>
+        <p class="entry-text">間と死の関係的なサムシング。</p>
+        <span class="fold-btn" aria-hidden="true"></span>
+      </summary>
+      <div class="entry-body">
+      <section class="door">
+        <h3 class="door-head">Door: 2-1 <strong>MA Channel / TV</strong></h3>
+        <div class="door-item">
+          <p class="door-item-head"><span class="em-path">#2-1-2</span> <span class="dc-title">Gateway Shuffle</span></p>
+          <div class="video"><iframe src="https://www.youtube-nocookie.com/embed/AV7jnVH9m-c" title="MA Channel #2-1-2 Gateway Shuffle" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
         </div>
-        <hr class="dashed">
+      </section>
       </div>
+    </details>
     </div>
 
   </div>
 </main>
 
 <footer class="site-footer">
-  <div class="footer-inner">
-    <div class="footer-left">
-      <div class="f-title">Indies Lifestyle Media 間｜MA</div>
-      <div>Follow us on <a href="https://www.youtube.com/@ma_jpn_com" target="_blank" rel="noopener">YouTube</a> , Podcast and <a href="https://note.com/" target="_blank" rel="noopener">note</a>.</div>
-      <div class="copyright">©2026, Manaka Ltd.　β版（関係者確認用）</div>
-    </div>
-    <button class="theme-toggle" aria-label="明るさを切り替える">
-      <span class="t-label">Light ☀</span><span class="knob"></span>
-    </button>
-    <div class="footer-links">
-      <a href="../../company/">Company</a>
-      <a href="../../contact/">Contact us</a>
-    </div>
+  <img class="footer-logo" src="../../assets/logo.png" width="496" height="512" alt="間｜MA ロゴマーク" loading="lazy" decoding="async">
+  <div class="footer-credit">
+    <p>Indies Lifestyle Media 間｜MA</p>
+    <p>Follow us on <a href="https://www.youtube.com/@ma_jpn_com" target="_blank" rel="noopener">YouTube</a> , <b>Podcast</b> and <a href="https://note.com/" target="_blank" rel="noopener">note</a>.</p>
+    <p>©2026, Manaka Ltd.　β版（関係者確認用）</p>
   </div>
+  <button class="theme-toggle" type="button" aria-label="表示の色を切り替える">
+    <span class="tt-knob"></span><span class="tt-label">Dark</span><span class="tt-icon" aria-hidden="true">☾</span>
+  </button>
+  <div class="footer-links"><a href="../../contact/">Contact us</a><a href="../../company/">Company</a></div>
 </footer>
 
 <script src="../../js/main.js"></script>
