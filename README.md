@@ -7,29 +7,62 @@ Indies Lifestyle Media 間｜MA のウェブサイト（株式会社まなか ×
 - 関連リポジトリ: [ma-jpn](https://github.com/StudioSaitama-LLC/ma-jpn)（旧サイト / GitHub Pages。本 repo とは別系統）
 - 企画・戦略ドキュメント: `studiosaitama/clients/manaka/docs/`（ローカル）/ [manaka-docs](https://github.com/StudioSaitama-LLC/manaka-docs)
 
-## 構成
+## 構成（2026-10 β版から）
+
+ページは `src/` のデータから `tools/build.py` が生成する。**生成された HTML を直接直さない**（次の生成で消える）。
 
 ```
-index.html                      # Home（カウンター・ポエム・TOC）
-about.html                      # About MA / 間とは何か？
-ma-channel.html                 # MA Channel / 間の流通化
-edge-riders.html                # 2.1 Edge Riders / 密を往く者たち
-beyond-the-vanishing-point.html # 2.2 Beyond the Vanishing point / 死を、教えてくれ。
-article-3-2-1.html              # 2.2.1 仁科正史 記事
-css/ js/ assets/
+src/                           # 直すのはここ
+  site.json                    # サイト名・Home の言葉・セクション名・NEWS・Device の事業一覧
+  programs.json                # 番組（死を、教えてくれ。／間を、喰う。／異能の表現者たち）
+  contents.json                # コンテンツ（#2-1-3 など。種類・番組・状態・YouTube・記事）
+  manifesto.json               # MA Notion のマニフェスト（tools/import_manifesto.py で docx から作る）
+  device.json                  # Device の商品（tools/import_device.py で荒井さんの Device 表から作る）
+  articles/*.html              # Magazine 記事の本文（HTML の断片。画像の @/ はサイトの最上位）
+tools/
+  build.py                     # src/ → 公開用 HTML（標準ライブラリだけ・Python 3.9 以上）
+  import_manifesto.py          # Notion の docx → src/manifesto.json
+  import_device.py             # Device 表の xlsx → src/device.json
+  generated.txt                # build.py が生成したファイルの一覧
+css/ js/ assets/               # 見た目と画像（assets/device/ は Device の写真）
+
+# 生成されるページ（URL）
+index.html                     # Home
+notion/                        # MA Notion / 間の一次情報（マニフェスト）
+channel/                       # 2 MA Channel（番組の一覧と、TV・Magazine・Radio ごとの一覧）
+channel/<番組>/                # 番組ごとのページ
+channel/<番組>/<番号>/         # Magazine 記事
+do/  do/device/  do/device/manaka-store/   # 3 MA Do / Device / 祈りの道具屋まなか
+company/  contact/             # 準備中
+about.html ほか 8 月版のページ   # 新しいページへ転送するだけのページ
 ```
 
-技術スタック: 素の HTML / CSS / JS（ビルドなし）。全リンク相対パスのためプロジェクトページ配下でそのまま動作する。
+コンテンツの「状態」（`status`）は `published`（公開）／`editing`（編集中）／`planned`（掲載予定）。
+編集中・掲載予定のものは枠だけ出し、リンクや原稿が届いたら値を変えて生成し直す。
 
-## 開発
+## 更新のしかた
 
-ローカル確認は任意の静的サーバーで:
+```bash
+python3 tools/build.py            # src/ から生成し直す
+python3 tools/build.py --check    # 生成結果と repo のファイルが一致するか確かめる
+```
+
+マニフェストや Device 表の新しい版が届いたとき:
+
+```bash
+python3 tools/import_manifesto.py <Notion_YYYYMMDD.docx>
+python3 tools/import_device.py <Device_YYYYMMDD.xlsx> --ids 2
+python3 tools/build.py
+```
+
+ローカル確認は任意の静的サーバーで（`channel/` のような URL はファイルを直接開くと一覧表示になるため、サーバー経由で見る）:
 
 ```bash
 python3 -m http.server 8000
 ```
 
 main への直 push は禁止。ブランチ → PR でマージする（Pages は main から自動配信）。
+β版の間（2026-10-26 の定例で一般公開を決めるまで）は `src/site.json` の `noindex` を `true` にしておく。
 
 ## Provenance（archived-from）
 

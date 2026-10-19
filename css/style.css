@@ -768,3 +768,109 @@ html.light .theme-toggle .knob { background: #f7f7f7; }
   }
   .home-page .reveal-item { opacity: 1; transform: none; }
 }
+
+/* ============================================
+   β版（2026-10）で足した部品
+   tools/build.py が生成するページで使う。既存の色・文字の変数をそのまま使う
+   ============================================ */
+
+.global-nav .nav-item.dim { color: var(--muted); }
+.menu-overlay.open nav > :nth-child(14) { transition-delay: 0.34s; }
+.menu-overlay.open nav > :nth-child(15) { transition-delay: 0.36s; }
+.menu-overlay.open nav > :nth-child(16) { transition-delay: 0.38s; }
+.menu-overlay.open nav > :nth-child(17) { transition-delay: 0.40s; }
+
+/* 状態（編集中・掲載予定）とパンくず */
+.status {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  padding: 0 7px 1px;
+  margin-left: 8px;
+  vertical-align: 1px;
+  white-space: nowrap;
+}
+.crumb { margin-top: 70px; font-size: 14px; color: var(--muted); }
+.crumb a { color: var(--muted); }
+.crumb + .section-head { margin-top: 18px; }
+.pending-note { font-size: 14.5px; color: var(--muted); margin-top: 40px; }
+.back-link { margin-top: 90px; font-size: 14.5px; }
+
+/* Channel */
+.contents-head .via { color: var(--muted); font-size: 13px; margin-left: 6px; }
+.series-count { font-size: 13.5px; color: var(--muted); margin: -12px 0 0 16px; }
+.kind-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.video-meta .v-cap,
+.text-card .v-cap { font-size: 14.5px; }
+.text-card { margin-bottom: 10px; }
+.text-card .badge { margin: 0 6px 0 0; vertical-align: 1px; }
+.text-card .date { font-size: 14.5px; }
+.video-ph .ph-label {
+  position: absolute;
+  left: 50%;
+  bottom: 10%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  color: var(--video-play);
+  letter-spacing: 0.08em;
+}
+
+/* MA Notion（マニフェスト） */
+.manifesto-head { margin: 20px 0 40px; }
+.manifesto-title { font-family: var(--serif); font-weight: 500; font-size: 26px; letter-spacing: 0.12em; }
+.manifesto-author { font-size: 15px; margin-top: 6px; }
+.manifesto-version { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.chapter-toc { list-style: none; margin: 0 0 30px; font-size: 15px; display: flex; flex-direction: column; gap: 4px; }
+.chapter { margin-top: 90px; scroll-margin-top: 110px; }
+.chapter-head { font-family: var(--serif); font-weight: 500; font-size: 19px; margin-bottom: 30px; }
+.manifesto-body p { font-family: var(--serif); font-weight: 400; margin-bottom: 0.5em; }
+
+/* Device（商品） */
+.product { margin-top: 30px; }
+.product-shop { font-size: 14px; color: var(--muted); }
+.product-name { font-size: 24px; font-weight: 400; margin: 6px 0 10px; }
+.product-copy { font-size: 15.5px; margin-bottom: 34px; }
+.sku-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 34px;
+}
+.sku img { width: 100%; height: auto; display: block; aspect-ratio: 1 / 1; object-fit: cover; background: var(--video-bg); }
+.sku-color { font-size: 14.5px; margin-top: 8px; }
+.sku-price { font-family: var(--mono); font-weight: 700; font-size: 13px; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) { .sku-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; } }
+
+.buy-btn {
+  display: inline-block;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 16px 7px;
+  margin: 10px 0 0;
+}
+.buy-btn:hover { opacity: 0.8; }
+.product-body { margin-top: 50px; }
+.product-sub { font-size: 16px; font-weight: 500; margin: 70px 0 20px; }
+.qa dt { font-size: 15px; font-weight: 500; margin-top: 18px; }
+.qa dd { font-size: 14.5px; line-height: 2; margin: 4px 0 0 1.6em; }
+.spec { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+.spec th, .spec td { text-align: left; vertical-align: top; padding: 10px 12px; border-top: 1px dashed var(--line); }
+.spec th { width: 7em; font-weight: 400; color: var(--muted); }
+.features { display: flex; flex-direction: column; gap: 60px; }
+.feature { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); gap: 28px; align-items: start; }
+.feature img { width: 100%; height: auto; display: block; }
+.feature-ttl { font-size: 16px; font-weight: 500; margin-bottom: 12px; }
+.feature p { font-size: 14.5px; line-height: 2.05; }
+@media (max-width: 760px) { .feature { grid-template-columns: 1fr; gap: 14px; } }

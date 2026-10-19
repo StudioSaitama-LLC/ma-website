@@ -1,0 +1,118 @@
+[
+  {
+    "id": "2-1-3",
+    "kind": "tv",
+    "program": "beyond-the-vanishingpoint",
+    "title": "仁科 正史 (Pro Snowboarder/Artist)",
+    "caption": "死とは、悦びである。",
+    "place": "長野県大町市・白馬村・小谷村",
+    "status": "published",
+    "youtube": "8ZBRdx4mg9U",
+    "memo": "10/18 に荒井さんが送った YouTube。8 月版のサイトは TgoZ6e3va3A を使っていた"
+  },
+  {
+    "id": "2-2-1",
+    "kind": "mag",
+    "program": "beyond-the-vanishingpoint",
+    "badge": "随想記事",
+    "title": "仁科 正史",
+    "caption": "ANSwer：死とは悦びである",
+    "status": "published",
+    "article": "articles/2-2-1.html",
+    "excerpt": "「実は俺ね、20 歳の時一回、死んでるの。」おっとー。いきなりやばいフレーズが。右隣のロックスターさながらの風体した、少年おじさんは喜々としてそう語る。",
+    "redirect_from": ["article-2-2-1.html", "article-3-2-1.html"]
+  },
+  {
+    "id": "2-2-4",
+    "kind": "mag",
+    "program": "beyond-the-vanishingpoint",
+    "badge": "編集後記",
+    "title": "仁科 正史 編集後記",
+    "caption": "取材後記　死を、教えてくれ。仁科正史編",
+    "status": "published",
+    "article": "articles/2-2-4.html",
+    "excerpt": "3 月末、長野県白馬村・小谷村。重い雪と泥が足元を絡め取って行く、冬の終わり。",
+    "redirect_from": ["article-2-2-1-postscript.html"]
+  },
+  {
+    "id": "2-1-4",
+    "kind": "tv",
+    "program": "beyond-the-vanishingpoint",
+    "title": "三浦 豪太",
+    "status": "editing"
+  },
+  {
+    "id": "2-2-2",
+    "kind": "mag",
+    "program": "beyond-the-vanishingpoint",
+    "badge": "随想記事",
+    "title": "三浦 豪太",
+    "status": "planned",
+    "memo": "原稿（第三稿・9/26）が Drive の MAGAZINE #2-2 にある"
+  },
+  {
+    "id": "2-2-5",
+    "kind": "mag",
+    "program": "beyond-the-vanishingpoint",
+    "badge": "編集後記",
+    "title": "三浦 豪太 編集後記",
+    "status": "planned",
+    "memo": "構成図（β版 1015）では #2-1-4、Drive のフォルダは #2-2-5。Drive に合わせた"
+  },
+  {
+    "id": "2-3-1",
+    "kind": "radio",
+    "program": "beyond-the-vanishingpoint",
+    "title": "三浦 豪太",
+    "status": "planned",
+    "memo": "番号は仮（構成図では #2-1-4。RADIO #2-3 のフォルダに合わせた）。「音声できれば 1 つは試してみたい」"
+  },
+  {
+    "id": "2-2-3",
+    "kind": "mag",
+    "program": "beyond-the-vanishingpoint",
+    "badge": "関連記事",
+    "title": "第 0 回 荒井記事",
+    "status": "planned",
+    "related": true
+  },
+  {
+    "id": "2-1-1",
+    "kind": "tv",
+    "program": "ma-development-process",
+    "title": "About MA",
+    "caption": "SPACE? BETWEEN? DISTANCE!? まなか宮嶋の思想 \"間\" の平場の中心に加藤が秒で立つ。メディア \"間｜MA\" とは何か？",
+    "recorded": "2026-05-11",
+    "status": "published",
+    "youtube": "wtHW3PYv9Ik",
+    "memo": "10/18 に荒井さんが送った YouTube を #2-1-1 と推定。8 月版は tVxXxgj9dXo（About Website MA）"
+  },
+  {
+    "id": "2-1-2",
+    "kind": "tv",
+    "program": "ma-development-process",
+    "title": "Gateway Shuffle",
+    "caption": "間と死の関係的なサムシング。",
+    "recorded": "2026-05-25",
+    "status": "published",
+    "youtube": "AV7jnVH9m-c",
+    "memo": "8 月版のサイトに入っていた YouTube"
+  },
+  {
+    "id": "2-1-5",
+    "kind": "tv",
+    "program": "ma-crosstalk",
+    "title": "Flagship Store [1]",
+    "recorded": "2026-06-24",
+    "status": "editing",
+    "memo": "8 月版のサイトに Flagship Store の動画（mDg3PherfCQ・日々香好日 店舗初公開）がある。これを使うか確認"
+  },
+  {
+    "id": "2-1-6",
+    "kind": "tv",
+    "program": "ma-crosstalk",
+    "title": "Flagship Store [2]",
+    "recorded": "2026-07-06",
+    "status": "editing"
+  }
+]
