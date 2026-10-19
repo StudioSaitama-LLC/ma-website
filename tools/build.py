@@ -12,6 +12,7 @@
 - 見た目は 2026-10-16 版のデザイン（荒井さんの PC / Phone の PDF）に合わせている。
 """
 import argparse
+import datetime
 import html
 import json
 import os
@@ -25,6 +26,9 @@ STATUS = {"published": "", "editing": "編集中", "planned": "掲載予定"}
 KIND = {"tv": "TV", "mag": "Magazine", "radio": "Radio"}
 KIND_ORDER = {"tv": 0, "mag": 1, "radio": 2}
 NEW_COUNT = 3  # 日付の新しい順にこの件数だけ <NEW> を付ける
+NEW_DAYS = 60  # ただし、いちばん新しい日付からこの日数より古いものには付けない
+SLUG = r"[a-z0-9][a-z0-9-]*"  # URL と id に入る名前（番組・回・お店）
+ARTICLE_META = "<!-- build:meta -->"  # 記事の断片で、日付の行を入れる場所
 
 
 def load(name):
@@ -64,11 +68,6 @@ def id_key(item):
     return [int(x) for x in item["id"].split("-")]
 
 
-def latest_key(item):
-    date = int((item.get("date") or "0").replace("-", ""))
-    return (0 if item.get("status") == "published" else 1, -date, [-x for x in id_key(item)])
-
-
 class Site:
     def __init__(self):
         self.site = load("site.json")
@@ -80,7 +79,11 @@ class Site:
         self.pages = {}
         self.validate()
         self.news = self.collect_news()
-        self.new_dates = sorted(set(n["date"] for n in self.news), reverse=True)[:NEW_COUNT]
+        dates = sorted(set(n["date"] for n in self.news), reverse=True)
+        if dates:
+            limit = datetime.date.fromisoformat(dates[0]) - datetime.timedelta(days=NEW_DAYS)
+            dates = [d for d in dates if datetime.date.fromisoformat(d) >= limit]
+        self.new_dates = dates[:NEW_COUNT]
 
     def validate(self):
         """データの綴り違い・未登録の番組・画像の置き忘れを、生成の前に止める。"""
@@ -88,9 +91,13 @@ class Site:
         slugs = set(p["slug"] for p in self.programs)
         episodes = {}
         for p in self.programs:
+            if not re.fullmatch(SLUG, p.get("slug", "")):
+                errors.append("programs.json: slug は英小文字・数字・ハイフンだけ: %r" % p.get("slug"))
             if p.get("illust") and not os.path.exists(os.path.join(ROOT, "assets", "illust", p["illust"])):
                 errors.append("programs.json %s: assets/illust/%s が無い" % (p["slug"], p["illust"]))
             for e in p.get("episodes", []):
+                if not re.fullmatch(SLUG, e.get("key", "")):
+                    errors.append("programs.json %s: 回の key は英小文字・数字・ハイフンだけ: %r" % (p["slug"], e.get("key")))
                 if e["key"] in episodes:
                     errors.append("programs.json: 回の key が重複: %s" % e["key"])
                 episodes[e["key"]] = p["slug"]
@@ -106,7 +113,7 @@ class Site:
             seen.add(cid)
             if c.get("kind") not in KIND:
                 errors.append("contents.json #%s: kind は tv / mag / radio のどれか: %r" % (cid, c.get("kind")))
-            if c.get("status", "published") not in STATUS:
+            if c.get("status") not in STATUS:
                 errors.append("contents.json #%s: status は published / editing / planned のどれか: %r" % (cid, c.get("status")))
             if c.get("program") not in slugs:
                 errors.append("contents.json #%s: programs.json に無い番組: %r" % (cid, c.get("program")))
@@ -120,7 +127,18 @@ class Site:
             if c.get("article") and not os.path.exists(os.path.join(SRC, c["article"])):
                 errors.append("contents.json #%s: 記事のファイルが無い: src/%s" % (cid, c["article"]))
         shops = set(s["match"] for s in self.site["shops"])
+        for s_ in self.site["shops"]:
+            if not re.fullmatch(SLUG, s_.get("slug", "")):
+                errors.append("site.json shops: slug は英小文字・数字・ハイフンだけ: %r" % s_.get("slug"))
+        prod_ids = set()
         for prod in self.device["products"]:
+            if not re.fullmatch(r"[0-9A-Za-z_-]+", str(prod.get("id", ""))):
+                errors.append("device.json: 商品 ID の形が違う: %r" % prod.get("id"))
+            if prod.get("id") in prod_ids:
+                errors.append("device.json: 商品 ID が重複: %r" % prod.get("id"))
+            prod_ids.add(prod.get("id"))
+            if not prod.get("variants"):
+                errors.append("device.json %s: 色違い（販売価格のある行）が 1 つも無い" % prod["name"])
             if prod["shop"] not in shops:
                 errors.append("device.json %s: site.json の shops に無いお店: %r" % (prod["name"], prod["shop"]))
             images = [v.get("image") for v in prod["variants"]] + [f.get("image") for f in prod["features"]]
@@ -169,6 +187,21 @@ class Site:
     def item_path(self, item):
         return "MA Channel/%s/%s" % (KIND[item["kind"]], item["id"])
 
+    def item_date(self, item):
+        """コンテンツの日付。無ければ、その回（programs.json の episodes）の日付を引き継ぐ。"""
+        if item.get("date"):
+            return item["date"]
+        for p in self.programs:
+            for e in p.get("episodes", []):
+                if e["key"] == item.get("episode") and p["slug"] == item["program"]:
+                    return e.get("date", "")
+        return ""
+
+    def latest_key(self, item):
+        """公開済みを先に、その中は日付の新しい順・番号の大きい順。"""
+        date = int((self.item_date(item) or "0").replace("-", ""))
+        return (0 if item.get("status") == "published" else 1, -date, [-x for x in id_key(item)])
+
     def episodes(self, p):
         """番組の回ごとに、その回のコンテンツをまとめる。回を決めていないコンテンツは 1 件で 1 回とする。"""
         out = []
@@ -194,7 +227,7 @@ class Site:
         news = []
         for p in self.programs:
             for e, items in self.episodes(p):
-                if not e.get("date") or not items:
+                if not e.get("date") or not items or self.episode_status(items) != "published":
                     continue
                 lead = items[0]
                 news.append({"date": e["date"], "path": self.item_path(lead),
@@ -397,14 +430,14 @@ class Site:
 </html>
 """.format(mark=MARK, to=esc(to), name=esc(self.site["name"]), label=esc(label))
 
-    def entry_meta(self, date, path, status="published"):
+    def entry_meta(self, date, path, status="published", el="p"):
         parts = []
         if self.is_new(date):
             parts.append(self.new_badge())
         if date:
             parts.append('<span class="em-date">%s</span>' % esc(short_date(date)))
         parts.append('<span class="em-path">%s</span>' % esc(path))
-        return '<p class="entry-meta">%s%s</p>' % (" ".join(parts), self.status_badge(status))
+        return '<%s class="entry-meta">%s%s</%s>' % (el, " ".join(parts), self.status_badge(status), el)
 
     # ---------- コンテンツの部品 ----------
 
@@ -417,9 +450,9 @@ class Site:
         return '<div class="video video-ph"><span class="play" aria-hidden="true"></span><span class="ph-label">%s</span></div>' % (
             STATUS.get(item.get("status"), "") or "準備中")
 
-    def door_block(self, cur, kind, items):
+    def door_block(self, cur, kind, items, level="h2"):
         pf = [x for x in self.site["platforms"] if x["key"] == kind][0]
-        out = ['<h3 class="door-head">Door: %s <strong>MA Channel / %s</strong></h3>' % (esc(pf["door"]), esc(pf["en"]))]
+        out = ['<%s class="door-head">Door: %s <strong>MA Channel / %s</strong></%s>' % (level, esc(pf["door"]), esc(pf["en"]), level)]
         if pf.get("blurb"):
             out.append('<p class="door-blurb">%s</p>' % brs(pf["blurb"]))
         for c in items:
@@ -447,7 +480,7 @@ class Site:
     def entry(self, cur, p, e, items, open_=False):
         status = self.episode_status(items)
         lead = items[0] if items else None
-        meta = self.entry_meta(e.get("date", ""), self.item_path(lead) if lead else "MA Channel", status)
+        meta = self.entry_meta(e.get("date", ""), self.item_path(lead) if lead else "MA Channel", status, el="span")
         text = [x for x in (e.get("caption"), e.get("text")) if x]
         place = next((c.get("place") for c in items if c.get("place")), "")
         if place:
@@ -461,14 +494,14 @@ class Site:
         return """    <details class="entry" id="ep-{key}"{open}>
       <summary>
         {meta}
-        <p class="entry-title">「{title}」</p>
+        <span class="entry-title">「{title}」</span>
         {text}<span class="fold-btn" aria-hidden="true"></span>
       </summary>
       <div class="entry-body">
       {body}
       </div>
     </details>""".format(key=esc(e["key"]), open=" open" if open_ else "", meta=meta, title=esc(e["title"]),
-                         text=('<p class="entry-text">%s</p>\n        ' % "<br>".join(esc(x) for x in text)) if text else "",
+                         text=('<span class="entry-text">%s</span>\n        ' % "<br>".join(esc(x) for x in text)) if text else "",
                          body=body)
 
     # ---------- 各ページ ----------
@@ -659,7 +692,8 @@ class Site:
         latest = []
         for pf in self.site["platforms"]:
             # 公開済みを先に、その中は日付の新しい順・番号の大きい順。各 Door 3 件まで
-            items = sorted((c for c in self.contents if c["kind"] == pf["key"]), key=latest_key)[:3]
+            items = sorted((c for c in self.contents if c["kind"] == pf["key"] and not c.get("related")),
+                           key=self.latest_key)[:3]
             rows = []
             for c in items:
                 p = self.program(c["program"])
@@ -669,7 +703,7 @@ class Site:
                 rows.append("""        <li class="news-item">
           {meta}
           <p class="news-title">{title}</p>{text}
-        </li>""".format(meta=self.entry_meta(c.get("date", ""), self.item_path(c), c.get("status")), title=title,
+        </li>""".format(meta=self.entry_meta(self.item_date(c), self.item_path(c), c.get("status")), title=title,
                         text=('\n          <p class="news-text">%s</p>' % esc(text)) if text else ""))
             latest.append("""    <section class="door" id="{key}">
       <h3 class="door-head">Door: {door} <strong>MA Channel / {en}</strong></h3>{blurb}
@@ -721,7 +755,7 @@ class Site:
                 rel_items = []
                 for c in related:
                     rel_items.append('<li class="news-item">%s<p class="news-title">%s%s</p></li>' % (
-                        self.entry_meta(c.get("date", ""), self.item_path(c), c.get("status")),
+                        self.entry_meta(self.item_date(c), self.item_path(c), c.get("status")),
                         ('<span class="badge">%s</span> ' % esc(c["badge"])) if c.get("badge") else "", esc(c["title"])))
                 rel = """
     <section class="related">
@@ -766,6 +800,10 @@ class Site:
                 frag = f.read()
             frag = re.sub(r"^<!--.*?-->\n", "", frag, flags=re.S)
             frag = frag.replace('"@/', '"' + self.href(cur, ""))
+            # 日付と <NEW> は回の日付から作る（断片に日付を書くと、決まりとずれたまま残るため）
+            if ARTICLE_META not in frag:
+                raise SystemExit("src/%s: 日付を入れる目印 %s がありません（article-head の中に置く）" % (item["article"], ARTICLE_META))
+            frag = frag.replace(ARTICLE_META, self.entry_meta(self.item_date(item), self.item_path(item), item.get("status")))
             p = self.program(item["program"])
             ep = item.get("episode") or item["id"]
             body = """
@@ -844,7 +882,7 @@ class Site:
         <p class="dc-name">{name}</p>
         <p class="price">{price}{tax}</p>
         <a class="dc-btn" href="{url}">詳細</a>
-      </li>""".format(slug=esc(shop["slug"]), text=esc(" ".join([prod["name"], prod["shop"], prod["category"], prod["copy"]])),
+      </li>""".format(slug=esc(shop["slug"]), text=esc(" ".join([prod["name"], prod["shop"], prod["category"], prod["copy"]] + [v["color"] for v in prod["variants"]])),
                       url=url, img=esc(h("assets/device/" + v["image"])), name=esc(prod["name"]), shop=esc(shop["name"]),
                       price=esc(self.price_label(prod)), tax=self.tax_label()))
         body = """
@@ -872,8 +910,8 @@ class Site:
         h = lambda t: self.href(cur, t)
         shop = self.shop_of(prod)
         main = prod["variants"][0]
-        thumbs = "\n".join('          <li><img src="%s" width="720" height="720" loading="lazy" decoding="async" alt="%s（%s）"></li>' % (
-            esc(h("assets/device/" + v["image"])), esc(prod["name"]), esc(v["color"])) for v in prod["variants"])
+        thumbs = "\n".join('          <li><button class="thumb" type="button" aria-label="%s（%s）の写真を大きく見る"><img src="%s" width="720" height="720" loading="lazy" decoding="async" alt=""></button></li>' % (
+            esc(prod["name"]), esc(v["color"]), esc(h("assets/device/" + v["image"]))) for v in prod["variants"])
         colors = "\n".join("""          <li>
             <img src="{img}" width="720" height="720" loading="lazy" decoding="async" alt="{name}（{color}）">
             <p class="pc-color">{color}</p>

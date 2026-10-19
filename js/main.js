@@ -18,7 +18,8 @@
   }
 
   function openFromHash() {
-    var id = decodeURIComponent(location.hash.slice(1));
+    var id = "";
+    try { id = decodeURIComponent(location.hash.slice(1)); } catch (e) { return; }
     if (!id) return;
     var el = document.getElementById(id);
     if (el && el.tagName === "DETAILS") el.open = true;
@@ -46,6 +47,10 @@
         document.body.classList.toggle("menu-open", open);
         overlay.setAttribute("aria-hidden", open ? "false" : "true");
         openBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        // 開いている間は、後ろのページに Tab で移れないようにする
+        document.querySelectorAll("body > header, body > main, body > footer").forEach(function (el) {
+          if (open) el.setAttribute("inert", ""); else el.removeAttribute("inert");
+        });
         if (open) closeBtn.focus();
       };
       openBtn.addEventListener("click", function () { setOpen(true); });
@@ -90,13 +95,14 @@
     // ---------- 商品の写真 ----------
     var main = document.querySelector(".gallery-main");
     if (main) {
-      var thumbs = document.querySelectorAll(".gallery-thumbs img");
+      var thumbs = document.querySelectorAll(".gallery-thumbs .thumb");
       thumbs.forEach(function (t, i) {
-        if (i === 0) t.classList.add("is-current");
+        var img = t.querySelector("img");
+        t.setAttribute("aria-pressed", i === 0 ? "true" : "false");
         t.addEventListener("click", function () {
-          main.src = t.src;
-          main.alt = t.alt;
-          thumbs.forEach(function (x) { x.classList.toggle("is-current", x === t); });
+          main.src = img.src;
+          main.alt = (t.getAttribute("aria-label") || "").replace(/の写真を大きく見る$/, "");
+          thumbs.forEach(function (x) { x.setAttribute("aria-pressed", x === t ? "true" : "false"); });
         });
       });
     }
