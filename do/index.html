@@ -26,16 +26,14 @@
 <body>
 
 <header class="site-header">
-  <div class="bar">
-    <a class="site-title" href="../">Indies Lifestyle Media 間｜MA</a>
-    <button class="menu-btn" type="button" aria-controls="site-menu" aria-expanded="false" aria-label="メニューを開く">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
+  <a class="site-title" href="../" data-m="title" data-mt>Indies Lifestyle Media 間｜MA</a>
+  <button class="menu-btn" type="button" aria-controls="site-menu" aria-expanded="false" aria-label="メニューを開く" data-m="ham">
+    <span></span><span></span><span></span>
+  </button>
   <nav class="gate-tabs" aria-label="Gate">
-    <a class="gate-tab gt-lab" href="../lab/"><span class="gt-no">Gate 1:</span><span class="gt-box">MA Lab</span></a>
-    <a class="gate-tab gt-channel" href="../channel/"><span class="gt-no">Gate 2:</span><span class="gt-box">MA Channel</span></a>
-    <a class="gate-tab gt-do is-active" href="../do/" aria-current="page"><span class="gt-no">Gate 3:</span><span class="gt-box">MA Do</span></a>
+    <a class="gate-tab gt-lab" href="../lab/"><span class="gt-no" data-m="tl-lab" data-mt>Gate 1:</span><span class="gt-box" data-m="tb-lab"><span data-m="tt-lab" data-mt>MA Lab</span></span></a>
+    <a class="gate-tab gt-channel" href="../channel/"><span class="gt-no" data-m="tl-channel" data-mt>Gate 2:</span><span class="gt-box" data-m="tb-channel"><span data-m="tt-channel" data-mt>MA Channel</span></span></a>
+    <a class="gate-tab gt-do is-active" href="../do/" aria-current="page"><span class="gt-no" data-m="tl-do" data-mt>Gate 3:</span><span class="gt-box" data-m="tb-do"><span data-m="tt-do" data-mt>MA Do</span></span></a>
   </nav>
 </header>
 
@@ -75,14 +73,14 @@
     </div>
     <div class="menu-links"><a href="../contact/">Contact us</a><a href="../company/">Company</a></div>
   </nav>
-  <img class="illust menu-figure" src="../assets/illust/figure.png" width="321" height="1207" alt="" loading="lazy" decoding="async">
+  <svg class="illust menu-figure" viewBox="0 0 332 1263" aria-hidden="true" focusable="false"><use href="../assets/illust/figure.svg#art"/></svg>
 </div>
 
 <main class="page" id="main">
   <div class="content">
     <div class="gate-head">
-    <h1 class="gh-title"><span class="gh-no">Gate 3:</span> <strong>MA Do</strong></h1>
-    <p class="gh-sub">間、個人化への導線</p>
+    <h1 class="gh-title" data-m="gh" data-mt><span class="gh-no">Gate 3:</span> <strong>MA Do</strong></h1>
+    <p class="gh-sub" data-m="gs" data-mt>間、個人化への導線</p>
   </div>
     <ul class="door-list">
       <li class="is-dim">Door 3-1: Tips Room <span class="status">準備中</span></li>
@@ -92,16 +90,12 @@
 </main>
 
 <footer class="site-footer">
-  <img class="footer-logo" src="../assets/logo.png" width="496" height="512" alt="間｜MA ロゴマーク" loading="lazy" decoding="async">
-  <div class="footer-credit">
-    <p>Indies Lifestyle Media 間｜MA</p>
-    <p>Follow us on <a href="https://www.youtube.com/@ma_jpn_com" target="_blank" rel="noopener">YouTube</a> , <b>Podcast</b> and <a href="https://note.com/" target="_blank" rel="noopener">note</a>.</p>
-    <p>©2026, Manaka Ltd.　β版（関係者確認用）</p>
-  </div>
-  <button class="theme-toggle" type="button" aria-label="表示の色を切り替える">
+  <p class="fc-1"><span class="fc-name" data-m="f1" data-mt>Indies Lifestyle Media 間｜MA</span> <span class="fc-follow" data-m="f2" data-mt>Follow us on <a href="https://www.youtube.com/@ma_jpn_com" target="_blank" rel="noopener">YouTube</a> , <b>Podcast</b> and <a href="https://note.com/" target="_blank" rel="noopener">note</a>.</span></p>
+  <p class="fc-2" data-m="f3" data-mt>©2026, Manaka Ltd.　β版（関係者確認用）</p>
+  <button class="theme-toggle" type="button" aria-label="表示の色を切り替える" data-m="toggle">
     <span class="tt-knob"></span><span class="tt-label">Dark</span><span class="tt-icon" aria-hidden="true">☾</span>
   </button>
-  <div class="footer-links"><a href="../contact/">Contact us</a><a href="../company/">Company</a></div>
+  <p class="footer-links" data-m="flinks"><a href="../contact/">Contact us</a><a href="../company/">Company</a></p>
 </footer>
 
 <script src="../js/main.js"></script>

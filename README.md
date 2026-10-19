@@ -54,6 +54,7 @@ about.html ほか 8 月版のページ   # 新しいページへ転送するだ�
 | `youtube` | YouTube の動画 ID（11 文字）。公開のときだけ埋め込む |
 | `article` `excerpt` | Magazine の本文（`src/articles/` の断片）と抜き出し。公開のときだけ記事ページを作る |
 | `redirect_from` | この記事へ転送する 8 月版の URL |
+| `hero` `portrait` `portrait_focus` | 記事の冒頭で切り替わる写真（`assets/` の名前の並び）・記事の終わりに画面いっぱいに出す人物の写真・その切り抜きの中心（例 `"68% 50%"`） |
 | `related` | 番組ページで「関連コンテンツ」に回すとき `true` |
 | `memo` | 作業用のメモ。ページには出ないが、この repo は公開なので人に見せられないことは書かない |
 

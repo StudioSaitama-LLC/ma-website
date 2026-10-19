@@ -4,7 +4,9 @@
     "en": "MA Development Process",
     "ja": "間を、喰う",
     "sub": "合理化の先で、何を叫ぶのか",
-    "illust": "development-process.png",
+    "illust": "development-process",
+    "logo": "end",
+    "illust_sp": "top",
     "lead": [
       [
         "あふれかえる情報と、",
@@ -25,7 +27,9 @@
     "en": "Beyond the Vanishing point",
     "ja": "死を、教えてくれ。",
     "sub": "その先に、生の手触りは残るのか",
-    "illust": "vanishing-point.png",
+    "illust": "vanishing-point",
+    "logo": "top",
+    "illust_sp": "end",
     "lead": [
       [
         "忌むべき終わりなのか。",
@@ -62,7 +66,9 @@
     "en": "MA Crosstalk",
     "ja": "異能の表現者たち",
     "sub": "答えのない問いを、語り明かす",
-    "illust": "crosstalk.png",
+    "illust": "crosstalk",
+    "logo": "",
+    "illust_sp": "top",
     "lead": [
       [
         "人には、確かな余白が存在する。",

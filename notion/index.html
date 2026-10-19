@@ -26,16 +26,14 @@
 <body>
 
 <header class="site-header">
-  <div class="bar">
-    <a class="site-title" href="../">Indies Lifestyle Media 間｜MA</a>
-    <button class="menu-btn" type="button" aria-controls="site-menu" aria-expanded="false" aria-label="メニューを開く">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
+  <a class="site-title" href="../" data-m="title" data-mt>Indies Lifestyle Media 間｜MA</a>
+  <button class="menu-btn" type="button" aria-controls="site-menu" aria-expanded="false" aria-label="メニューを開く" data-m="ham">
+    <span></span><span></span><span></span>
+  </button>
   <nav class="gate-tabs" aria-label="Gate">
-    <a class="gate-tab gt-lab" href="../lab/"><span class="gt-no">Gate 1:</span><span class="gt-box">MA Lab</span></a>
-    <a class="gate-tab gt-channel" href="../channel/"><span class="gt-no">Gate 2:</span><span class="gt-box">MA Channel</span></a>
-    <a class="gate-tab gt-do" href="../do/"><span class="gt-no">Gate 3:</span><span class="gt-box">MA Do</span></a>
+    <a class="gate-tab gt-lab" href="../lab/"><span class="gt-no" data-m="tl-lab" data-mt>Gate 1:</span><span class="gt-box" data-m="tb-lab"><span data-m="tt-lab" data-mt>MA Lab</span></span></a>
+    <a class="gate-tab gt-channel" href="../channel/"><span class="gt-no" data-m="tl-channel" data-mt>Gate 2:</span><span class="gt-box" data-m="tb-channel"><span data-m="tt-channel" data-mt>MA Channel</span></span></a>
+    <a class="gate-tab gt-do" href="../do/"><span class="gt-no" data-m="tl-do" data-mt>Gate 3:</span><span class="gt-box" data-m="tb-do"><span data-m="tt-do" data-mt>MA Do</span></span></a>
   </nav>
 </header>
 
@@ -75,21 +73,20 @@
     </div>
     <div class="menu-links"><a href="../contact/">Contact us</a><a href="../company/">Company</a></div>
   </nav>
-  <img class="illust menu-figure" src="../assets/illust/figure.png" width="321" height="1207" alt="" loading="lazy" decoding="async">
+  <svg class="illust menu-figure" viewBox="0 0 332 1263" aria-hidden="true" focusable="false"><use href="../assets/illust/figure.svg#art"/></svg>
 </div>
 
 <main class="page" id="main">
-  <div class="content">
-    <img class="logo-mark lm-notion" src="../assets/logo.png" width="496" height="512" alt="間｜MA ロゴマーク" loading="lazy" decoding="async">
+  <img class="logo-mark lm-notion" src="../assets/logo.png" width="496" height="512" alt="間｜MA ロゴマーク" loading="lazy" decoding="async" data-m="lmn">
+  <div class="content notion">
     <div class="gate-head">
-    <h1 class="gh-title"><span class="gh-no">Gate 0:</span> <strong>MA Notion</strong></h1>
-    <p class="gh-sub">間、当事者化への提案</p>
+    <h1 class="gh-title" data-m="gh" data-mt><span class="gh-no">Gate 0:</span> <strong>MA Notion</strong></h1>
+    <p class="gh-sub" data-m="gs" data-mt>間、当事者化への提案</p>
   </div>
 
-    <p class="meta-note">「感じぬ人」 / 宮嶋 孝尚　2026.10.16 版・執筆中のため、内容は書き換わります</p>
-
+    <div class="chapters">
     <section class="fold chapter" id="ch0">
-      <h2 class="fold-head">第 0 章 : 「真面目な提案」<button class="fold-toggle" type="button" aria-expanded="true" aria-controls="ch0-body" aria-label="第 0 章を開く・閉じる"></button></h2>
+      <h2 class="fold-head"><span data-m="ch0" data-mt>第 0 章 : 「真面目な提案」</span><button class="fold-toggle" type="button" aria-expanded="true" aria-controls="ch0-body" aria-label="第 0 章を開く・閉じる"></button></h2>
       <div class="fold-body prose" id="ch0-body">
         <p>私がこの場で何らかを綴ったなら、それはすでに個人的関心の枠をはみ出し相互理解を強要し始めるだろう。至論に留まってくれればいいのだが、簡単に暴論極論反論にとって代わる。怖い。そんな心緒を放出して何になるのか。無意味で括ってしまおうか。きっと、それは難しい。心の気づきに、気づく。そんな感覚を取り戻してしまうと、無意味という意味が遠くなっていく。処理にしか価値を見出せなかった、自分が少し懐かしい。</p>
         <p>これは私のリハビリ譚なのか。いや、通じ合いを求めた時点で真面目な提案として切り込むべきだ。書くことは、覚悟を決めることなのだろう。提案の向こう側にはきっと、私が待ち望む結論も存在する筈だ。結論という言葉を選んではみたが、達成、共感、実現、成就その周辺であれば同意として通じるはずだ。言葉は強い力を持つが、その解釈は受け手の背景や状況に合わせ落し所を見つけ出す。文章を書き留める際、以前はそんなニュアンスに強制力を持たせたい気持ちもあったが、今は読み手の脳や心の中で独自に育まれる正解に正確性があると定められるようになってきた。人らしい自由は、各々にあって、その反響が目の前で感受感情化され、一見複雑そうな記憶に組み込まれる。人は何かを受け、それを情と繋げ、それを振り子のように繰り返し自身を形成していく。人は、感じる生物なのだ。</p>
@@ -97,11 +94,12 @@
         <p>ここまでを読み返してみたが、少々重い気が。かといって、春の淡い草原の様な軽やかな文体を所有している訳ではないので困る。何を申し述べたいのか？今ドキュメントは決してネガティブなものではなく、どこにでもいるおじさんが日々に戸惑いや憂いを抱え、あーだこーだ歩みながら、霧をはらすべく奮闘する。そんな中たまたま、転調を促す宝物の様な概念？ヒント？術？に辿り着き、それをお裾分けしてみたくなった。ぐらいの話である。</p>
         <p>ただ今思えば、そんな奮闘記の根には、良く食べ笑い寝たいがあった。単純に強く、より良く、生きたかったのだ。私の真面目な提案に、起点を設けるならここしかない。より良く、生きる為には？私はストレートにここを問題提起したい。そんなの勝手にしろは、一度お腹に収めて下さいね。聞く耳が欲しい。</p>
         <p>私の覚悟は、より多くの通じ合いを求め疼いています。点は時間をかけ線となり、その中は気づきであふれ今に至ります。誰しもが投げかけなければ、始まらない。そんな問いに、あなたは何を感じますか？目の前を生きる全ての人へ。いざ、当たれ。</p>
+        <p class="fold-end"><button class="fold-close" type="button" aria-controls="ch0-body" aria-label="第 0 章を閉じる"></button></p>
       </div>
     </section>
 
     <section class="fold chapter" id="ch1">
-      <h2 class="fold-head">第 1 章 : 「発端」<button class="fold-toggle" type="button" aria-expanded="true" aria-controls="ch1-body" aria-label="第 1 章を開く・閉じる"></button></h2>
+      <h2 class="fold-head"><span data-m="ch1" data-mt>第 1 章 : 「発端」</span><button class="fold-toggle" type="button" aria-expanded="true" aria-controls="ch1-body" aria-label="第 1 章を開く・閉じる"></button></h2>
       <div class="fold-body prose" id="ch1-body">
         <p>より良く、生きる。現在の私は少なからずこちらをはっきり標榜化している。しかも、それって思いのほか素晴らしいよと訴求すべくペンを執った。真価に影響を持たせたいなら、整理し届けるべきは以前だ。私が自身の仮説のサンプルとして、どのような過程を経てその境地に至ったか。その内容次第で、説得力の重みは変わってくる。</p>
         <p>そもそもの発端は、なんだったのか。確かに、私は「感じぬ人」であった。恐らくそれに近しい状況が10年ほど続いていたのでは。完全一致に向けどんどん歩みを進行させていた。自論はこう畳みかける。故に、少々残念で心苦しい日々を送っていたと。なぜ、そんな状況に。前提、「感じぬ人」とは？「人」はわかる。ポピュラーで一般的な解釈で十分だろう。余計な含みはいらない。では、「感じぬ」とは？</p>
@@ -113,22 +111,24 @@
         <p>私は、久方ぶりに良く寝て良く考えた。答えなど求めず自身と対話し、のんびり掘り下げてみた。打つ手のない空気感が自身の目の前とはっきりリンクしている感があった。なんとかしたいの気持ちは高まっていったが、現実は裏腹でこれという解は導き出せない。未曽有の災害も個人単位ではその威力はたかが知れていた。本質的かつ根本的な人間性を動かす程ではなかった。だが、この内省は小さな一歩を授けてくれる。自己を捉えられていないという明確な事実だ。自分のことがわからない。理解したい。自己把握とは、これほど難儀であったか。反応を促す筋肉の位置にすら戸惑う。自己の喪失をはっきりと自覚した。それは、掴み戻したい契機となる。ジレンマが行動を呼び起こしたのだ。動き出す予感、発端が始まりに繋がった瞬間だった。</p>
         <p>私は、過去保持していたはずの自分を探してみようと思った。何が何を何した結果、今に至ったのか。そこからリカバリーの術はあるのか。あった場合、それは体得できるものなのか。40過ぎのおじさんの自分探しという、小っ恥ずかしい決断。コロナ渦は、人を大胆かつ盲目にした側面もあるのかもしれない。</p>
         <p>より良く、生きる。この絶対的な標榜に辿り着くのは随分先となる。この時点で、私は自分が「感じぬ人」となった自覚すらない。まずは、なぜ「感じぬ人」となってしまったのか？旅の序章は、その背景を探る所から始まる。</p>
+        <p class="fold-end"><button class="fold-close" type="button" aria-controls="ch1-body" aria-label="第 1 章を閉じる"></button></p>
       </div>
     </section>
 
     <section class="fold chapter" id="ch2">
-      <h2 class="fold-head">第 2 章 : 「カクシン」<button class="fold-toggle" type="button" aria-expanded="true" aria-controls="ch2-body" aria-label="第 2 章を開く・閉じる"></button></h2>
+      <h2 class="fold-head"><span data-m="ch2" data-mt>第 2 章 : 「カクシン」</span><button class="fold-toggle" type="button" aria-expanded="true" aria-controls="ch2-body" aria-label="第 2 章を開く・閉じる"></button></h2>
       <div class="fold-body prose" id="ch2-body">
         <p>決して望まれた展開ではないことは理解している。はやく核心をよこせ。と言われても致し方ない。まさか、ただのおじさんの自分探しに付き合わせることになるとは。青春時代のそれは、未来に自分の特性の在り方を模索する、どこか建設的であり光が見て取れる。</p>
         <p>不惑のそれとなると、私の場合だけかもしれないが、残念な雰囲気が拭えない。混沌化した目の前を正常化する。そのきっかけを求め、過去の残像を追いかける。本来の自分など実存したのだろうか。全くもって、非合理的で生産性すら担保されない、時代にそぐわない探求となる。そう言いきれるのは、時代を注視したこのプロセスのお陰だろう。私はまず内省の延長で、ここ10年ほどの自身を紐解いていった。それぐらいしか、思いつかなかった。平坦な気持ちで、当時の置かれていた状況を整理していく。整えは、意外にも複雑に向かうことなく、淡々と実務的に実情を浮き彫りにしてくれた。おさらいしていく中で、個人的変化は大なり小なりあった。</p>
         <p>それはきっとこれからも。殊更事件性もない。そんな枠を超えた、自浄努力では抗えない事象に焦点が合っていく。地殻変動のような全体変化。右向け右程のインパクトがあったこと、特段疑いもなく全員が自然と潮流に乗ったこと。昨今においてそんなセンセーショナルは、デジタルイノベーションの一般化以外思い当たらない。2000年代に入り大胆な工程として、インターネット→スマートフォン→AI＝市民化→個人化→人格化といった具合で神話の様な予定調和で凄まじいアップデートを繰り返し、地球にインストールを継続している。これら合理的生産性の追求が、人々の幸福の追求の同意であることは明白だ。当然のように、私もその恩恵をダイレクトに享受している。今の自分の立場や言動を形成するのに、とても賢く貢献してくれた。ありがたや。既にその是非や功罪などはあらゆる角度で考察されているだろう。今更感もあり、いささか気恥ずかしさもあるが、私はその革新が自分にどのような影響を与えたのか、じっくりと対話を繰り返した。</p>
         <p>よくよく考えてみると初めての試みだった。そんな検討すら、躊躇されるほどそれは当たり前に存在していた。抗う選択肢などなかった。この起伏のなさが気づきを遅らせたのかもしれない。目の前の霧を徐々に濃くしていった事実を。掘り下げれば掘り下げるほど、どうやら平等な革新は、自己を駆逐する要素を多くはらんでいた。何か＝デジタルイノーベーション。私は、「感じぬ人」☞「自己喪失」の真因をここに予感した。分析を続ける中で向こう側に自分を感じつつも、思いの外扉が重くままならない。例え自己が見つかったとしてもそれが再び重なり収まるのか見当もつかなかった。それ程、デジタルテクノロジー全般の囲い込みは秀逸で恩恵も高止まりしない。あの手この手の分析がまとまる頃、ふと思い出す。</p>
         <p>インターネット黎明期、電話回線の頃、不安を覚えた。物事が簡単で軽くなっている様に、これで大丈夫なのか？と。恐らくそんな心境を抱いたのは自分だけではなかった筈だ。今、あの不安は手元の予感と相まって、一つの仮説なった。そんな仮説は一つの概念にまで昇華されることとなる。これから述べることは、私の器などでは、収まりきらない。「感じぬ人」となったのは私だけではない、と確信している。感受感情の蓋、その重みは社会や地域何より誰それの目の前に負荷を与えているのでは。不惑の自分探しは、ひょっとすると誰かの未来に繋がっているのかもしれない。さて、デジタルイノベーションは我に何をしてくれたのか？その解説にはいる。</p>
+        <p class="fold-end"><button class="fold-close" type="button" aria-controls="ch2-body" aria-label="第 2 章を閉じる"></button></p>
       </div>
     </section>
 
     <section class="fold chapter" id="ch3">
-      <h2 class="fold-head">第 3 章 : 「密」<button class="fold-toggle" type="button" aria-expanded="true" aria-controls="ch3-body" aria-label="第 3 章を開く・閉じる"></button></h2>
+      <h2 class="fold-head"><span data-m="ch3" data-mt>第 3 章 : 「密」</span><button class="fold-toggle" type="button" aria-expanded="true" aria-controls="ch3-body" aria-label="第 3 章を開く・閉じる"></button></h2>
       <div class="fold-body prose" id="ch3-body">
         <p>掘る。最近はディグルというらしい。私は、私なりにデジタルイノベーションをせこせことディグっていた。コロナ禍は、こんな感じで誰もいない街をよく歩いていた記憶がある。敢えてというか、自前の脳をぐるぐるさせることに拘った。検索は勿論のこと、リアルな参考文献含め距離を置いた。一般的な理解ではなく、急がず自前の答えを掘り当てることが今回の場合は暗黙であると了解した。これが、中々難解ですぐにスマホに手が伸びそうになる。正確に把握することが目的ではない。影響を遮断しなければ、探し求める「感じる人」が逃げていく。そんな気がした。デジタルとは？アナログとは？革新の意味とは？何を及ぼし続けているのか？暗中模索の中、様々なプロットが浮かんでは消える。何本骨が折れたことか、ようやく考察のスタート地点が姿をみせる。</p>
         <p>そもそも、何が起こったのかの話である。私の癖なのか、ここからは速い。面白いもので、着想が姿を見せるとこれまでの検討がシナプスのように繋がり出す。そう言うことかと、納得も後を追う。興奮気味に冷静沈着な仮説がまとまっていく。この時点で、旅は折り返し地点を迎えようとしていた。「ほぼ、正解しかない世界」そんなタイトルがいいのではないでしょうか。自論で恐縮です。</p>
@@ -165,67 +165,55 @@
         <p>そんな話はさておき、ここまでを端的にまとめると私たちの目の前は、デジタルイノベーションのお陰で正解で溢れるようになった。そんな正解は、個人単位での生産合理性のアップグレードをもたらした。天晴。大胆かつ大幅な進歩である。少し嫌味な言い回しとなってしまったが、どんなことにも光と影、功罪が生まれてしまうのは世の常である。的な、主張をしたい訳ではない。私もそのレールにしっかりと乗り、肩を組み共に進んできた自覚はある。巻き込まれたと被害者面すれば、私の主張が正当化されるわけでもない。それまた一つの真実として、素晴らしいと受け入れている。ただここからは少し一般論を外れた、自論の趣が強くなる。かつての私は、確かにそんな正しさに満ちた目の前に潰されそうになった。一杯一杯となり、「感じぬ人」☞「自己喪失」とまで騒いでいる。どうしてか？もう一度前提を。</p>
         <p>どんなにテクノロジーが進化したとて個人のキャパシティの天井が外れるわけではない。そんな中、目的を中心とした行動が次々と発生する。正解に次ぐ正解が自己を埋める。隙間はない。達成のためには、処理を急ぐしかない。それでも間に合わない。であれば、何かを手放す、捨てるしかない。正解の対岸にあるもの、正解のない物。それの筆頭が、感受感情であったのではないだろうか。雨が降り、その情景にいつかを重ねる前に、いつ止むのかを処理する。眠れない朝、散歩して朝の空気を思い切り吸い込もう、その前に症状を処理する。人が泣いている、声をかける前に、原因を処理する。正解のない物、感受感情は望む・望まぬとも何かと手数となる。妥当性のない回り道は、道と呼べないのだ。どことなく腹落ちした。感受感情が手から零れ落ちた「感じぬ人」はこうして完成したのである。</p>
         <p>三密と聞いてどこか懐かしさを感じる人もいるのではないだろうか？当時世間では感染症を防ぐ啓蒙として、密閉・密集・密接のスローガンを訴えていた。私はこの一連の検討の際に、「密」というこの言葉が、目の前と酷似している感覚になったのを覚えている。まさに、「密」の時代。そう呼ぶのが妥当に思えて仕方なかった。正解ばかりの「密」の時代は「感じぬ人」を創った。私の仮説はもう少し続く。次は「感じぬ人」が、なぜ自己の喪失に陥ったのか。その飛躍解釈である。</p>
+        <p class="fold-end"><button class="fold-close" type="button" aria-controls="ch3-body" aria-label="第 3 章を閉じる"></button></p>
       </div>
     </section>
+    </div>
 
-    <section class="notion-part" id="core">
-      <h2 class="frame-label">核となる二項 &quot; 密 &quot; と &quot; 間 &quot;</h2>
-      <div class="part-grid">
-        <div class="part-text prose">
-          <p>「圧縮された言葉と、空間として残された言葉」</p>
-          <p>間は、言葉として確定した密の対極にある。<br>密がぎゅうぎゅうに圧縮された言葉なら、<br>間はばらけて空間に浮かぶ言葉。<br>論理と感覚、この両極を往復できるよう設計された装置は、全て「間」の概念から生まれている。</p>
-        </div>
-        <figure class="spectrum" aria-label="密と間の対比">
-          <div class="sp-row">
-            <div class="sp-col"><span class="sp-name">密</span><span class="dots dots-dense" aria-hidden="true"></span></div>
-            <div class="sp-mid"><span>論理 ⇄ 感覚</span><em>spectrum</em></div>
-            <div class="sp-col"><span class="sp-name">間</span><span class="dots dots-sparse" aria-hidden="true"></span></div>
-          </div>
-          <figcaption>&quot; 密 &quot; と &quot; 間 &quot; の対比<br>同じ言葉でも、<br>密度と余白で意味の振る舞いが変わる。</figcaption>
-        </figure>
-      </div>
+    <section class="notion-part core" id="core">
+      <h2 class="frame-label" data-m="corel">核となる二項 &quot; 密 &quot; と &quot; 間 &quot;</h2>
+      <p class="part-heading" data-m="coreh" data-mt>「圧縮された言葉と、空間として残された言葉」</p>
+      <p class="part-text" data-m="coret" data-mt>間は、言葉として確定した密の対極にある。<br>密がぎゅうぎゅうに圧縮された言葉なら、<br>間はばらけて空間に浮かぶ言葉。<br>論理と感覚、この両極を往復できるよう設計された装置は、全て「間」の概念から生まれている。</p>
+      <figure class="spectrum" aria-label="密と間の対比" data-m="spec">
+        <span class="sp-name sp-mitsu">密</span><span class="sp-name sp-ma">間</span>
+        <span class="dots dots-dense" aria-hidden="true"></span><span class="dots dots-sparse" aria-hidden="true"></span>
+        <span class="sp-mid">論理 ⇄ 感覚</span><em class="sp-word">spectrum</em>
+        <figcaption>&quot; 密 &quot; と &quot; 間 &quot; の対比<br>同じ言葉でも、<br>密度と余白で意味の振る舞いが変わる。</figcaption>
+      </figure>
     </section>
 
-    <section class="notion-part" id="steps">
-      <h2 class="frame-label">間を定める、広める、感化する</h2>
-      <div class="part-grid">
-        <div class="part-text prose">
-          <p>間は三段階で構成される。<br>MA Lab で間を定義化し、MA Channel で流通させ社会に広めていき、MA Do で暮らしの中に装置として埋め込むことで、個人を感化させていく。<br>動詞の階段が、受け手の状態変化に対応する。</p>
-        </div>
-        <figure class="flow" aria-label="間を定める、広める、感化する">
-          <div class="flow-root">間｜MA<br>暮らしへの<br>インストール</div>
-          <ol class="flow-steps">
+    <section class="notion-part steps" id="steps">
+      <h2 class="frame-label" data-m="stepl">間を定める、広める、感化する</h2>
+      <p class="part-text" data-m="stept" data-mt>間は三段階で構成される。<br>MA Lab で間を定義化し、MA Channel で流通させ社会に広めていき、MA Do で暮らしの中に装置として埋め込むことで、個人を感化させていく。<br>動詞の階段が、受け手の状態変化に対応する。</p>
+      <figure class="flow" aria-label="間を定める、広める、感化する" data-m="flow">
+        <div class="flow-root">間｜MA<br>暮らしへの<br>インストール</div>
+        <ol class="flow-steps">
         <li class="flow-step fs-0">
-          <div class="flow-box"><span>Gate 1:</span><strong>MA Lab</strong> <span class="flow-ja">(間の定義化)</span><span>“定める”</span></div>
+          <div class="flow-box"><span>Gate 1:</span><span><strong>MA Lab</strong> <span class="flow-ja">(間の定義化)</span></span><span>“定める”</span></div>
           <ul class="flow-doors"><li>Dictionary</li><li>Reference</li><li>Research</li></ul>
         </li>
         <li class="flow-step fs-1">
-          <div class="flow-box"><span>Gate 2:</span><strong>MA Channel</strong> <span class="flow-ja">(間の流通化)</span><span>“広める”</span></div>
+          <div class="flow-box"><span>Gate 2:</span><span><strong>MA Channel</strong> <span class="flow-ja">(間の流通化)</span></span><span>“広める”</span></div>
           <ul class="flow-doors"><li>Tv</li><li>Magazine</li><li>Radio</li></ul>
         </li>
         <li class="flow-step fs-2">
-          <div class="flow-box"><span>Gate 3:</span><strong>MA Do</strong> <span class="flow-ja">(間の個人化)</span><span>“感化する”</span></div>
+          <div class="flow-box"><span>Gate 3:</span><span><strong>MA Do</strong> <span class="flow-ja">(間の個人化)</span></span><span>“感化する”</span></div>
           <ul class="flow-doors"><li>Device</li><li>Tips</li></ul>
         </li>
-          </ol>
-        </figure>
-      </div>
-      <img class="illust book-illust" src="../assets/illust/book.png" width="341" height="375" alt="" loading="lazy" decoding="async">
+        </ol>
+      </figure>
+      <svg class="illust book-illust" viewBox="0 0 677 752" aria-hidden="true" focusable="false" data-m="book"><use href="../assets/illust/book.svg#art"/></svg>
     </section>
   </div>
 </main>
 
 <footer class="site-footer">
-  <img class="footer-logo" src="../assets/logo.png" width="496" height="512" alt="間｜MA ロゴマーク" loading="lazy" decoding="async">
-  <div class="footer-credit">
-    <p>Indies Lifestyle Media 間｜MA</p>
-    <p>Follow us on <a href="https://www.youtube.com/@ma_jpn_com" target="_blank" rel="noopener">YouTube</a> , <b>Podcast</b> and <a href="https://note.com/" target="_blank" rel="noopener">note</a>.</p>
-    <p>©2026, Manaka Ltd.　β版（関係者確認用）</p>
-  </div>
-  <button class="theme-toggle" type="button" aria-label="表示の色を切り替える">
+  <p class="fc-1"><span class="fc-name" data-m="f1" data-mt>Indies Lifestyle Media 間｜MA</span> <span class="fc-follow" data-m="f2" data-mt>Follow us on <a href="https://www.youtube.com/@ma_jpn_com" target="_blank" rel="noopener">YouTube</a> , <b>Podcast</b> and <a href="https://note.com/" target="_blank" rel="noopener">note</a>.</span></p>
+  <p class="fc-2" data-m="f3" data-mt>©2026, Manaka Ltd.　β版（関係者確認用）</p>
+  <button class="theme-toggle" type="button" aria-label="表示の色を切り替える" data-m="toggle">
     <span class="tt-knob"></span><span class="tt-label">Dark</span><span class="tt-icon" aria-hidden="true">☾</span>
   </button>
-  <div class="footer-links"><a href="../contact/">Contact us</a><a href="../company/">Company</a></div>
+  <p class="footer-links" data-m="flinks"><a href="../contact/">Contact us</a><a href="../company/">Company</a></p>
 </footer>
 
 <script src="../js/main.js"></script>

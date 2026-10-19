@@ -26,16 +26,14 @@
 <body>
 
 <header class="site-header">
-  <div class="bar">
-    <a class="site-title" href="./">Indies Lifestyle Media 間｜MA</a>
-    <button class="menu-btn" type="button" aria-controls="site-menu" aria-expanded="false" aria-label="メニューを開く">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
+  <a class="site-title" href="./" data-m="title" data-mt>Indies Lifestyle Media 間｜MA</a>
+  <button class="menu-btn" type="button" aria-controls="site-menu" aria-expanded="false" aria-label="メニューを開く" data-m="ham">
+    <span></span><span></span><span></span>
+  </button>
   <nav class="gate-tabs" aria-label="Gate">
-    <a class="gate-tab gt-lab" href="lab/"><span class="gt-no">Gate 1:</span><span class="gt-box">MA Lab</span></a>
-    <a class="gate-tab gt-channel" href="channel/"><span class="gt-no">Gate 2:</span><span class="gt-box">MA Channel</span></a>
-    <a class="gate-tab gt-do" href="do/"><span class="gt-no">Gate 3:</span><span class="gt-box">MA Do</span></a>
+    <a class="gate-tab gt-lab" href="lab/"><span class="gt-no" data-m="tl-lab" data-mt>Gate 1:</span><span class="gt-box" data-m="tb-lab"><span data-m="tt-lab" data-mt>MA Lab</span></span></a>
+    <a class="gate-tab gt-channel" href="channel/"><span class="gt-no" data-m="tl-channel" data-mt>Gate 2:</span><span class="gt-box" data-m="tb-channel"><span data-m="tt-channel" data-mt>MA Channel</span></span></a>
+    <a class="gate-tab gt-do" href="do/"><span class="gt-no" data-m="tl-do" data-mt>Gate 3:</span><span class="gt-box" data-m="tb-do"><span data-m="tt-do" data-mt>MA Do</span></span></a>
   </nav>
 </header>
 
@@ -75,58 +73,54 @@
     </div>
     <div class="menu-links"><a href="contact/">Contact us</a><a href="company/">Company</a></div>
   </nav>
-  <img class="illust menu-figure" src="assets/illust/figure.png" width="321" height="1207" alt="" loading="lazy" decoding="async">
+  <svg class="illust menu-figure" viewBox="0 0 332 1263" aria-hidden="true" focusable="false"><use href="assets/illust/figure.svg#art"/></svg>
 </div>
 
 <main class="page home-page" id="main">
-  <div class="content">
   <h1 class="visually-hidden">Indies Lifestyle Media 間｜MA</h1>
 
   <section class="hero" id="top">
-    <p class="hero-now">現在、</p>
-    <p class="hero-count"><span class="hc-line" aria-hidden="true"></span><span class="hc-num">1</span></p>
-    <p class="hero-text">人が平場に立ちました。</p>
-    <img class="illust hero-figure" src="assets/illust/figure.png" width="321" height="1207" alt="" loading="lazy" decoding="async">
-    <a class="arrow-btn" href="#quote" aria-label="引用へ進む"><span aria-hidden="true">↓</span></a>
+    <p class="hero-now" data-m="now" data-mt>現在、</p>
+    <p class="hero-count" data-m="count"><span class="hc-line" data-m="hcline"></span><span class="hc-num" data-m="hcnum">1</span></p>
+    <p class="hero-text" data-m="htext" data-mt>人が平場に立ちました。</p>
+    <svg class="illust hero-figure" viewBox="0 0 332 1263" aria-hidden="true" focusable="false" data-m="figure"><use href="assets/illust/figure.svg#art"/></svg>
+    <a class="arrow-btn arrow-1" href="#quote" aria-label="引用へ進む" data-m="arrow1"><span aria-hidden="true">↓</span></a>
   </section>
 
-  <section class="quote" id="quote" aria-label="引用">
-    <p class="pending-note">ここに Ryan Gander『The Markers of Our Time』からの引用が入ります（掲載の可否を確かめてから載せます）。</p>
-    <p class="quote-credit">(-Ryan Gander: The Markers of Our Time)</p>
+  <section class="quote col" id="quote" aria-label="引用">
+    <p class="pending-note" data-m="q1" data-mt>ここに Ryan Gander『The Markers of Our Time』からの引用が入ります（掲載の可否を確かめてから載せます）。</p>
+    <p class="quote-credit" data-m="credit" data-mt>(-Ryan Gander: The Markers of Our Time)</p>
+    <svg class="illust hiraba-illust" viewBox="0 0 910 714" aria-hidden="true" focusable="false" data-m="hiraba"><use href="assets/illust/hiraba.svg#art"/></svg>
   </section>
+  <a class="arrow-btn arrow-2" href="#toc" aria-label="目次へ進む" data-m="arrow2"><span aria-hidden="true">↓</span></a>
 
-  <div class="hiraba">
-    <img class="illust hiraba-illust" src="assets/illust/hiraba.png" width="951" height="821" alt="" loading="lazy" decoding="async">
-    <a class="arrow-btn" href="#toc" aria-label="目次へ進む"><span aria-hidden="true">↓</span></a>
-  </div>
-
-  <section class="toc" id="toc">
-    <h2 class="tag tag-b">Table of Contents</h2>
-    <p class="formula"><span>We create of Your MA</span><span>=</span><span>Lab × Ch × Do</span><span class="formula-bar">--------------------</span><span>Notion</span></p>
-    <h2 class="frame-label">間を巡る 4 つの門と 8 つの扉</h2>
+  <section class="toc col" id="toc">
+    <h2 class="tag tag-b" data-m="toctag"><span data-m="toctag-t" data-mt>Table of Contents</span></h2>
+    <p class="formula" data-m="formula"><span class="fm-left" data-m="fml" data-mt>We create of Your MA <span class="fm-eq">=</span></span><span class="fm-frac"><span class="fm-num" data-m="fmn" data-mt>Lab × Ch × Do</span><span class="fm-bar" aria-hidden="true"></span><span class="fm-den" data-m="fmd" data-mt>Notion</span></span></p>
+    <h2 class="frame-label" data-m="frame">間を巡る 4 つの門と 8 つの扉</h2>
     <ol class="toc-gates">
       <li class="toc-gate">
-        <p class="toc-head"><a href="notion/"><span class="gh-no">Gate 0:</span> <strong>MA Notion</strong> / 間、当事者化への提案</a></p>
+        <p class="toc-head" data-m="g0" data-mt><a href="notion/"><span class="gh-no">Gate 0:</span> <strong>MA Notion</strong> <span class="gh-ja">/ 間、当事者化への提案</span></a></p>
       </li>
       <li class="toc-gate is-dim">
-        <p class="toc-head"><span class="gh-no">Gate 1:</span> <strong>MA Lab</strong> / 間、定義化への試み</p>
-        <ul class="toc-doors">
+        <p class="toc-head" data-m="g1" data-mt><span class="gh-no">Gate 1:</span> <strong>MA Lab</strong> <span class="gh-ja">/ 間、定義化への試み</span></p>
+        <ul class="toc-doors" data-m="d1" data-mt>
           <li class="is-dim">Door 1-1: Dictionary Space</li>
           <li class="is-dim">Door 1-2: Reference Space</li>
           <li class="is-dim">Door 1-3: Research Space</li>
         </ul>
       </li>
       <li class="toc-gate">
-        <p class="toc-head"><a href="channel/"><span class="gh-no">Gate 2:</span> <strong>MA Channel</strong> / 間、流通化への多手</a></p>
-        <ul class="toc-doors">
+        <p class="toc-head" data-m="g2" data-mt><a href="channel/"><span class="gh-no">Gate 2:</span> <strong>MA Channel</strong> <span class="gh-ja">/ 間、流通化への多手</span></a></p>
+        <ul class="toc-doors" data-m="d2" data-mt>
           <li>Door 2-1: TV Station</li>
           <li>Door 2-2: Magazine Station</li>
           <li>Door 2-3: Radio Station</li>
         </ul>
       </li>
       <li class="toc-gate">
-        <p class="toc-head"><a href="do/"><span class="gh-no">Gate 3:</span> <strong>MA Do</strong> / 間、個人化への導線</a></p>
-        <ul class="toc-doors">
+        <p class="toc-head" data-m="g3" data-mt><a href="do/"><span class="gh-no">Gate 3:</span> <strong>MA Do</strong> <span class="gh-ja">/ 間、個人化への導線</span></a></p>
+        <ul class="toc-doors" data-m="d3" data-mt>
           <li class="is-dim">Door 3-1: Tips Room</li>
           <li><a href="do/device/">Door 3-2: Device Room</a></li>
         </ul>
@@ -134,38 +128,30 @@
     </ol>
   </section>
 
-  <section class="news" id="news">
-    <div class="news-headrow">
-      <h2 class="tag tag-t">News</h2>
-      <img class="illust device-illust" src="assets/illust/device.png" width="617" height="798" alt="" loading="lazy" decoding="async">
-    </div>
+  <section class="news col" id="news">
+    <h2 class="tag tag-t" data-m="newstag"><span data-m="newstag-t" data-mt>News</span></h2>
+    <svg class="illust device-illust" viewBox="0 0 644 834" aria-hidden="true" focusable="false" data-m="device"><use href="assets/illust/device.svg#art"/></svg>
     <ol class="news-list">
-      <li class="news-item">
-        <p class="entry-meta"><span class="new">&lt;NEW&gt;</span> <span class="em-date">26/09/30</span> <span class="em-path">MA Channel/TV/2-1-3</span></p>
-        <p class="news-title"><a href="channel/beyond-the-vanishingpoint/#ep-nishina">「Beyond the Vanishing point / 死を、教えてくれ。」 仁科 正史 (Pro Snowboarder/Artist)</a></p>
-        <p class="news-text">死とは、悦びである。</p>
+      <li class="news-item" data-m="ni1">
+        <p class="entry-meta" data-m="nm1" data-mt><span class="new">&lt;NEW&gt;</span> <span class="em-date">26/09/30</span> <span class="em-path">MA Channel/TV/2-1-3</span></p>
+        <p class="news-title" data-m="nt1" data-mt><a href="channel/beyond-the-vanishingpoint/#ep-nishina">「Beyond the Vanishing point / 死を、教えてくれ。」 仁科 正史 (Pro Snowboarder/Artist)</a></p>
       </li>
-      <li class="news-item">
-        <p class="entry-meta"><span class="em-date">26/07/28</span> <span class="em-path">MA</span></p>
-        <p class="news-title">サイトの更新を、AI エージェントと。</p>
-        <p class="news-text">Slack で話しかけると記事がサイトに反映される、新しい編集の運用を準備しています。</p>
+      <li class="news-item" data-m="ni2">
+        <p class="entry-meta" data-m="nm2" data-mt><span class="em-date">26/07/28</span> <span class="em-path">MA</span></p>
+        <p class="news-title" data-m="nt2" data-mt>サイトの更新を、AI エージェントと。</p>
       </li>
     </ol>
   </section>
-  </div>
+  <div class="home-end"><img class="home-logo" src="assets/logo.png" width="496" height="512" alt="間｜MA ロゴマーク" loading="lazy" decoding="async" data-m="flogo"></div>
 </main>
 
 <footer class="site-footer">
-  <img class="footer-logo" src="assets/logo.png" width="496" height="512" alt="間｜MA ロゴマーク" loading="lazy" decoding="async">
-  <div class="footer-credit">
-    <p>Indies Lifestyle Media 間｜MA</p>
-    <p>Follow us on <a href="https://www.youtube.com/@ma_jpn_com" target="_blank" rel="noopener">YouTube</a> , <b>Podcast</b> and <a href="https://note.com/" target="_blank" rel="noopener">note</a>.</p>
-    <p>©2026, Manaka Ltd.　β版（関係者確認用）</p>
-  </div>
-  <button class="theme-toggle" type="button" aria-label="表示の色を切り替える">
+  <p class="fc-1"><span class="fc-name" data-m="f1" data-mt>Indies Lifestyle Media 間｜MA</span> <span class="fc-follow" data-m="f2" data-mt>Follow us on <a href="https://www.youtube.com/@ma_jpn_com" target="_blank" rel="noopener">YouTube</a> , <b>Podcast</b> and <a href="https://note.com/" target="_blank" rel="noopener">note</a>.</span></p>
+  <p class="fc-2" data-m="f3" data-mt>©2026, Manaka Ltd.　β版（関係者確認用）</p>
+  <button class="theme-toggle" type="button" aria-label="表示の色を切り替える" data-m="toggle">
     <span class="tt-knob"></span><span class="tt-label">Dark</span><span class="tt-icon" aria-hidden="true">☾</span>
   </button>
-  <div class="footer-links"><a href="contact/">Contact us</a><a href="company/">Company</a></div>
+  <p class="footer-links" data-m="flinks"><a href="contact/">Contact us</a><a href="company/">Company</a></p>
 </footer>
 
 <script src="js/main.js"></script>

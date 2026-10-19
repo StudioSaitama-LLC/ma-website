@@ -2,6 +2,7 @@
    - 色の切り替え（青地 / 灰地）。ページを読む前に <head> の小さなスクリプトが前回の選択を戻している
    - メニュー（全画面）の開閉
    - 章の開閉（最初は一部だけ見せ、矢印で全部 ↔ 一部）
+   - 記事の冒頭の写真の切り替え
    - 番組の回（details）は、#ep-… で来たときに開く
    - Device Room の検索とお店の絞り込み */
 
@@ -67,15 +68,11 @@
       });
     }
 
-    // ---------- 章の開閉 ----------
+    // ---------- 章の開閉（最初は見出しだけ） ----------
     document.querySelectorAll(".fold").forEach(function (f) {
       var btn = f.querySelector(".fold-toggle");
       var body = f.querySelector(".fold-body");
       if (!btn || !body) return;
-      if (body.scrollHeight <= 200) {
-        btn.hidden = true;
-        return;
-      }
       var set = function (open) {
         f.classList.toggle("is-folded", !open);
         btn.setAttribute("aria-expanded", open ? "true" : "false");
@@ -86,6 +83,48 @@
         set(opening);
         if (!opening) f.scrollIntoView({ block: "start" });
       });
+    });
+
+    // 章の本文の最後の ↑ は、章を閉じて見出しへ戻る
+    document.querySelectorAll(".fold-close").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var f = b.closest(".fold");
+        var t = f && f.querySelector(".fold-toggle");
+        if (t) t.click();
+      });
+    });
+    // 回の本文の最後の ↑ は、回を閉じる
+    document.querySelectorAll(".entry-close").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var d = b.closest("details");
+        if (!d) return;
+        d.open = false;
+        d.scrollIntoView({ block: "start" });
+      });
+    });
+
+    // ---------- 記事の冒頭の写真（拡大しながら次の写真へ） ----------
+    // 上の写真（is-on）が 6 秒で寄りながら消え、真下に待つ次の写真（is-next）が出る。動きを減らす設定なら 1 枚目のまま
+    var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.querySelectorAll(".article-hero").forEach(function (hero) {
+      var imgs = hero.querySelectorAll(".hs-img");
+      if (imgs.length < 2 || still) return;
+      var i = 0;
+      var show = function () {
+        imgs.forEach(function (im, k) {
+          im.classList.toggle("is-on", k === i);
+          im.classList.toggle("is-next", k === (i + 1) % imgs.length);
+        });
+      };
+      imgs.forEach(function (im) {
+        im.addEventListener("animationend", function () {
+          if (!im.classList.contains("is-on")) return;
+          i = (i + 1) % imgs.length;
+          show();
+        });
+      });
+      show();
+      hero.classList.add("is-playing");
     });
 
     // ---------- 番組の回 ----------
