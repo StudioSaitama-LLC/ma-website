@@ -4,7 +4,8 @@
    - 章の開閉（最初は一部だけ見せ、矢印で全部 ↔ 一部）
    - 記事の冒頭の写真の切り替え
    - 番組の回（details）は、#ep-… で来たときに開く
-   - Device Room の検索とお店の絞り込み */
+   - 商品の写真の送り
+   - Device Room の検索とお店の絞り込み（商品ページの検索からは ?q= で来る） */
 
 (function () {
   var root = document.documentElement;
@@ -132,18 +133,32 @@
     window.addEventListener("hashchange", openFromHash);
 
     // ---------- 商品の写真 ----------
-    var main = document.querySelector(".gallery-main");
-    if (main) {
+    // 写真は横に並び、指（スマホ）か下の小さな写真（PC）で送る。今何枚目かを「1/N」に出す
+    var track = document.querySelector(".gallery-track");
+    if (track) {
+      var slides = track.querySelectorAll("li");
+      var now = document.querySelector(".gc-now");
       var thumbs = document.querySelectorAll(".gallery-thumbs .thumb");
+      var mark = function (i) {
+        if (now) now.textContent = String(i + 1);
+        thumbs.forEach(function (x, k) { x.setAttribute("aria-pressed", k === i ? "true" : "false"); });
+      };
       thumbs.forEach(function (t, i) {
-        var img = t.querySelector("img");
-        t.setAttribute("aria-pressed", i === 0 ? "true" : "false");
         t.addEventListener("click", function () {
-          main.src = img.src;
-          main.alt = (t.getAttribute("aria-label") || "").replace(/の写真を大きく見る$/, "");
-          thumbs.forEach(function (x) { x.setAttribute("aria-pressed", x === t ? "true" : "false"); });
+          track.scrollTo({ left: i * track.clientWidth, behavior: still ? "auto" : "smooth" });
+          mark(i);
         });
       });
+      var tick = null;
+      track.addEventListener("scroll", function () {
+        if (tick) return;
+        tick = setTimeout(function () {
+          tick = null;
+          var i = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+          mark(Math.max(0, Math.min(slides.length - 1, i)));
+        }, 80);
+      });
+      mark(0);
     }
 
     // ---------- Device Room ----------
@@ -177,6 +192,10 @@
       });
       q.addEventListener("input", apply);
       if (q.form) q.form.addEventListener("submit", function (e) { e.preventDefault(); apply(); });
+      // 商品ページの検索から ?q=… で来たら、その言葉で絞り込んだ状態で開く
+      var asked = "";
+      try { asked = new URLSearchParams(location.search).get("q") || ""; } catch (e) {}
+      if (asked) { q.value = asked; apply(); }
       var wanted = location.hash.slice(1);
       pills.forEach(function (p) { if (wanted && p.dataset.shop === wanted) p.click(); });
     }

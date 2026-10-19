@@ -369,10 +369,10 @@ class Site:
                     else:
                         rows.append('<li class="is-dim"><span class="en">%s</span></li>' % esc(d["en"]))
             ul = ('\n        <ul class="mg-list">\n          %s\n        </ul>' % "\n          ".join(rows)) if rows else ""
-            cols.append("""      <div class="menu-gate{dim}">
+            cols.append("""      <div class="menu-gate mg-{key}{dim}">
         {head}
         <p class="mg-sub">/ {ja}</p>{ul}
-      </div>""".format(dim="" if g["ready"] else " is-dim", head=head, ja=esc(g["ja"]), ul=ul))
+      </div>""".format(key=esc(g["key"]), dim="" if g["ready"] else " is-dim", head=head, ja=esc(g["ja"]), ul=ul))
         return """<div class="menu-overlay" id="site-menu" aria-hidden="true">
   <div class="bar">
     <a class="site-title" href="{home}">{name}</a>
@@ -942,29 +942,28 @@ class Site:
                       price=esc(self.price_label(prod)), tax=self.tax_label()))
         body = """
   <div class="content wide">
-    <p class="crumb"><a href="{home}">Home</a> › <a href="{do}">MA Do</a> › Device</p>
     <h1 class="visually-hidden">Device Room</h1>
-    <form class="dev-search" role="search" action="#">
+    <form class="dev-search" role="search" action="#" data-m="dsearch">
       <label class="visually-hidden" for="dev-q">MA Do / Device を検索</label>
       <input id="dev-q" type="search" placeholder="MA Do / Device を検索" autocomplete="off">
       <button type="submit" aria-label="検索"><span class="search-icon" aria-hidden="true"></span></button>
     </form>
-    <div class="pills" role="group" aria-label="お店で絞り込む">
-      {pills}
+    <div class="pills" role="group" aria-label="お店で絞り込む" data-m="dpills">
+      <div class="pill-row">{pills1}</div>
+      <div class="pill-row">{pills2}</div>
     </div>
-    <ul class="dev-grid">
+    <ul class="dev-grid" data-m="dgrid">
 {cards}
     </ul>
     <p class="pending-note dev-empty" hidden>該当する商品は、まだ載せていません（順に追加します）。</p>
   </div>
-""".format(home=h(""), do=h("do/"), pills="\n      ".join(pills), cards="\n".join(cards))
-        self.page(cur, "Device Room", body)
+""".format(pills1="".join(pills[:(len(pills) + 1) // 2]), pills2="".join(pills[(len(pills) + 1) // 2:]), cards="\n".join(cards))
+        self.page(cur, "Device Room", body, main_class="page device-page")
 
     def build_product(self, prod):
         cur = self.product_url(prod) + "index.html"
         h = lambda t: self.href(cur, t)
         shop = self.shop_of(prod)
-        main = prod["variants"][0]
         thumbs = "\n".join('          <li><button class="thumb" type="button" aria-label="%s（%s）の写真を大きく見る"><img src="%s" width="720" height="720" loading="lazy" decoding="async" alt=""></button></li>' % (
             esc(prod["name"]), esc(v["color"]), esc(h("assets/device/" + v["image"]))) for v in prod["variants"])
         colors = "\n".join("""          <li>
@@ -982,72 +981,87 @@ class Site:
       </figure>""".format(img=esc(h("assets/device/" + f["image"])), ttl=lines(f["title"]), body=lines(f["body"])) for f in prod["features"])
         qa = "\n".join("        <dt>Q.&ensp;%s</dt>\n        <dd>%s</dd>" % (esc(x["q"]), lines(x["a"])) for x in prod["highlights"])
         specs = "\n".join('        <tr><th scope="row">%s</th><td>%s</td></tr>' % (esc(x["label"]), lines(x["value"])) for x in prod["specs"])
+        # 写真は横に並べてスクロールで送る（スマホは指で送り「1/N」を出す。PC は下の小さな写真で選ぶ）
+        slides = "\n".join('          <li><img src="%s" width="720" height="720"%s decoding="async" alt="%s（%s）"></li>' % (
+            esc(h("assets/device/" + v["image"])), "" if i == 0 else ' loading="lazy"', esc(prod["name"]), esc(v["color"]))
+            for i, v in enumerate(prod["variants"]))
         body = """
   <div class="content wide">
-    <p class="crumb"><a href="{home}">Home</a> › <a href="{do}">MA Do</a> › <a href="{dev}">Device</a> › {shop} › {name}</p>
+    <form class="dev-search" role="search" action="{dev}" method="get" data-m="dsearch">
+      <label class="visually-hidden" for="dev-q">MA Do / Device を検索</label>
+      <input id="dev-q" name="q" type="search" placeholder="MA Do / Device を検索" autocomplete="off">
+      <button type="submit" aria-label="検索"><span class="search-icon" aria-hidden="true"></span></button>
+    </form>
+    <p class="crumb" data-m="pcrumb" data-mt><a href="{home}">Home</a> › <a href="{do}">MA Do</a> › <a href="{dev}">Device</a> › {shop} › {name}</p>
     <div class="product-top">
-      <div class="gallery">
-        <img class="gallery-main" src="{main}" width="720" height="720" decoding="async" alt="{name}（{color}）">
+      <div class="gallery" data-m="pgal">
+        <ul class="gallery-track" tabindex="0" aria-label="{name} の写真（横に送る）">
+{slides}
+        </ul>
+        <p class="gallery-count" data-m="pcount" data-mt aria-hidden="true"><span class="gc-now">1</span>/{count}</p>
         <ul class="gallery-thumbs">
 {thumbs}
         </ul>
       </div>
       <div class="product-info">
-        <p class="pi-shop">{shop}</p>
-        <h1 class="pi-name">{name}</h1>
-        <p class="pi-label">販売価格：</p>
-        <p class="price price-lg">{price}{note}</p>
-        <a class="buy-btn" href="{ec}" target="_blank" rel="noopener">ウェブサイトへ移動</a>
-        <h2 class="pi-colors-head">color: {colornames}</h2>
-        <ul class="pi-colors">
+        <h2 class="pi-head" data-m="phead" data-mt>商品詳細</h2>
+        <p class="pi-shop" data-m="pshop" data-mt>{shop}</p>
+        <h1 class="pi-name" data-m="pname" data-mt>{name}</h1>
+        <p class="pi-label" data-m="plabel" data-mt>販売価格：</p>
+        <p class="price price-lg" data-m="pprice" data-mt>{price}{note}</p>
+        <a class="buy-btn" href="{ec}" target="_blank" rel="noopener" data-m="pbuy" data-mt>ウェブサイトへ移動</a>
+      </div>
+      <div class="product-colors">
+        <h2 class="pi-colors-head" data-m="pchead" data-mt>color: {colornames}</h2>
+        <ul class="pi-colors" data-m="pcolors">
 {colors}
         </ul>
       </div>
     </div>
 
     <section class="product-desc">
-      <h2 class="line-head">商品説明</h2>
+      <h2 class="line-head" data-m="pdesc" data-mt>商品説明</h2>
       <p class="pd-copy">{copy}</p>
       <div class="prose"><p>{body}</p></div>
-    </section>
-
-    <section class="features">
-{feats}
-    </section>
-
-    <section class="product-more">
-      <h2 class="line-head">よくあるご質問</h2>
+      <h3 class="pd-sub">よくあるご質問</h3>
       <dl class="qa">
 {qa}
       </dl>
-      <h2 class="line-head">仕様</h2>
+      <h3 class="pd-sub">仕様</h3>
       <table class="spec">
 {specs}
       </table>
-      <p><a class="buy-btn" href="{ec}" target="_blank" rel="noopener">{shopname} のウェブサイトへ移動</a></p>
+    </section>
+
+    <section class="features" aria-label="特徴">
+{feats}
     </section>
   </div>
 """.format(home=h(""), do=h("do/"), dev=h("do/device/"), shop=esc(shop["name"]), name=esc(prod["name"]),
-           main=esc(h("assets/device/" + main["image"])), color=esc(main["color"]), thumbs=thumbs, price=esc(self.price_label(prod)),
+           slides=slides, count=len(prod["variants"]), thumbs=thumbs, price=esc(self.price_label(prod)),
            note=self.tax_label(), ec=esc(prod["ec_url"]),
            colornames=esc(" / ".join(v["color"] for v in prod["variants"])), colors=colors, copy=esc(prod["copy"]),
-           body=lines(prod["body"]), feats=feats, qa=qa, specs=specs, shopname=esc(shop["name"]))
-        self.page(cur, prod["name"], body)
+           body=lines(prod["body"]), feats=feats, qa=qa, specs=specs)
+        self.page(cur, prod["name"], body, main_class="page product-page")
 
     def build_company(self):
         cur = "company/index.html"
         c = self.company
         ph = c["photo"]
-        chapters = []
-        for ch in c["chapters"]:
-            chapters.append("""    <section class="fold chapter" id="ch{no}">
-      <h2 class="fold-head">第 {no} 章 : 「{title}」<button class="fold-toggle" type="button" aria-expanded="true" aria-controls="ch{no}-body" aria-label="第 {no} 章を開く・閉じる"></button></h2>
-      <div class="fold-body prose" id="ch{no}-body">
-{paras}
-      </div>
-    </section>""".format(no=ch["no"], title=esc(ch["title"]), paras="\n".join("        <p>%s</p>" % esc(x) for x in ch["paragraphs"])))
-        profile = "\n".join('        <div class="pr-row"><dt>%s :</dt><dd>%s</dd></div>' % (esc(r["label"]), "<br>".join(esc(v) for v in r["value"]))
-                            for r in c["profile"])
+        # 章は Notion と同じ開閉（最初は見出しだけ）。デザインの注記どおり、渡された章だけを出す
+        chapters = [self.fold_chapter(ch["no"], ch["title"], ["        <p>%s</p>" % esc(x) for x in ch["paragraphs"]], i)
+                    for i, ch in enumerate(c["chapters"])]
+
+        def value(v):
+            # 住所など、区切りの並び（list）は PC では 1 行、スマホでは区切りごとに改行する
+            if isinstance(v, list):
+                # 「[ 本社 ]」のような角括弧で始まる区切りは、括弧を行頭の外へぶら下げる（デザインどおり）
+                return '<span class="seg-line">%s</span>' % "".join('<span class="seg%s">%s</span>' % (
+                    " seg-bracket" if x.startswith("[") else "", esc(x)) for x in v)
+            return esc(v)
+        profile = "\n".join('        <div class="pr-row%s%s"><dt>%s :</dt><dd>%s</dd></div>' % (
+            {"stack": " pr-stack", "stack-sp": " pr-stack-sp"}.get(r.get("layout", ""), ""), " pr-gap" if r.get("gap_after") else "",
+            esc(r["label"]), "".join(value(v) for v in r["value"])) for r in c["profile"])
         fac = "\n".join("""        <li><p class="fac-name">{name}</p><ul>{items}</ul></li>""".format(
             name=esc(f["name"]), items="".join("<li>%s</li>" % esc(x) for x in f["items"])) for f in c["facilities"])
         body = """
@@ -1058,11 +1072,12 @@ class Site:
     </div>
     <img class="company-photo" src="{photo}" width="{w}" height="{h}" decoding="async" alt="{alt}">
 
+    <div class="chapters">
 {chapters}
-    <p class="pending-note">{pending}</p>
+    </div>
 
     <section class="profile">
-      <h2 class="line-head">会社概要</h2>
+      <h2 class="line-head" data-m="cprof" data-mt>会社概要</h2>
       <dl class="profile-list">
 {profile}
       </dl>
@@ -1070,13 +1085,11 @@ class Site:
       <ul class="facilities">
 {fac}
       </ul>
-      {logo}
     </section>
   </div>
 """.format(title=esc(c["title"]), photo=self.href(cur, "assets/" + ph["src"]), w=ph["width"], h=ph["height"], alt=esc(ph["alt"]),
-           chapters="\n\n".join(chapters), pending=esc(c.get("chapters_pending", "")), profile=profile, fac=fac,
-           logo=self.logo(cur, "logo-mark lm-company"))
-        self.page(cur, "Company", body)
+           chapters="\n".join(chapters), profile=profile, fac=fac)
+        self.page(cur, "Company", body, main_class="page company-page")
 
     def build_contact(self):
         cur = "contact/index.html"
@@ -1103,12 +1116,11 @@ class Site:
     <div class="simple-head">
       <h1 class="sh-en">Contact us</h1>
       <p class="sh-ja">お問い合わせ</p>
-      {logo}
     </div>
 {groups}
   </div>
-""".format(logo=self.logo(cur, "logo-mark lm-contact"), groups="\n\n".join(groups))
-        self.page(cur, "Contact us", body)
+""".format(groups="\n\n".join(groups))
+        self.page(cur, "Contact us", body, main_class="page contact-page")
 
     def build_redirects(self):
         for old, target, label in (("about.html", "notion/", "MA Notion"),

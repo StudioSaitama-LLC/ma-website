@@ -45,15 +45,15 @@
   <nav class="menu-inner" aria-label="サイトの案内">
     <a class="menu-home" href="../../">Home</a>
     <div class="menu-gates">
-      <div class="menu-gate">
+      <div class="menu-gate mg-notion">
         <a class="mg-head" href="../../notion/"><span class="gh-no">Gate 0:</span> <strong>MA Notion</strong></a>
         <p class="mg-sub">/ 間、当事者化への提案</p>
       </div>
-      <div class="menu-gate is-dim">
+      <div class="menu-gate mg-lab is-dim">
         <a class="mg-head is-dim" href="../../lab/"><span class="gh-no">Gate 1:</span> <strong>MA Lab</strong></a>
         <p class="mg-sub">/ 間、定義化への試み</p>
       </div>
-      <div class="menu-gate">
+      <div class="menu-gate mg-channel">
         <a class="mg-head" href="../../channel/"><span class="gh-no">Gate 2:</span> <strong>MA Channel</strong></a>
         <p class="mg-sub">/ 間、流通化への多手</p>
         <ul class="mg-list">
@@ -62,7 +62,7 @@
           <li><a href="../../channel/ma-crosstalk/"><span class="en">MA Crosstalk</span> / 異能の表現者たち</a></li>
         </ul>
       </div>
-      <div class="menu-gate">
+      <div class="menu-gate mg-do">
         <a class="mg-head" href="../../do/"><span class="gh-no">Gate 3:</span> <strong>MA Do</strong></a>
         <p class="mg-sub">/ 間、個人化への導線</p>
         <ul class="mg-list">
@@ -76,24 +76,19 @@
   <svg class="illust menu-figure" viewBox="0 0 332 1263" aria-hidden="true" focusable="false"><use href="../../assets/illust/figure.svg#art"/></svg>
 </div>
 
-<main class="page" id="main">
+<main class="page device-page" id="main">
   <div class="content wide">
-    <p class="crumb"><a href="../../">Home</a> › <a href="../../do/">MA Do</a> › Device</p>
     <h1 class="visually-hidden">Device Room</h1>
-    <form class="dev-search" role="search" action="#">
+    <form class="dev-search" role="search" action="#" data-m="dsearch">
       <label class="visually-hidden" for="dev-q">MA Do / Device を検索</label>
       <input id="dev-q" type="search" placeholder="MA Do / Device を検索" autocomplete="off">
       <button type="submit" aria-label="検索"><span class="search-icon" aria-hidden="true"></span></button>
     </form>
-    <div class="pills" role="group" aria-label="お店で絞り込む">
-      <button class="pill is-active" type="button" data-shop="">ALL</button>
-      <button class="pill" type="button" data-shop="manaka-store">祈りの道具屋 まなか</button>
-      <button class="pill is-empty" type="button" data-shop="hajioso">はじめてのお葬式</button>
-      <button class="pill is-empty" type="button" data-shop="manaka-ohaka">まなかのお墓</button>
-      <button class="pill is-empty" type="button" data-shop="hibiko">日々香好日 TOKYO</button>
-      <button class="pill is-empty" type="button" data-shop="manaka-net">まなかのぼえん葬</button>
+    <div class="pills" role="group" aria-label="お店で絞り込む" data-m="dpills">
+      <div class="pill-row"><button class="pill is-active" type="button" data-shop="">ALL</button><button class="pill" type="button" data-shop="manaka-store">祈りの道具屋 まなか</button><button class="pill is-empty" type="button" data-shop="hajioso">はじめてのお葬式</button></div>
+      <div class="pill-row"><button class="pill is-empty" type="button" data-shop="manaka-ohaka">まなかのお墓</button><button class="pill is-empty" type="button" data-shop="hibiko">日々香好日 TOKYO</button><button class="pill is-empty" type="button" data-shop="manaka-net">まなかのぼえん葬</button></div>
     </div>
-    <ul class="dev-grid">
+    <ul class="dev-grid" data-m="dgrid">
       <li class="dev-card" data-shop="manaka-store" data-text="星牌® 石 祈りの道具屋まなか お位牌 あの人を感じる唯一無二の天然石のお位牌 消水晶 紫金石 アベン ピンククォーツ">
         <a class="dc-img" href="../../do/device/manaka-store/2/"><img src="../../assets/device/seihai_g01.jpg" width="720" height="720" loading="lazy" decoding="async" alt="星牌® 石"></a>
         <p class="dc-shop">祈りの道具屋 まなか</p>

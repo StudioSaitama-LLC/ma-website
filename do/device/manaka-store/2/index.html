@@ -45,15 +45,15 @@
   <nav class="menu-inner" aria-label="サイトの案内">
     <a class="menu-home" href="../../../../">Home</a>
     <div class="menu-gates">
-      <div class="menu-gate">
+      <div class="menu-gate mg-notion">
         <a class="mg-head" href="../../../../notion/"><span class="gh-no">Gate 0:</span> <strong>MA Notion</strong></a>
         <p class="mg-sub">/ 間、当事者化への提案</p>
       </div>
-      <div class="menu-gate is-dim">
+      <div class="menu-gate mg-lab is-dim">
         <a class="mg-head is-dim" href="../../../../lab/"><span class="gh-no">Gate 1:</span> <strong>MA Lab</strong></a>
         <p class="mg-sub">/ 間、定義化への試み</p>
       </div>
-      <div class="menu-gate">
+      <div class="menu-gate mg-channel">
         <a class="mg-head" href="../../../../channel/"><span class="gh-no">Gate 2:</span> <strong>MA Channel</strong></a>
         <p class="mg-sub">/ 間、流通化への多手</p>
         <ul class="mg-list">
@@ -62,7 +62,7 @@
           <li><a href="../../../../channel/ma-crosstalk/"><span class="en">MA Crosstalk</span> / 異能の表現者たち</a></li>
         </ul>
       </div>
-      <div class="menu-gate">
+      <div class="menu-gate mg-do">
         <a class="mg-head" href="../../../../do/"><span class="gh-no">Gate 3:</span> <strong>MA Do</strong></a>
         <p class="mg-sub">/ 間、個人化への導線</p>
         <ul class="mg-list">
@@ -76,12 +76,23 @@
   <svg class="illust menu-figure" viewBox="0 0 332 1263" aria-hidden="true" focusable="false"><use href="../../../../assets/illust/figure.svg#art"/></svg>
 </div>
 
-<main class="page" id="main">
+<main class="page product-page" id="main">
   <div class="content wide">
-    <p class="crumb"><a href="../../../../">Home</a> › <a href="../../../../do/">MA Do</a> › <a href="../../../../do/device/">Device</a> › 祈りの道具屋 まなか › 星牌® 石</p>
+    <form class="dev-search" role="search" action="../../../../do/device/" method="get" data-m="dsearch">
+      <label class="visually-hidden" for="dev-q">MA Do / Device を検索</label>
+      <input id="dev-q" name="q" type="search" placeholder="MA Do / Device を検索" autocomplete="off">
+      <button type="submit" aria-label="検索"><span class="search-icon" aria-hidden="true"></span></button>
+    </form>
+    <p class="crumb" data-m="pcrumb" data-mt><a href="../../../../">Home</a> › <a href="../../../../do/">MA Do</a> › <a href="../../../../do/device/">Device</a> › 祈りの道具屋 まなか › 星牌® 石</p>
     <div class="product-top">
-      <div class="gallery">
-        <img class="gallery-main" src="../../../../assets/device/seihai_g01.jpg" width="720" height="720" decoding="async" alt="星牌® 石（消水晶）">
+      <div class="gallery" data-m="pgal">
+        <ul class="gallery-track" tabindex="0" aria-label="星牌® 石 の写真（横に送る）">
+          <li><img src="../../../../assets/device/seihai_g01.jpg" width="720" height="720" decoding="async" alt="星牌® 石（消水晶）"></li>
+          <li><img src="../../../../assets/device/seihai_10.jpg" width="720" height="720" loading="lazy" decoding="async" alt="星牌® 石（紫金石）"></li>
+          <li><img src="../../../../assets/device/seihai_15.jpg" width="720" height="720" loading="lazy" decoding="async" alt="星牌® 石（アベン）"></li>
+          <li><img src="../../../../assets/device/seihai_08.jpg" width="720" height="720" loading="lazy" decoding="async" alt="星牌® 石（ピンククォーツ）"></li>
+        </ul>
+        <p class="gallery-count" data-m="pcount" data-mt aria-hidden="true"><span class="gc-now">1</span>/4</p>
         <ul class="gallery-thumbs">
           <li><button class="thumb" type="button" aria-label="星牌® 石（消水晶）の写真を大きく見る"><img src="../../../../assets/device/seihai_g01.jpg" width="720" height="720" loading="lazy" decoding="async" alt=""></button></li>
           <li><button class="thumb" type="button" aria-label="星牌® 石（紫金石）の写真を大きく見る"><img src="../../../../assets/device/seihai_10.jpg" width="720" height="720" loading="lazy" decoding="async" alt=""></button></li>
@@ -90,13 +101,16 @@
         </ul>
       </div>
       <div class="product-info">
-        <p class="pi-shop">祈りの道具屋 まなか</p>
-        <h1 class="pi-name">星牌® 石</h1>
-        <p class="pi-label">販売価格：</p>
-        <p class="price price-lg">¥55,000~ <span class="tax">税込</span></p>
-        <a class="buy-btn" href="https://manaka-store.com/products/detail/2" target="_blank" rel="noopener">ウェブサイトへ移動</a>
-        <h2 class="pi-colors-head">color: 消水晶 / 紫金石 / アベン / ピンククォーツ</h2>
-        <ul class="pi-colors">
+        <h2 class="pi-head" data-m="phead" data-mt>商品詳細</h2>
+        <p class="pi-shop" data-m="pshop" data-mt>祈りの道具屋 まなか</p>
+        <h1 class="pi-name" data-m="pname" data-mt>星牌® 石</h1>
+        <p class="pi-label" data-m="plabel" data-mt>販売価格：</p>
+        <p class="price price-lg" data-m="pprice" data-mt>¥55,000~ <span class="tax">税込</span></p>
+        <a class="buy-btn" href="https://manaka-store.com/products/detail/2" target="_blank" rel="noopener" data-m="pbuy" data-mt>ウェブサイトへ移動</a>
+      </div>
+      <div class="product-colors">
+        <h2 class="pi-colors-head" data-m="pchead" data-mt>color: 消水晶 / 紫金石 / アベン / ピンククォーツ</h2>
+        <ul class="pi-colors" data-m="pcolors">
           <li>
             <img src="../../../../assets/device/seihai_g01.jpg" width="720" height="720" loading="lazy" decoding="async" alt="星牌® 石（消水晶）">
             <p class="pc-color">消水晶</p>
@@ -122,15 +136,30 @@
     </div>
 
     <section class="product-desc">
-      <h2 class="line-head">商品説明</h2>
+      <h2 class="line-head" data-m="pdesc" data-mt>商品説明</h2>
       <p class="pd-copy">あの人を感じる唯一無二の天然石のお位牌</p>
       <div class="prose"><p>『星牌』は、東日本大震災の際に位牌や仏壇が流され、途方に暮れた人達に向けてつくりました。何かにすがりたい時こそ、心の拠り所になるものが必要だと思ったからです。<br>
 お星さまになったあの人が『星牌』として還ってくる。そんな想いを名前に込めました。<br>
 手で触れて、語りかけ、いつも一緒にいることができるお位牌。<br>
 生前と同じように、あなたらしい接し方で、大切なあの人を身近に感じてください。</p></div>
+      <h3 class="pd-sub">よくあるご質問</h3>
+      <dl class="qa">
+        <dt>Q.&ensp;お位牌を作る際、戒名（法名）は必要ですか？</dt>
+        <dd>お寺とのお付き合いがない場合※、俗名（生前のお名前）でお位牌を作る方も増えています。お客様がご供養しやすいかたちで、大切な方のお位牌に相応しいお名前をお選びください。<br>
+※お寺とのお付き合いがある場合（先祖代々のお墓に納骨する、仏式のお葬式を執り行うなど）、お寺より戒名を授かります。</dd>
+        <dt>Q.&ensp;黒塗りのお位牌でなくとも、魂入れしてもらえますか？</dt>
+        <dd>今までお寺での魂入れをお断りされたというお話はありません。あるお客様は、ご住職から「素敵なお位牌ですね」とお褒めいただいたようです。どうしても心配でしたら、一度お寺にご確認ください。</dd>
+      </dl>
+      <h3 class="pd-sub">仕様</h3>
+      <table class="spec">
+        <tr><th scope="row">サイズ</th><td>位牌：幅5cm～×奥行3.3cm～×高さ10cm～<br>
+携帯用布袋：約幅5.5～10cm×高さ17cm×マチ4cm</td></tr>
+        <tr><th scope="row">素材</th><td>天然石</td></tr>
+        <tr><th scope="row">生産地</th><td>山梨県甲府市</td></tr>
+      </table>
     </section>
 
-    <section class="features">
+    <section class="features" aria-label="特徴">
       <figure class="feature">
         <img src="../../../../assets/device/seihai_19.jpg" loading="lazy" decoding="async" alt="">
         <figcaption>
@@ -167,25 +196,6 @@
 それが、詫間兄弟のものづくりです。</p>
         </figcaption>
       </figure>
-    </section>
-
-    <section class="product-more">
-      <h2 class="line-head">よくあるご質問</h2>
-      <dl class="qa">
-        <dt>Q.&ensp;お位牌を作る際、戒名（法名）は必要ですか？</dt>
-        <dd>お寺とのお付き合いがない場合※、俗名（生前のお名前）でお位牌を作る方も増えています。お客様がご供養しやすいかたちで、大切な方のお位牌に相応しいお名前をお選びください。<br>
-※お寺とのお付き合いがある場合（先祖代々のお墓に納骨する、仏式のお葬式を執り行うなど）、お寺より戒名を授かります。</dd>
-        <dt>Q.&ensp;黒塗りのお位牌でなくとも、魂入れしてもらえますか？</dt>
-        <dd>今までお寺での魂入れをお断りされたというお話はありません。あるお客様は、ご住職から「素敵なお位牌ですね」とお褒めいただいたようです。どうしても心配でしたら、一度お寺にご確認ください。</dd>
-      </dl>
-      <h2 class="line-head">仕様</h2>
-      <table class="spec">
-        <tr><th scope="row">サイズ</th><td>位牌：幅5cm～×奥行3.3cm～×高さ10cm～<br>
-携帯用布袋：約幅5.5～10cm×高さ17cm×マチ4cm</td></tr>
-        <tr><th scope="row">素材</th><td>天然石</td></tr>
-        <tr><th scope="row">生産地</th><td>山梨県甲府市</td></tr>
-      </table>
-      <p><a class="buy-btn" href="https://manaka-store.com/products/detail/2" target="_blank" rel="noopener">祈りの道具屋 まなか のウェブサイトへ移動</a></p>
     </section>
   </div>
 </main>
