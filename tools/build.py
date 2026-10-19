@@ -702,7 +702,7 @@ class Site:
       <p class="part-text" data-m="coret" data-mt>{core_lines}</p>
       <figure class="spectrum" aria-label="密と間の対比" data-m="spec">
         <span class="sp-name sp-mitsu">密</span><span class="sp-name sp-ma">間</span>
-        <span class="dots dots-dense" aria-hidden="true"></span><span class="dots dots-sparse" aria-hidden="true"></span>
+        <img class="dots dots-dense" src="{dense}" width="67" height="87" alt="" decoding="async"><img class="dots dots-sparse" src="{sparse}" width="91" height="98" alt="" decoding="async">
         <span class="sp-mid">論理 ⇄ 感覚</span><em class="sp-word">spectrum</em>
         <figcaption>{cap0}<br>{cap1}<br>{cap2}</figcaption>
       </figure>
@@ -722,7 +722,7 @@ class Site:
   </div>
 """.format(logo=self.logo(cur, "logo-mark lm-notion", m="lmn"), head=self.gate_head(self.gate("notion")),
            chapters="\n\n".join(chapters), core_label=self.frame(core["label"], m="corel"), core_heading=esc(core["heading"]),
-           core_lines=brs(core["lines"]), cap0=esc(cap[0]), cap1=esc(cap[1]), cap2=esc(cap[2]),
+           core_lines=brs(core["lines"]), dense=self.href(cur, "assets/figures/dots-dense.svg"), sparse=self.href(cur, "assets/figures/dots-sparse.svg"), cap0=esc(cap[0]), cap1=esc(cap[1]), cap2=esc(cap[2]),
            steps_label=self.frame(steps["label"], m="stepl"), steps_lines=brs(steps["lines"]),
            flow="\n".join(flow), book=self.illust(cur, "book", "book-illust", m="book"))
         self.page(cur, "MA Notion", body)

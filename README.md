@@ -71,6 +71,7 @@ Device の写真は `assets/device/` にファイル名のまま置く（Device 
   - 先頭の `<svg>` に `viewBox`、絵の本体は `<symbol id="art" viewBox="…">` の中に入れる（ページは `<use href="…#art">` で呼ぶ）
   - 色は `fill="currentColor"` にする（青地では白、灰地では黒になる）
   - 取り決めに合わないと `build.py` が止まる
+- `assets/figures/` の「密」「間」の球（Notion）は、デザインの描画から球の中心と大きさを測って `tools/make_spheres.py` で作った SVG（光は右上から・下に影）
 - 生成した HTML にある `data-m` / `data-mt` は、デザインの位置と比べる採寸用の目印（表示や動きには使っていない）
 - Home の Ryan Gander の引用は、掲載の可否を確かめてから `src/site.json` の `quote.lines` に入れる（空のあいだは案内の一文が出る）
 - 商品の値段は Device 表では税抜なので、`src/site.json` の `price` の決まりで税込にして出す（総額表示）
