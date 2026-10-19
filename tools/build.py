@@ -28,6 +28,7 @@ KIND_ORDER = {"tv": 0, "mag": 1, "radio": 2}
 NEW_COUNT = 3  # 日付の新しい順にこの件数だけ <NEW> を付ける
 NEW_DAYS = 60  # ただし、いちばん新しい日付からこの日数より古いものには付けない
 SLUG = r"[a-z0-9][a-z0-9-]*"  # URL と id に入る名前（番組・回・お店）
+IMAGE_NAME = r"[A-Za-z0-9_-]+\.(?:jpg|jpeg|png|webp)"
 ARTICLE_META = "<!-- build:meta -->"  # 記事の断片で、日付の行を入れる場所
 
 
@@ -85,7 +86,9 @@ def split_after_block(html, open_tag, where):
     if start < 0:
         raise SystemExit("src/%s: %s が見つかりません" % (where, open_tag))
     depth = 0
-    for m in re.finditer(r"<div\b|</div>", html[start:]):
+    for m in re.finditer(r"<!--.*?-->|<div\b|</div>", html[start:], flags=re.S):
+        if m.group(0).startswith("<!--"):
+            continue
         depth += 1 if m.group(0) == "<div" else -1
         if depth == 0:
             end = start + m.end()
@@ -120,6 +123,10 @@ class Site:
                 errors.append("programs.json: slug は英小文字・数字・ハイフンだけ: %r" % p.get("slug"))
             if p.get("illust") and not os.path.exists(os.path.join(ROOT, "assets", "illust", p["illust"] + ".svg")):
                 errors.append("programs.json %s: assets/illust/%s.svg が無い" % (p["slug"], p["illust"]))
+            if p.get("logo", "") not in ("", "top", "end"):
+                errors.append("programs.json %s: logo は \"\"・\"top\"・\"end\" のどれか: %r" % (p["slug"], p.get("logo")))
+            if p.get("illust_sp", "top") not in ("top", "end"):
+                errors.append("programs.json %s: illust_sp は \"top\" か \"end\": %r" % (p["slug"], p.get("illust_sp")))
             for e in p.get("episodes", []):
                 if not re.fullmatch(SLUG, e.get("key", "")):
                     errors.append("programs.json %s: 回の key は英小文字・数字・ハイフンだけ: %r" % (p["slug"], e.get("key")))
@@ -151,8 +158,16 @@ class Site:
                 errors.append("contents.json #%s: YouTube の動画 ID（11 文字）ではない: %r" % (cid, c["youtube"]))
             if c.get("portrait_focus") and not re.fullmatch(r"\d{1,3}% \d{1,3}%", c["portrait_focus"]):
                 errors.append("contents.json #%s: portrait_focus は \"68%% 50%%\" の形で書く" % cid)
-            for name in c.get("hero", []) + ([c["portrait"]] if c.get("portrait") else []):
-                if not os.path.exists(os.path.join(ROOT, "assets", name)):
+            hero = c.get("hero", [])
+            if not (isinstance(hero, list) and all(isinstance(x, str) for x in hero)):
+                errors.append("contents.json #%s: hero は写真の名前の並び（[\"photo-1.jpg\", …]）" % cid)
+                hero = []
+            if c.get("portrait") and not (c.get("portrait_alt") or "").strip():
+                errors.append("contents.json #%s: portrait を出すなら、写真の説明 portrait_alt も書く" % cid)
+            for name in hero + ([c["portrait"]] if c.get("portrait") else []):
+                if not re.fullmatch(IMAGE_NAME, name):
+                    errors.append("contents.json #%s: 写真の名前は英数字・-・_ と拡張子だけ（assets/ の直下）: %r" % (cid, name))
+                elif not os.path.exists(os.path.join(ROOT, "assets", name)):
                     errors.append("contents.json #%s: assets/%s が無い（hero / portrait）" % (cid, name))
             if c.get("article") and not os.path.exists(os.path.join(SRC, c["article"])):
                 errors.append("contents.json #%s: 記事のファイルが無い: src/%s" % (cid, c["article"]))
@@ -310,7 +325,11 @@ class Site:
             path = os.path.join(ROOT, "assets", "illust", name + ".svg")
             if not os.path.exists(path):
                 raise SystemExit("assets/illust/%s.svg がありません" % name)
-            m = re.search(r'viewBox="([^"]+)"', open(path, encoding="utf-8").read(2000))
+            # 取り決め: 先頭の <svg> に viewBox、絵の本体は <symbol id="art">（ページは <use href="…#art"> で呼ぶ）
+            text = open(path, encoding="utf-8").read()
+            m = re.search(r'<svg\b[^>]*\bviewBox="([^"]+)"', text)
+            if not m or not re.search(r'<symbol\b[^>]*\bid="art"', text):
+                raise SystemExit("assets/illust/%s.svg: <svg viewBox=…> と <symbol id=\"art\"> が要る（README の「手描きの絵」）" % name)
             self._vb[name] = m.group(1)
         return self._vb[name]
 
@@ -631,8 +650,8 @@ class Site:
 
     def fold_chapter(self, no, title, paras, i):
         """章の開閉（最初は見出しだけ。↓ で全文、末尾の ↑ で見出しだけに戻す）。"""
-        return """    <section class="fold chapter" id="ch{no}">
-      <h2 class="fold-head"><span data-m="ch{i}" data-mt>第 {no} 章 : 「{title}」</span><button class="fold-toggle" type="button" aria-expanded="true" aria-controls="ch{no}-body" aria-label="第 {no} 章を開く・閉じる"></button></h2>
+        return """    <section class="fold chapter is-folded" id="ch{no}">
+      <h2 class="fold-head"><span data-m="ch{i}" data-mt>第 {no} 章 : 「{title}」</span><button class="fold-toggle" type="button" aria-expanded="false" aria-controls="ch{no}-body" aria-label="第 {no} 章を開く・閉じる"></button></h2>
       <div class="fold-body prose" id="ch{no}-body">
 {paras}
         <p class="fold-end"><button class="fold-close" type="button" aria-controls="ch{no}-body" aria-label="第 {no} 章を閉じる"></button></p>
@@ -850,15 +869,19 @@ class Site:
             frag = frag.replace(ARTICLE_META, self.entry_meta(self.item_date(item), self.item_path(item), item.get("status"), m="am"))
             # 見出しの塊（article-head）までを上の段に、残りを本文の段に分ける。矢印は上の段の右下に置く
             head, rest = split_after_block(frag, '<div class="article-head">', item["article"])
+            if not re.match(r'\s*<(h2 class="article-answer"|div class="article-body")', rest):
+                raise SystemExit("src/%s: article-head の次は <h2 class=\"article-answer\"> か <div class=\"article-body\"> にする（右の矢印と重ならない余白がそこに付く）" % item["article"])
             # 冒頭の写真は、参考（tei-ku.com）と同じく、ゆっくり拡大しながら次の写真へ溶け替える（動きは js/main.js）
-            slides = "\n".join('      <img class="hs-img%s" src="%s" alt="" decoding="async">' % (
-                " is-on" if i == 0 else "", esc(h("assets/" + name))) for i, name in enumerate(item.get("hero", [])))
+            # 2 枚目からは data-src に置き、写真を切り替えるとき（js/main.js）だけ読む
+            slides = "\n".join('      <img class="hs-img%s" %s="%s" alt="" decoding="async">' % (
+                " is-on" if i == 0 else "", "src" if i == 0 else "data-src", esc(h("assets/" + name)))
+                for i, name in enumerate(item.get("hero", [])))
             hero = ('    <div class="article-hero" data-m="ahero" aria-hidden="true">\n%s\n    </div>\n' % slides) if slides else ""
             # 記事の終わりは、対象の人物の写真を画面いっぱいに出す（デザインの注記）
             # portrait_focus: 画面いっぱいに切り抜くとき、写真のどこを中心に残すか（例 "68% 50%"）
             focus = (' style="object-position: %s"' % item["portrait_focus"]) if item.get("portrait_focus") else ""
             portrait = ('  <figure class="article-portrait" data-m="aport"><img src="%s" alt="%s" loading="lazy" decoding="async"%s></figure>\n' % (
-                esc(h("assets/" + item["portrait"])), esc(item["title"]), focus)) if item.get("portrait") else ""
+                esc(h("assets/" + item["portrait"])), esc(item["portrait_alt"]), focus)) if item.get("portrait") else ""
             body = """
   <div class="article-top">
 {hero}  <div class="content article">
@@ -955,7 +978,7 @@ class Site:
     <ul class="dev-grid" data-m="dgrid">
 {cards}
     </ul>
-    <p class="pending-note dev-empty" hidden>該当する商品は、まだ載せていません（順に追加します）。</p>
+    <p class="pending-note dev-empty" role="status" hidden>該当する商品は、まだ載せていません（順に追加します）。</p>
   </div>
 """.format(pills1="".join(pills[:(len(pills) + 1) // 2]), pills2="".join(pills[(len(pills) + 1) // 2:]), cards="\n".join(cards))
         self.page(cur, "Device Room", body, main_class="page device-page")
@@ -964,7 +987,7 @@ class Site:
         cur = self.product_url(prod) + "index.html"
         h = lambda t: self.href(cur, t)
         shop = self.shop_of(prod)
-        thumbs = "\n".join('          <li><button class="thumb" type="button" aria-label="%s（%s）の写真を大きく見る"><img src="%s" width="720" height="720" loading="lazy" decoding="async" alt=""></button></li>' % (
+        thumbs = "\n".join('          <li><button class="thumb" type="button" aria-label="%s（%s）の写真を表示"><img src="%s" width="720" height="720" loading="lazy" decoding="async" alt=""></button></li>' % (
             esc(prod["name"]), esc(v["color"]), esc(h("assets/device/" + v["image"]))) for v in prod["variants"])
         colors = "\n".join("""          <li>
             <img src="{img}" width="720" height="720" loading="lazy" decoding="async" alt="{name}（{color}）">
@@ -1056,7 +1079,7 @@ class Site:
             # 住所など、区切りの並び（list）は PC では 1 行、スマホでは区切りごとに改行する
             if isinstance(v, list):
                 # 「[ 本社 ]」のような角括弧で始まる区切りは、括弧を行頭の外へぶら下げる（デザインどおり）
-                return '<span class="seg-line">%s</span>' % "".join('<span class="seg%s">%s</span>' % (
+                return '<span class="seg-line">%s</span>' % " ".join('<span class="seg%s">%s</span>' % (
                     " seg-bracket" if x.startswith("[") else "", esc(x)) for x in v)
             return esc(v)
         profile = "\n".join('        <div class="pr-row%s%s"><dt>%s :</dt><dd>%s</dd></div>' % (

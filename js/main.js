@@ -82,7 +82,13 @@
       btn.addEventListener("click", function () {
         var opening = f.classList.contains("is-folded");
         set(opening);
-        if (!opening) f.scrollIntoView({ block: "start" });
+        if (opening) {
+          // 開くと ↓ は消える（デザイン）ので、読み始める本文へフォーカスを移す
+          body.setAttribute("tabindex", "-1");
+          body.focus({ preventScroll: true });
+        } else {
+          f.scrollIntoView({ block: "start" });
+        }
       });
     });
 
@@ -91,7 +97,7 @@
       b.addEventListener("click", function () {
         var f = b.closest(".fold");
         var t = f && f.querySelector(".fold-toggle");
-        if (t) t.click();
+        if (t) { t.click(); t.focus({ preventScroll: true }); }
       });
     });
     // 回の本文の最後の ↑ は、回を閉じる
@@ -101,6 +107,8 @@
         if (!d) return;
         d.open = false;
         d.scrollIntoView({ block: "start" });
+        var sm = d.querySelector("summary");
+        if (sm) sm.focus({ preventScroll: true });
       });
     });
 
@@ -110,6 +118,8 @@
     document.querySelectorAll(".article-hero").forEach(function (hero) {
       var imgs = hero.querySelectorAll(".hs-img");
       if (imgs.length < 2 || still) return;
+      // 2 枚目からは、切り替えるときだけ読み込む（動きを減らす設定のときは読まない）
+      imgs.forEach(function (im) { if (im.dataset.src) { im.src = im.dataset.src; im.removeAttribute("data-src"); } });
       var i = 0;
       var show = function () {
         imgs.forEach(function (im, k) {
@@ -143,8 +153,13 @@
         if (now) now.textContent = String(i + 1);
         thumbs.forEach(function (x, k) { x.setAttribute("aria-pressed", k === i ? "true" : "false"); });
       };
+      // 小さい写真を押したら、送り終わるまで途中の番号を出さない
+      var goal = null, goalTimer = null;
       thumbs.forEach(function (t, i) {
         t.addEventListener("click", function () {
+          goal = i;
+          clearTimeout(goalTimer);
+          goalTimer = setTimeout(function () { goal = null; }, 1000);
           track.scrollTo({ left: i * track.clientWidth, behavior: still ? "auto" : "smooth" });
           mark(i);
         });
@@ -154,8 +169,9 @@
         if (tick) return;
         tick = setTimeout(function () {
           tick = null;
-          var i = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
-          mark(Math.max(0, Math.min(slides.length - 1, i)));
+          var i = Math.max(0, Math.min(slides.length - 1, Math.round(track.scrollLeft / Math.max(1, track.clientWidth))));
+          if (goal !== null) { if (i !== goal) return; goal = null; }
+          mark(i);
         }, 80);
       });
       mark(0);
