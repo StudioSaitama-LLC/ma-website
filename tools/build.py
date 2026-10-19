@@ -54,6 +54,44 @@ class Site:
         self.device = load("device.json")
         self.manifesto = load("manifesto.json")
         self.pages = {}
+        self.validate()
+
+    def validate(self):
+        """データの綴り違い・未登録の番組・画像の置き忘れを、生成の前に止める。"""
+        errors = []
+        slugs = set(p["slug"] for p in self.programs)
+        seen = set()
+        for c in self.contents:
+            cid = c.get("id", "")
+            if not re.fullmatch(r"\d+-\d+-\d+", cid):
+                errors.append("contents.json: 番号の形が違う: %r" % cid)
+            if cid in seen:
+                errors.append("contents.json: 番号が重複: %s" % cid)
+            seen.add(cid)
+            if c.get("kind") not in KIND:
+                errors.append("contents.json #%s: kind は tv / mag / radio のどれか: %r" % (cid, c.get("kind")))
+            if c.get("status", "published") not in STATUS:
+                errors.append("contents.json #%s: status は published / editing / planned のどれか: %r" % (cid, c.get("status")))
+            if c.get("program") not in slugs:
+                errors.append("contents.json #%s: programs.json に無い番組: %r" % (cid, c.get("program")))
+            if c.get("youtube") and not re.fullmatch(r"[A-Za-z0-9_-]{11}", c["youtube"]):
+                errors.append("contents.json #%s: YouTube の動画 ID（11 文字）ではない: %r" % (cid, c["youtube"]))
+            if c.get("article") and not os.path.exists(os.path.join(SRC, c["article"])):
+                errors.append("contents.json #%s: 記事のファイルが無い: src/%s" % (cid, c["article"]))
+        for prod in self.device["products"]:
+            images = [v.get("image") for v in prod["variants"]] + [f.get("image") for f in prod["features"]]
+            for img in images:
+                if not img:
+                    errors.append("device.json %s: 画像の名前が空" % prod["name"])
+                elif "/" in img or img.startswith("."):
+                    errors.append("device.json %s: 画像はファイル名だけを書く: %r" % (prod["name"], img))
+                elif not os.path.exists(os.path.join(ROOT, "assets", "device", img)):
+                    errors.append("device.json %s: assets/device/%s が無い（Drive から置く）" % (prod["name"], img))
+            for v in prod["variants"]:
+                if not isinstance(v.get("price"), int):
+                    errors.append("device.json %s（%s）: 販売価格が数字でない: %r" % (prod["name"], v.get("color"), v.get("price")))
+        if errors:
+            raise SystemExit("データに問題があります:\n  " + "\n  ".join(errors))
 
     # ---------- 共通部品 ----------
 
@@ -235,14 +273,14 @@ class Site:
         toc.append('<li class="sub">- %s / %s -</li>' % (esc(m["title"]), esc(m["author"])))
         toc += ['<li class="lv3"><a href="%s#ch%d">第%d章&ensp;%s</a></li>' % (h("notion/"), c["no"], c["no"], esc(c["title"]))
                 for c in m["chapters"]]
-        toc.append('<li class="lv1 dim">%s</li>' % self.nav_label(s["lab"]))
+        toc.append('<li class="lv1 dim" id="ma-lab">%s</li>' % self.nav_label(s["lab"]))
         toc += ['<li class="lv2 dim">%s</li>' % self.nav_label(c) for c in s["lab"]["children"]]
         toc.append('<li class="lv1"><a href="%s">%s</a></li>' % (h("channel/"), self.nav_label(s["channel"])))
         for p in self.programs:
             toc.append('<li class="lv2"><a href="%s">%s</a></li>' % (h("channel/%s/" % p["slug"]), self.program_label(p)))
             if p.get("sub"):
                 toc.append('<li class="sub">- %s -</li>' % esc(p["sub"]))
-        toc.append('<li class="lv1"><a href="%s">%s</a></li>' % (h("do/"), self.nav_label(s["do"])))
+        toc.append('<li class="lv1" id="ma-do"><a href="%s">%s</a></li>' % (h("do/"), self.nav_label(s["do"])))
         for c in s["do"]["children"]:
             if c["ready"]:
                 toc.append('<li class="lv2"><a href="%s">%s</a></li>' % (h("do/device/"), self.nav_label(c)))
@@ -298,8 +336,14 @@ class Site:
         chapters = []
         for c in m["chapters"]:
             # docx では 1 段落の中を改行で区切って書いているため、改行ごとに段落として見せる（文は変えない）
-            paras = "\n".join('      <p class="indent">%s</p>' % esc(l.strip())
-                              for p in c["paragraphs"] for l in p.split("\n") if l.strip())
+            out = []
+            for p in c["paragraphs"]:
+                if isinstance(p, dict):
+                    out.append('      <div class="manifesto-box">\n%s\n      </div>'
+                               % "\n".join("        <p>%s</p>" % esc(l) for l in p["box"]))
+                else:
+                    out += ['      <p class="indent">%s</p>' % esc(l.strip()) for l in p.split("\n") if l.strip()]
+            paras = "\n".join(out)
             chapters.append("""    <section class="chapter" id="ch{no}">
       <h3 class="chapter-head">第{no}章&ensp;{title}</h3>
       <div class="article-body manifesto-body">
@@ -542,17 +586,17 @@ class Site:
           <img src="{img}" width="720" height="720" loading="lazy" decoding="async" alt="{name}（{color}）">
           <div class="sku-color">{color}</div>
           <div class="sku-price">{price}</div>
-        </li>""".format(img=h("assets/device/" + v["image"]), name=esc(p["name"]), color=esc(v["color"]),
+        </li>""".format(img=esc(h("assets/device/" + v["image"])), name=esc(p["name"]), color=esc(v["color"]),
                         price=yen(v["price"])) for v in p["variants"])
             qa = "\n".join("        <dt>Q.&ensp;%s</dt>\n        <dd>%s</dd>" % (esc(x["q"]), lines(x["a"])) for x in p["highlights"])
-            specs = "\n".join("        <tr><th>%s</th><td>%s</td></tr>" % (esc(x["label"]), lines(x["value"])) for x in p["specs"])
+            specs = "\n".join('        <tr><th scope="row">%s</th><td>%s</td></tr>' % (esc(x["label"]), lines(x["value"])) for x in p["specs"])
             feats = "\n".join("""      <figure class="feature">
-        <img src="{img}" loading="lazy" decoding="async" alt="{alt}">
+        <img src="{img}" loading="lazy" decoding="async" alt="">
         <figcaption>
           <h3 class="feature-ttl">{ttl}</h3>
           <p>{body}</p>
         </figcaption>
-      </figure>""".format(img=h("assets/device/" + f["image"]), alt=esc(f["title"].replace("\n", "")),
+      </figure>""".format(img=esc(h("assets/device/" + f["image"])),
                           ttl=lines(f["title"]), body=lines(f["body"])) for f in p["features"])
             blocks.append("""    <article class="product">
       <div class="product-shop">{shop}&ensp;/&ensp;{cat}</div>
@@ -639,8 +683,12 @@ def main():
                 bad.append(rel)
         if not os.path.exists(listed) or open(listed, encoding="utf-8").read() != manifest:
             bad.append("tools/generated.txt")
-        if bad:
-            print("生成結果と違うファイル: " + ", ".join(bad))
+        stale = leftovers(pages)
+        if bad or stale:
+            if bad:
+                print("生成結果と違うファイル: " + ", ".join(bad))
+            if stale:
+                print("今は生成していないのに残っている生成物（消すか src/ に戻す）: " + ", ".join(stale))
             return 1
         print("ok: %d ファイルが生成結果と一致" % len(pages))
         return 0
@@ -654,11 +702,28 @@ def main():
             f.write(doc)
     with open(listed, "w", encoding="utf-8") as f:
         f.write(manifest)
-    stale = sorted(old - set(pages))
+    stale = sorted(set(leftovers(pages)) | (old - set(pages)))
     print("wrote %d ファイル" % len(pages))
     if stale:
-        print("前回は生成していたが今回は生成しなかったファイル（手で確認して消す）: " + ", ".join(stale))
+        print("今は生成していないのに残っている生成物（消すか src/ に戻す。--check はこのままだと失敗する）: " + ", ".join(stale))
     return 0
+
+
+def leftovers(pages):
+    """生成の目印（MARK）が付いた HTML のうち、今回生成しなかったもの（公開に残り続けるページ）。"""
+    found = []
+    for base, dirs, files in os.walk(ROOT):
+        dirs[:] = [d for d in dirs if not d.startswith(".") and d not in ("src", "tools", "node_modules")]
+        for name in files:
+            if not name.endswith(".html"):
+                continue
+            rel = os.path.relpath(os.path.join(base, name), ROOT).replace(os.sep, "/")
+            if rel in pages:
+                continue
+            with open(os.path.join(base, name), encoding="utf-8", errors="replace") as f:
+                if MARK in f.read(4096):
+                    found.append(rel)
+    return sorted(found)
 
 
 if __name__ == "__main__":

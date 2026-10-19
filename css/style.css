@@ -874,3 +874,11 @@ html.light .theme-toggle .knob { background: #f7f7f7; }
 .feature-ttl { font-size: 16px; font-weight: 500; margin-bottom: 12px; }
 .feature p { font-size: 14.5px; line-height: 2.05; }
 @media (max-width: 760px) { .feature { grid-template-columns: 1fr; gap: 14px; } }
+.manifesto-box {
+  border: 1px dashed var(--line);
+  padding: 16px 20px;
+  margin: 18px 0 26px;
+  font-size: 14px;
+  line-height: 2;
+}
+.manifesto-box p { margin: 0; text-align: left; }

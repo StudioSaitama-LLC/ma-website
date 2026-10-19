@@ -105,6 +105,10 @@ def main():
     ids = [x.strip() for x in a.ids.split(",") if x.strip()]
     sheet, rows = read_sheet(a.xlsx, a.sheet)
     head = [h.strip() for h in rows[0]]
+    required = ["商品ID", "商品名", "色", "販売価格", "メイン画像"]
+    missing = [h for h in required if h not in head]
+    if missing:
+        raise SystemExit("見出し行に必要な列がありません: %s（表の列名が変わっていないか確認）" % "、".join(missing))
 
     def cell(r, name):
         i = head.index(name) if name in head else -1

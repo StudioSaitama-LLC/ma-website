@@ -37,8 +37,24 @@ company/  contact/             # 準備中
 about.html ほか 8 月版のページ   # 新しいページへ転送するだけのページ
 ```
 
-コンテンツの「状態」（`status`）は `published`（公開）／`editing`（編集中）／`planned`（掲載予定）。
-編集中・掲載予定のものは枠だけ出し、リンクや原稿が届いたら値を変えて生成し直す。
+### `src/contents.json` の項目
+
+| 項目 | 中身 |
+|---|---|
+| `id` | 番号。`2-1-3` の形（2.1 TV・2.2 Magazine・2.3 Radio）。重複不可 |
+| `kind` | `tv` / `mag` / `radio` |
+| `program` | `programs.json` の `slug` |
+| `status` | `published`（公開）/ `editing`（編集中）/ `planned`（掲載予定）。公開以外は枠だけ出す |
+| `title` `caption` `badge` `place` `recorded` | 表示する題・ひとこと・記事の種類・場所・収録日（`YYYY-MM-DD`） |
+| `youtube` | YouTube の動画 ID（11 文字）。公開のときだけ埋め込む |
+| `article` `excerpt` | Magazine の本文（`src/articles/` の断片）と抜き出し。公開のときだけ記事ページを作る |
+| `redirect_from` | この記事へ転送する 8 月版の URL |
+| `related` | 番組ページで「関連コンテンツ」に回すとき `true` |
+| `memo` | 作業用のメモ。ページには出ないが、この repo は公開なので人に見せられないことは書かない |
+
+`build.py` は生成の前にこれらを検査し、綴り違い・未登録の番組・画像の置き忘れがあると止まる。
+
+Device の写真は `assets/device/` にファイル名のまま置く（Device 表の「メイン画像」「特徴 N 画像」の名前と一致させる）。
 
 ## 更新のしかた
 

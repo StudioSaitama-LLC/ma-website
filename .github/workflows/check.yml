@@ -1,0 +1,22 @@
+name: 生成物の一致確認
+
+# src/ を直したのに tools/build.py を実行し忘れた PR や、生成された HTML を直接直した PR を止める。
+# GitHub Pages の配信（main の直下）には関わらない。
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - name: tools/build.py --check
+        run: python tools/build.py --check

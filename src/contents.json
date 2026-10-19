@@ -8,7 +8,7 @@
     "place": "長野県大町市・白馬村・小谷村",
     "status": "published",
     "youtube": "8ZBRdx4mg9U",
-    "memo": "10/18 に荒井さんが送った YouTube。8 月版のサイトは TgoZ6e3va3A を使っていた"
+    "memo": "10/18 受領の YouTube。8 月版のサイトは TgoZ6e3va3A を使っていた"
   },
   {
     "id": "2-2-1",
@@ -20,7 +20,10 @@
     "status": "published",
     "article": "articles/2-2-1.html",
     "excerpt": "「実は俺ね、20 歳の時一回、死んでるの。」おっとー。いきなりやばいフレーズが。右隣のロックスターさながらの風体した、少年おじさんは喜々としてそう語る。",
-    "redirect_from": ["article-2-2-1.html", "article-3-2-1.html"]
+    "redirect_from": [
+      "article-2-2-1.html",
+      "article-3-2-1.html"
+    ]
   },
   {
     "id": "2-2-4",
@@ -32,7 +35,9 @@
     "status": "published",
     "article": "articles/2-2-4.html",
     "excerpt": "3 月末、長野県白馬村・小谷村。重い雪と泥が足元を絡め取って行く、冬の終わり。",
-    "redirect_from": ["article-2-2-1-postscript.html"]
+    "redirect_from": [
+      "article-2-2-1-postscript.html"
+    ]
   },
   {
     "id": "2-1-4",
@@ -48,7 +53,7 @@
     "badge": "随想記事",
     "title": "三浦 豪太",
     "status": "planned",
-    "memo": "原稿（第三稿・9/26）が Drive の MAGAZINE #2-2 にある"
+    "memo": "原稿は第三稿（9/26）まで"
   },
   {
     "id": "2-2-5",
@@ -57,7 +62,7 @@
     "badge": "編集後記",
     "title": "三浦 豪太 編集後記",
     "status": "planned",
-    "memo": "構成図（β版 1015）では #2-1-4、Drive のフォルダは #2-2-5。Drive に合わせた"
+    "memo": "構成図（β版 1015）では #2-1-4。素材の置き場の番号 #2-2-5 に合わせた"
   },
   {
     "id": "2-3-1",
@@ -65,7 +70,7 @@
     "program": "beyond-the-vanishingpoint",
     "title": "三浦 豪太",
     "status": "planned",
-    "memo": "番号は仮（構成図では #2-1-4。RADIO #2-3 のフォルダに合わせた）。「音声できれば 1 つは試してみたい」"
+    "memo": "番号は仮（構成図では #2-1-4。Radio の番号 #2-3 に合わせた）"
   },
   {
     "id": "2-2-3",
@@ -85,7 +90,7 @@
     "recorded": "2026-05-11",
     "status": "published",
     "youtube": "wtHW3PYv9Ik",
-    "memo": "10/18 に荒井さんが送った YouTube を #2-1-1 と推定。8 月版は tVxXxgj9dXo（About Website MA）"
+    "memo": "10/18 受領の YouTube を #2-1-1 と推定（要確認）。8 月版は tVxXxgj9dXo（About Website MA）"
   },
   {
     "id": "2-1-2",
@@ -105,7 +110,7 @@
     "title": "Flagship Store [1]",
     "recorded": "2026-06-24",
     "status": "editing",
-    "memo": "8 月版のサイトに Flagship Store の動画（mDg3PherfCQ・日々香好日 店舗初公開）がある。これを使うか確認"
+    "memo": "8 月版のサイトに Flagship Store の動画（mDg3PherfCQ）がある。これを使うか確認"
   },
   {
     "id": "2-1-6",
