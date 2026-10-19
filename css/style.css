@@ -694,6 +694,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .program-lead p:last-child { margin-bottom: 0; }
 .program-top > .illust, .program-top > .logo-mark, .program-top > .arrow-btn { position: absolute; }
 .pg-ma-development-process .program-illust { left: min(calc(50% - 13.5px), calc(100% - 205px)); top: 500px; width: 205px; }
+/* BVP の冒頭の絵は PC だけ（スマホは pc-only で隠し、ページの終わりに program-illust-end を出す）ので、PC の値をここに書く */
 .pg-beyond-the-vanishingpoint .program-illust { left: calc(50% - 174.8px); top: 649.6px; width: 389.4px; }
 .pg-ma-crosstalk .program-illust { left: calc(50% - 122.5px); top: 476px; width: 139px; }
 .lm-program { left: calc(50% - 102.5px); top: 553px; width: 30px; transform: rotate(-24deg); }
@@ -851,7 +852,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 /* 商品の写真はデザインの寸法（スマホ 150×150 を本文の左へ 20.4px はみ出す・PC 185.4×185.4・間 14.4px） */
 .dev-grid { display: grid; grid-auto-rows: minmax(150px, auto); gap: 15px; margin-top: 31.5px; }
 .dev-card { display: grid; grid-template-columns: 150px 1fr; grid-template-rows: auto auto auto 1fr; gap: 0 13.4px; align-items: start; margin-left: -20.4px; }
-.dc-img { grid-row: 1 / span 4; margin-top: 3.5px; }
+.dc-img { grid-row: 1 / span 4; margin: 3.5px 0 -3.5px; }
 .dc-img img { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: var(--ph); }
 .dc-shop { font-size: 13px; line-height: 20px; }
 .dc-name { margin-top: 5.5px; font-size: 18px; line-height: 22px; }
@@ -874,7 +875,7 @@ html.light .dc-btn { background: var(--accent); color: var(--on-accent); }
   .pill { font-size: 14px; line-height: 26px; padding: 0 14px; letter-spacing: 0; }
   .dev-grid { grid-template-columns: repeat(5, 185.4px); grid-auto-rows: auto; gap: 63.5px 14.4px; margin-top: 102.6px; padding-left: 2.6px; }
   .dev-card { display: flex; flex-direction: column; align-items: stretch; margin-left: 0; }
-  .dc-img { margin-top: 0; }
+  .dc-img { margin: 0; }
   .dc-shop { margin-top: 16px; font-size: 12px; }
   .dc-name { margin-top: 5px; }
   .price { font-size: 21px; line-height: 30px; }
