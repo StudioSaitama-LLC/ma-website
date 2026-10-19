@@ -23,7 +23,7 @@ def spheres(raw):
     return [(x - 0.075 * r, y + 0.125 * r, 1.125 * r) for x, y, r in raw]
 
 
-def svg(raw, name):
+def svg(raw):
     s = spheres(raw)
     pad = 0.6
     x0 = min(x - r for x, y, r in s) - pad
@@ -47,8 +47,11 @@ def svg(raw, name):
 
 
 if __name__ == "__main__":
+    if len(sys.argv) != 2 or not os.path.isdir(sys.argv[1]):
+        raise SystemExit("使い方: python3 tools/make_spheres.py <出力先のフォルダ（例 assets/figures）>")
     dst = sys.argv[1]
     for raw, name in ((DENSE, "dots-dense"), (SPARSE, "dots-sparse")):
-        text, (x0, y0, w, h) = svg(raw, name)
-        open(os.path.join(dst, name + ".svg"), "w").write(text)
+        text, (x0, y0, w, h) = svg(raw)
+        with open(os.path.join(dst, name + ".svg"), "w", encoding="ascii") as f:
+            f.write(text)
         print("%s: design x0=%.1f y0=%.1f w=%.1f h=%.1f" % (name, x0, y0, w, h))

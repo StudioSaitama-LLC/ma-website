@@ -346,7 +346,8 @@ class Site:
                 % (cls, self.viewbox(name), (' data-m="%s"' % m) if m else "", self.href(cur, "assets/illust/%s.svg" % name)))
 
     def logo(self, cur, cls="logo-mark", m=None):
-        return '<img class="%s" src="%s" width="496" height="512" alt="間｜MA ロゴマーク" loading="lazy" decoding="async"%s>' % (
+        # 飾りのロゴ（ページの題は別にある）なので、読み上げでは飛ばす
+        return '<img class="%s" src="%s" width="496" height="512" alt="" loading="lazy" decoding="async"%s>' % (
             cls, self.href(cur, "assets/logo.png"), (' data-m="%s"' % m) if m else "")
 
     def arrow(self, href, label, cls="", m=None):

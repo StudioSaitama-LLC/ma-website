@@ -253,13 +253,12 @@ html:not(.js) .menu-btn, html:not(.js) .fold-toggle { display: none; }
 .mg-head.is-dim { color: var(--muted); }
 .mg-sub { display: inline; line-height: 28px; }
 .menu-gate.is-dim .mg-sub { color: var(--muted); }
-.mg-list { display: grid; gap: 0; margin-top: 29.5px; }
+.mg-list { display: grid; gap: 0; margin-top: 29.5px; margin-right: -20px; }
 .mg-do { margin-top: -3.5px; }
 .mg-do .mg-list { margin-top: 1.5px; }
 /* 番組名は省かずに折り返す（■ の幅だけ字下げ） */
-/* ■ と番組名の位置はデザインの寸法（スマホ ■ 12.1px・字 14.3px＝デザインの行の長さに合わせた、PC ■ 13.8px・字 19px）。収まらない幅では、■ の分だけ字下げして折り返す */
+/* ■ と番組名の位置はデザインの寸法（スマホ ■ 12.1px・字 14.3px＝デザインの行の長さに合わせた、PC ■ 13.8px・字 19px）。収まらない幅（ほかの書体など）では、■ の分だけ字下げして折り返す */
 .mg-list li { padding-left: 28.9px; font-size: 14.3px; line-height: 28px; text-indent: -18.1px; }
-@media (min-width: 375px) and (max-width: 1199.98px) { .mg-list li { white-space: nowrap; } }
 .mg-list li::before { content: ""; display: inline-block; width: 12.1px; height: 12.1px; margin-right: 6px; background: var(--fg); vertical-align: -0.5px; }
 .mg-list a { color: var(--fg); }
 .mg-list .en { color: var(--accent); }
@@ -454,7 +453,7 @@ html.light .new { color: #a000a0; animation-name: ma-new-light; }
 .hero-count { left: 0; right: 0; top: 289px; height: 44px; }
 .hc-line { position: absolute; left: calc(50% - 115.5px); top: 39.8px; width: 200px; height: 2.8px; background: var(--fg); }
 .hc-num { position: absolute; left: calc(50% + 84px); top: -5px; font-size: 48px; line-height: 48px; font-weight: 700; }
-.hero-figure { left: calc(50% - 15.5px); top: 425px; width: 41px; }
+.hero-figure { left: calc(50% - 15.9px); top: 424.8px; width: 42px; }
 .arrow-1 { right: 23px; top: 621px; }
 
 .quote { position: relative; height: 817px; }
@@ -586,6 +585,7 @@ html:not(.js) .fold-end { display: none; }
 .spectrum figcaption { left: 0; right: 0; top: 160.5px; text-align: center; }
 /* 「密」「間」の球はデザインの描画から測った SVG（assets/figures/）。スマホは PC の 1/1.2 の大きさ */
 .dots { display: block; height: auto; }
+html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .dots-dense { left: 44.6px; top: 58.6px; width: 55.8px; }
 .dots-sparse { left: 254.5px; top: 52.6px; width: 75.8px; }
 .steps { margin-top: 95px; }
@@ -605,7 +605,7 @@ html:not(.js) .fold-end { display: none; }
 .flow-doors { display: flex; gap: 7.8px; margin-top: 15px; }
 .flow-doors li { position: relative; width: 64.8px; height: 35.4px; border: 1px solid var(--fg); font-size: 12px; line-height: 33.4px; text-align: center; white-space: nowrap; }
 .flow-doors li::before { content: ""; position: absolute; left: calc(50% - 0.5px); top: -16px; width: 1px; height: 15px; background: var(--fg); }
-.book-illust { width: 84px; margin: 51px 0 0 9px; }
+.book-illust { width: 85.3px; margin: 50.9px 0 0 8.6px; }
 @media (min-width: 1200px) {
   .lm-notion { left: calc(50% + 246px); top: 30px; width: 46px; }
   .core { margin-top: 195.5px; height: 297.5px; }
@@ -694,7 +694,7 @@ html:not(.js) .fold-end { display: none; }
 .program-lead p:last-child { margin-bottom: 0; }
 .program-top > .illust, .program-top > .logo-mark, .program-top > .arrow-btn { position: absolute; }
 .pg-ma-development-process .program-illust { left: min(calc(50% - 13.5px), calc(100% - 205px)); top: 500px; width: 205px; }
-.pg-beyond-the-vanishingpoint .program-illust { left: calc(50% - 176px); top: 646px; width: 394px; }
+.pg-beyond-the-vanishingpoint .program-illust { left: calc(50% - 174.8px); top: 649.6px; width: 389.4px; }
 .pg-ma-crosstalk .program-illust { left: calc(50% - 122.5px); top: 476px; width: 139px; }
 .lm-program { left: calc(50% - 102.5px); top: 553px; width: 30px; transform: rotate(-24deg); }
 .arrow-p { right: 22px; top: 624px; }
@@ -742,8 +742,8 @@ html:not(.js) .fold-end { display: none; }
   .ph-title .en { font-size: var(--head); }
   .ph-sub { margin-top: -6.5px; }
   .program-lead { margin-top: 85px; }
-  .pg-ma-development-process .program-illust { left: calc(50% - 30px); top: 418px; width: 535px; }
-  .pg-ma-crosstalk .program-illust { left: calc(50% - 69px); top: 437px; width: 315px; }
+  .pg-ma-development-process .program-illust { left: calc(50% - 20.7px); top: 424.5px; width: 520.4px; }
+  .pg-ma-crosstalk .program-illust { left: calc(50% - 62.3px); top: 439.9px; width: 304.2px; }
   .lm-program { left: calc(50% - 432px); top: 648px; width: 52px; }
   .arrow-p, .pg-ma-development-process .arrow-p { right: 90px; top: 786px; }
   .program-end { height: 269px; }
@@ -825,7 +825,7 @@ html:not(.js) .fold-end { display: none; }
   .article-figure figcaption { width: 770px; max-width: 100%; margin: 25px auto 0; font-size: 14px; line-height: 20px; }
   .article-portrait { aspect-ratio: 1920 / 2290.2; margin-top: 143px; }
   .article-end { padding-top: 147.7px; }
-  .article-end .home-logo { width: 50px; margin-left: calc(var(--gut) - 179.5px); transform: rotate(-56deg); }
+  .article-end .home-logo { width: 50px; margin-left: max(14px, calc(var(--gut) - 179.5px)); transform: rotate(-56deg); }
   .article-page + .site-footer { margin-top: 117px; }
 }
 
@@ -849,7 +849,7 @@ html:not(.js) .fold-end { display: none; }
 .pill.is-active { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
 .pill.is-empty { opacity: 0.6; }
 /* 商品の写真はデザインの寸法（スマホ 150×150 を本文の左へ 20.4px はみ出す・PC 185.4×185.4・間 14.4px） */
-.dev-grid { display: grid; grid-auto-rows: 150px; gap: 15px; margin-top: 31.5px; }
+.dev-grid { display: grid; grid-auto-rows: minmax(150px, auto); gap: 15px; margin-top: 31.5px; }
 .dev-card { display: grid; grid-template-columns: 150px 1fr; grid-template-rows: auto auto auto 1fr; gap: 0 13.4px; align-items: start; margin-left: -20.4px; }
 .dc-img { grid-row: 1 / span 4; margin-top: 3.5px; }
 .dc-img img { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: var(--ph); }
@@ -862,6 +862,7 @@ html:not(.js) .fold-end { display: none; }
 /* 詳細のボタンは、スマホのデザインでは灰色、PC では水色 */
 .dc-btn { margin-top: 9.5px; background: #919191; color: #fff; font-size: 15px; line-height: 26px; }
 .dc-btn:hover, .buy-btn:hover { text-decoration: none; opacity: 0.85; }
+html.light .dc-btn { background: var(--accent); color: var(--on-accent); }
 .dev-empty { margin-top: 24px; text-align: center; }
 @media (min-width: 1200px) {
   .dev-search { height: 46px; margin-top: 151px; }
