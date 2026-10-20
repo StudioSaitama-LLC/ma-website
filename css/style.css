@@ -1005,9 +1005,11 @@ html.light .dc-btn { background: var(--accent); color: var(--on-accent); }
 .ld-role { opacity: 0.85; }
 .ld-count { font-size: var(--small); line-height: 20px; opacity: 0.75; }
 .term-list, .ref-list, .research-list { list-style: none; margin: 46.5px 0 0; padding: 0; }
-.term + .term, .ref + .ref, .rs + .rs { margin-top: 33px; padding-top: 33px; border-top: 1px solid var(--line); }
+/* 区切り線は、見えている項目どうしの間だけ（絞り込みで隠れた項目は数えない） */
+.term + .term, .ref:not([hidden]) ~ .ref:not([hidden]), .rs + .rs { margin-top: 33px; padding-top: 33px; border-top: 1px solid var(--line); }
 .term-word, .ref-title, .rs-theme { color: var(--accent); font-size: var(--head); line-height: var(--lh); font-weight: 700; }
-.term-kana { display: block; color: var(--fg); font-size: var(--small); line-height: 20px; font-weight: 400; }
+.term-kana { color: var(--fg); font-size: var(--small); line-height: 20px; }
+.term-head { display: flex; align-items: center; gap: 2px; }
 .term-word .status, .rs-theme .status { color: var(--fg); font-weight: 400; }
 .term-body { margin: 14px 0 0; }
 /* スマホは見出し語（一般には・マニフェストでは…）を上に、PC は左の列に */
@@ -1015,7 +1017,9 @@ html.light .dc-btn { background: var(--accent); color: var(--on-accent); }
 .term-body dt { font-size: var(--small); line-height: 20px; opacity: 0.75; }
 .term-body dd { margin: 0; }
 .lab-links a { margin-right: 0.8em; }
-.lab-quote { margin: 0; }
+.lab-quote { margin: 0; padding-left: 12px; border-left: 1px solid var(--accent); }
+.lab-quote q { quotes: none; }
+.lab-quote q::before, .lab-quote q::after { content: none; }
 .lab-ch { margin-left: 8px; font-size: var(--small); white-space: nowrap; }
 .lab-q { margin: 14px 0 0; }
 .lq-label { display: inline-block; margin-right: 8px; padding: 0 6px; border: 1px solid var(--accent); color: var(--accent); font-size: var(--small); line-height: 20px; vertical-align: 2px; }
@@ -1039,7 +1043,9 @@ html.light .dc-btn { background: var(--accent); color: var(--on-accent); }
 .ref-filters + .ref-filters { margin-top: 18px; }
 .rf-label { margin-bottom: 8px; font-size: var(--small); line-height: 20px; opacity: 0.85; }
 .lab-page .pills { display: block; margin: 0; padding: 0; overflow: visible; }
-.lab-page .pill-row { flex-wrap: wrap; gap: 8px 6px; width: auto; }
+.lab-page .pill-row { display: flex; flex-wrap: wrap; gap: 8px 6px; width: auto; }
+/* JS 無しでは札は動かないので出さない（資料は全部見える） */
+html:not(.js) .ref-filters { display: none; }
 .ref-count { margin-top: 18px; font-size: var(--small); line-height: 20px; }
 .ref-empty { margin-top: 24px; }
 .research-list + .pending-note { margin-top: calc(var(--lh) * 2); }
@@ -1049,7 +1055,7 @@ html.light .dc-btn { background: var(--accent); color: var(--on-accent); }
   .lab-doors { gap: 28px; }
   .term-body > div { display: grid; grid-template-columns: 11em minmax(0, 1fr); gap: 0 16px; }
   .term-body dt { font-size: var(--fs); line-height: var(--lh); }
-  .term + .term, .ref + .ref, .rs + .rs { margin-top: 48px; padding-top: 48px; }
+  .term + .term, .ref:not([hidden]) ~ .ref:not([hidden]), .rs + .rs { margin-top: 48px; padding-top: 48px; }
   .ref-filters { margin-top: 48px; }
   .pole { max-width: 560px; }
 }

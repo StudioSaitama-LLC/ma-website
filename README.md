@@ -20,6 +20,7 @@ src/                           # 直すのはここ
   device.json                  # Device の商品（tools/import_device.py で荒井さんの Device 表から作る）
   company.json                 # Company（まなかの軌道・会社概要・運営施設）と Contact us の窓口
   articles/*.html              # Magazine 記事の本文（HTML の断片。画像の @/ はサイトの最上位。article-head の中に日付の目印 <!-- build:meta --> を置く）
+  lab.json                     # Gate 1: MA Lab の試作データ（用語・資料・検証のテーマ）
 tools/
   build.py                     # src/ → 公開用 HTML（標準ライブラリだけ・Python 3.9 以上）
   import_manifesto.py          # Notion の docx → src/manifesto.json
@@ -74,9 +75,15 @@ Device の写真は `assets/device/` にファイル名のまま置く（Device 
 - `assets/figures/` の「密」「間」の球（Notion）は、デザインの描画から球の中心と大きさを測って `tools/make_spheres.py` で作った SVG（光は右上から・下に影）
 - 生成した HTML にある `data-m` / `data-mt` は、デザインの位置と比べる採寸用の目印（表示や動きには使っていない）
 - **MA Lab は試作**。`src/lab.json` に用語（Dictionary）・資料（Reference）・検証のテーマ（Research）を書く。
-  置き方の決まり: どの項目も、マニフェスト（`src/manifesto.json`）の章 `ch` と、その本文に一字一句そのまま含まれる一節 `quote` を持つ
-  （無ければ `build.py` が止める）。資料には `form`（言葉・文章・音・映像・写真・場）、`pole`（0 が密、100 が間）、
-  `status`（確認済み・候補・相談中）、なぜ置くか `why`、読む人への `question` を書く。用語の `key` は資料の `terms` から引く
+  置き方の決まり: どの項目も、マニフェスト（`src/manifesto.json`）の章 `ch`（整数）と、その本文に一字一句そのまま含まれる
+  8 字以上の一節 `quote` を持つ（無ければ `build.py` が止める）
+  - 用語 `terms`: `key`（英小文字）・`word`・`reading`・`kind`・一般の意味 `gloss`・マニフェストでの使われ方 `sense`（本文に書いてあることだけ）・
+    `onomatopoeia`（手がかりの語の並び）・`related`（他の用語の `key`）・`question`。`acts` は本文の羅列を写すとき
+  - 資料 `references`: `id`（英小文字。年は入れない）・`form`（`forms` のどれか）・`field`・`title`・`creator`・`year`（文字列）・
+    `terms`（用語の `key`）・なぜ置くか `why`・`question`・`pole`（0 が密、100 が間）・`status`・`note`。
+    `status` は **確認済み**（書誌を国会図書館・CiNii・版元の情報で確かめた）／**候補**（まだ確かめていない）／**相談中**（載せ方を決めていない）
+  - 検証 `research`: `id`・`theme`・`lines`・`terms`・`status`。こちらの `status` は Channel と同じ `published / editing / planned`
+  - `doors` は扉の日本語名 `ja` と役割 `role`（番号と英名は `site.json` の gates）。`poles` は目盛りの両端の名前
 - Home の Ryan Gander の引用は、掲載の可否を確かめてから `src/site.json` の `quote.lines` に入れる（空のあいだは案内の一文が出る）
 - 商品の値段は Device 表では税抜なので、`src/site.json` の `price` の決まりで税込にして出す（総額表示）
 
