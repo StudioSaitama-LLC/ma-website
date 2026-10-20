@@ -81,6 +81,38 @@ def id_key(item):
     return [int(x) for x in item["id"].split("-")]
 
 
+def bracket(title):
+    """題を「」で囲む。題に「」があるとき（YouTube の題など）は、入れ子が読みにくいので『』で囲む。"""
+    if "「" in title or "」" in title:
+        return "『%s』" % title
+    return "「%s」" % title
+
+
+def flat(rows):
+    """行の並びを 1 続きの文にする（News の一言は 3 行で切るので、改行で行を使わない）。"""
+    out = ""
+    for r in (x.strip() for x in rows):
+        if not r:
+            continue
+        if out and not re.search(r"[。．！？!?」』）)…]$", out):
+            out += " "
+        out += r
+    return out
+
+
+def article_text(frag, limit=400):
+    """記事の断片から、本文（article-body の段落）の文字だけを冒頭から limit 字まで取り出す。"""
+    out = []
+    for body in re.findall(r'<div class="article-body">(.*?)</div>', frag, flags=re.S):
+        for para in re.findall(r"<p\b[^>]*>(.*?)</p>", body, flags=re.S):
+            para = re.sub(r"<br\s*/?>", "\n", para)
+            text = html.unescape(re.sub(r"<[^>]+>", "", para))
+            out += [x.strip() for x in text.split("\n") if x.strip()]
+        if sum(len(x) for x in out) >= limit:
+            break
+    return flat(out)[:limit]
+
+
 def split_after_block(html, open_tag, where):
     """html を、open_tag で始まる div の閉じタグの直後で 2 つに分ける（入れ子の div を数える）。"""
     start = html.find(open_tag)
@@ -159,6 +191,13 @@ class Site:
                 errors.append("contents.json #%s: date は YYYY-MM-DD: %r" % (cid, c["date"]))
             if c.get("youtube") and not re.fullmatch(r"[A-Za-z0-9_-]{11}", c["youtube"]):
                 errors.append("contents.json #%s: YouTube の動画 ID（11 文字）ではない: %r" % (cid, c["youtube"]))
+            for k in ("yt_title", "yt_lead", "excerpt"):
+                if k in c and not isinstance(c[k], str):
+                    errors.append("contents.json #%s: %s は文字列" % (cid, k))
+            if (c.get("yt_title") or c.get("yt_lead")) and not c.get("youtube"):
+                errors.append("contents.json #%s: yt_title・yt_lead は youtube（動画 ID）がある項目だけに書く（tools/import_youtube.py が書く）" % cid)
+            if "device" in c and not (isinstance(c["device"], list) and all(isinstance(x, (str, int)) for x in c["device"])):
+                errors.append("contents.json #%s: device は商品 ID の並び（[\"2\"] など）" % cid)
             if c.get("portrait_focus") and not re.fullmatch(r"\d{1,3}% \d{1,3}%", c["portrait_focus"]):
                 errors.append("contents.json #%s: portrait_focus は \"68%% 50%%\" の形で書く" % cid)
             hero = c.get("hero", [])
@@ -200,6 +239,27 @@ class Site:
             for v in prod["variants"]:
                 if not isinstance(v.get("price"), int):
                     errors.append("device.json %s（%s）: 販売価格が数字でない: %r" % (prod["name"], v.get("color"), v.get("price")))
+        for c in self.contents:
+            for pid in c.get("device", []) if isinstance(c.get("device"), list) else []:
+                if str(pid) not in set(str(x) for x in prod_ids):
+                    errors.append("contents.json #%s: device.json に無い商品 ID: %r" % (c.get("id"), pid))
+        ids = set(c.get("id") for c in self.contents)
+        for p in self.programs:
+            rel = p.get("related", [])
+            if not (isinstance(rel, list) and all(isinstance(x, str) for x in rel)):
+                errors.append("programs.json %s: related はコンテンツの番号の並び（[\"2-1-2\"] など）" % p.get("slug"))
+                continue
+            for cid in rel:
+                if cid not in ids:
+                    errors.append("programs.json %s: related の番号が contents.json に無い: %r" % (p.get("slug"), cid))
+                elif any(c.get("id") == cid and c.get("program") == p.get("slug") for c in self.contents):
+                    errors.append("programs.json %s: related の %s は同じ番組のもの（同じ番組なら contents.json で related: true にする）" % (p.get("slug"), cid))
+        for f in self.company.get("facilities", []):
+            for x in [f] + list(f.get("items", [])):
+                if not isinstance(x, dict) or not (x.get("name") or "").strip():
+                    errors.append("company.json facilities: 施設は {\"name\": …, \"url\": …} の形で書く: %r" % (x,))
+                elif x.get("url") and not re.fullmatch(r"https?://[^\s\"<>]+", x["url"]):
+                    errors.append("company.json facilities %s: url は http(s):// で始める: %r" % (x["name"], x["url"]))
         for n in self.site.get("news", []):
             if bad_date(n.get("date")):
                 errors.append("site.json news %r: date は実在する YYYY-MM-DD: %r" % (n.get("title"), n.get("date")))
@@ -263,9 +323,53 @@ class Site:
             out.append((e, items))
         for c in mine:
             if not c.get("episode"):
-                out.append(({"key": c["id"], "title": c["title"], "caption": c.get("caption", ""),
-                             "text": "", "date": c.get("date", "")}, [c]))
+                out.append((self.solo_episode(c), [c]))
         return out
+
+    def yt_item(self, items):
+        """回の TV のうち、YouTube の題を取り込んだもの（tools/import_youtube.py）。回の題と一言はこれに合わせる。"""
+        for c in items:
+            if c["kind"] == "tv" and c.get("yt_title"):
+                return c
+        return None
+
+    def ep_title(self, e, items):
+        tv = self.yt_item(items)
+        return tv["yt_title"] if tv else e["title"]
+
+    def ep_lines(self, e, items):
+        """回の一言（行の並び）。YouTube の説明文の冒頭があればそれ、無ければ caption と text。"""
+        tv = self.yt_item(items)
+        if tv and tv.get("yt_lead"):
+            return [x.strip() for x in tv["yt_lead"].split("\n") if x.strip()]
+        return [x for x in (e.get("caption"), e.get("text")) if x]
+
+    def find_episode(self, item):
+        """コンテンツが入っている回（番組・回・その回のコンテンツ）。"""
+        p = self.program(item["program"])
+        for e, items in self.episodes(p):
+            if item in items:
+                return p, e, items
+        return p, self.solo_episode(item), [item]
+
+    def solo_episode(self, c):
+        """回を決めていないコンテンツは、1 件で 1 回として扱う。"""
+        return {"key": c["id"], "title": c["title"], "caption": c.get("caption", ""), "text": "", "date": c.get("date", "")}
+
+    def content(self, cid):
+        for c in self.contents:
+            if c["id"] == cid:
+                return c
+        raise SystemExit("contents.json に無い番号: %s" % cid)
+
+    def mag_excerpt(self, c):
+        """Magazine の抜き出し。記事があれば本文の冒頭から作る（記事といつも合う）。無ければ excerpt。"""
+        if c.get("article"):
+            with open(os.path.join(SRC, c["article"]), encoding="utf-8") as f:
+                text = article_text(f.read())
+            if text:
+                return text
+        return c.get("excerpt") or c.get("caption") or ""
 
     def episode_status(self, items):
         if any(c.get("status") == "published" for c in items):
@@ -282,8 +386,8 @@ class Site:
                     continue
                 lead = items[0]
                 news.append({"date": e["date"], "path": self.item_path(lead),
-                             "title": "「%s / %s」 %s" % (p["en"], p["ja"], e["title"]),
-                             "url": "channel/%s/#ep-%s" % (p["slug"], e["key"]), "text": e.get("caption", "")})
+                             "title": "「%s / %s」 %s" % (p["en"], p["ja"], self.ep_title(e, items)),
+                             "url": "channel/%s/#ep-%s" % (p["slug"], e["key"]), "text": flat(self.ep_lines(e, items))})
         for n in self.site.get("news", []):
             news.append({"date": n["date"], "path": n.get("path", "MA"), "title": n["title"], "url": n.get("url", ""),
                          "text": n.get("text", "")})
@@ -364,15 +468,18 @@ class Site:
                         '<span class="gt-box" data-m="tb-%s"><span data-m="tt-%s" data-mt>%s</span></span></a>'
                         % (key, " is-active" if active else "", h(g["url"]), ' aria-current="page"' if active else "",
                            key, esc(g["no"]), key, key, esc(g["en"])))
+        # サイト名の段はスクロールで流れ、Gate の札の段は上端まで来たら貼り付く（css の .gate-bar）。メニューのボタンは右上に残す
         return """<header class="site-header">
   <a class="site-title" href="{home}" data-m="title" data-mt>{name}</a>
   <button class="menu-btn" type="button" aria-controls="site-menu" aria-expanded="false" aria-label="メニューを開く" data-m="ham">
     <span></span><span></span><span></span>
   </button>
-  <nav class="gate-tabs" aria-label="Gate">
-    {tabs}
-  </nav>
 </header>
+<nav class="gate-bar" aria-label="Gate">
+  <div class="gate-tabs">
+    {tabs}
+  </div>
+</nav>
 
 {menu}""".format(home=h(""), name=esc(self.site["name"]), tabs="\n    ".join(tabs), menu=self.menu(cur))
 
@@ -529,40 +636,48 @@ class Site:
             if kind == "tv":
                 out.append(self.tv_media(c))
             elif kind == "mag":
-                text = esc(c.get("excerpt") or c.get("caption") or "")
+                text = esc(self.mag_excerpt(c))
                 if c.get("article"):
-                    text += ' <a class="read-link" href="%s">%sを読む</a>' % (
+                    # 4 行で切り、4 行目の右に「…… ○○を読む」を置く（css の .door-text.is-clamped。リンクは本文より先に書く）
+                    more = '<span class="more">…… <a class="read-link" href="%s">%sを読む</a></span>' % (
                         self.href(cur, self.item_url(c)), esc(c.get("badge") or "記事"))
-                out.append('<p class="door-text">%s</p>' % text)
+                    out.append('<p class="door-text is-clamped">%s%s</p>' % (more, text))
+                else:
+                    out.append('<p class="door-text">%s</p>' % text)
             else:
                 out.append('<div class="audio-ph"><span class="ph-label">SoundCloud</span></div>')
         return '<section class="door door-%s">\n        %s\n      </section>' % (kind, "\n        ".join(out))
 
-    def entry(self, cur, p, e, items, n):
-        """番組の回。公開済みのコンテンツがあれば ↓ で開き、TV・Magazine・Radio の Door が並ぶ。"""
+    def entry(self, cur, p, e, items, n, opened=False, id_prefix="ep-"):
+        """番組の回。公開済みのコンテンツがあれば ↓ で開き、TV・Magazine・Radio の Door が並ぶ。
+        題と一言は YouTube に合わせる（ep_title・ep_lines）。opened=True で開いた状態で出す（記事の後ろ）。"""
         status = self.episode_status(items)
         lead = items[0] if items else None
         meta = self.entry_meta(e.get("date", "") if status == "published" else "",
                                self.item_path(lead) if lead else "MA Channel", status, el="span", m="em%d" % n)
-        text = [x for x in (e.get("caption"), e.get("text")) if x]
+        text = self.ep_lines(e, items)
         place = next((c.get("place") for c in items if c.get("place")), "")
         if place:
             text.append("Place: " + place)
         text_html = ('<span class="entry-text" data-m="ex%d" data-mt>%s</span>' % (n, "<br>".join(esc(x) for x in text))) if text else ""
-        title = '<span class="entry-title" data-m="et%d" data-mt>「%s」</span>' % (n, esc(e["title"]))
+        if e.get("excerpt"):
+            # まだ載せていない記事は、本文の冒頭を 4 行だけ見せる（読むリンクは無い）
+            text_html += '<span class="entry-excerpt">%s</span>' % esc(e["excerpt"])
+        badge = ('<span class="badge">%s</span> ' % esc(e["badge"])) if e.get("badge") else ""
+        title = '<span class="entry-title" data-m="et%d" data-mt>%s%s</span>' % (n, badge, esc(bracket(self.ep_title(e, items))))
         pub = [c for c in items if c.get("status") == "published"]
         if not pub:
-            return """    <div class="entry is-planned" id="ep-{key}">
+            return """    <div class="entry is-planned" id="{pre}{key}">
       {meta}
       {title}
       {text}
-    </div>""".format(key=esc(e["key"]), meta=meta, title=title, text=text_html)
+    </div>""".format(pre=id_prefix, key=esc(e["key"]), meta=meta, title=title, text=text_html)
         kinds = []
         for k in ("tv", "mag", "radio"):
             ks = [c for c in pub if c["kind"] == k]
             if ks:
                 kinds.append(self.door_block(cur, k, ks))
-        return """    <details class="entry" id="ep-{key}">
+        return """    <details class="entry" id="{pre}{key}"{open}>
       <summary>
         {meta}
         {title}
@@ -572,7 +687,8 @@ class Site:
       {body}
         <p class="fold-end"><button class="entry-close" type="button" aria-label="閉じる"></button></p>
       </div>
-    </details>""".format(key=esc(e["key"]), meta=meta, title=title, text=text_html, body="\n      ".join(kinds))
+    </details>""".format(pre=id_prefix, key=esc(e["key"]), open=" open" if opened else "", meta=meta, title=title,
+                         text=text_html, body="\n      ".join(kinds))
 
     # ---------- 各ページ ----------
 
@@ -607,18 +723,22 @@ class Site:
             title = esc(n["title"])
             if n.get("url"):
                 title = '<a href="%s">%s</a>' % (h(n["url"]), title)
+            # MA Channel の Latest News と同じく、題の下に一言を出す（長いときは 3 行で切る）
             news.append("""      <li class="news-item" data-m="ni{i}">
         {meta}
-        <p class="news-title" data-m="nt{i}" data-mt>{title}</p>
-      </li>""".format(i=i, meta=self.entry_meta(n["date"], n["path"], m="nm%d" % i), title=title))
+        <p class="news-title" data-m="nt{i}" data-mt>{title}</p>{text}
+      </li>""".format(i=i, meta=self.entry_meta(n["date"], n["path"], m="nm%d" % i), title=title,
+                      text=('\n        <p class="news-text" data-m="nx%d" data-mt>%s</p>' % (i, esc(n["text"]))) if n.get("text") else ""))
         body = """
   <h1 class="visually-hidden">{name}</h1>
 
   <section class="hero" id="top">
-    <p class="hero-now" data-m="now" data-mt>現在、</p>
-    <p class="hero-count" data-m="count"><span class="hc-line" data-m="hcline"></span><span class="hc-num" data-m="hcnum">{visitors}</span></p>
-    <p class="hero-text" data-m="htext" data-mt>人が平場に立ちました。</p>
-    {figure}
+    <div class="hero-block">
+      <p class="hero-now" data-m="now" data-mt>現在、</p>
+      <p class="hero-count" data-m="count"><span class="hc-line" data-m="hcline"></span><span class="hc-num" data-m="hcnum">{visitors}</span></p>
+      <p class="hero-text" data-m="htext" data-mt>人が平場に立ちました。</p>
+      {figure}
+    </div>
     {arrow1}
   </section>
 
@@ -626,8 +746,8 @@ class Site:
 {quote}
     <p class="quote-credit" data-m="credit" data-mt>(-{credit})</p>
     {hiraba}
+    {arrow2}
   </section>
-  {arrow2}
 
   <section class="toc col" id="toc">
     {toc_tag}
@@ -760,8 +880,9 @@ class Site:
             for j, c in enumerate(items):
                 p = self.program(c["program"])
                 ep = c.get("episode") or c["id"]
-                title = '<a href="%s">「%s / %s」 %s</a>' % (h("channel/%s/#ep-%s" % (p["slug"], ep)), esc(p["en"]), esc(p["ja"]), esc(c["title"]))
-                text = c.get("caption") or c.get("excerpt") or ""
+                title = '<a href="%s">「%s / %s」 %s</a>' % (h("channel/%s/#ep-%s" % (p["slug"], ep)), esc(p["en"]), esc(p["ja"]),
+                                                          esc(c.get("yt_title") or c["title"]))
+                text = flat((c.get("yt_lead") or "").split("\n")) or c.get("caption") or c.get("excerpt") or ""
                 mk = "l%d%d" % (di, j)
                 rows.append("""        <li class="news-item">
           {meta}
@@ -812,20 +933,23 @@ class Site:
                 '        <p class="pending-note">番組の紹介文は準備中です。</p>'
             eps = self.episodes(p)
             entries = "\n\n".join(self.entry(cur, p, e, items, i + 1) for i, (e, items) in enumerate(eps))
+            # 関連コンテンツ＝この番組で related にしたもの＋programs.json の related に番号を並べたもの（ほかの番組の回も入れられる）
             related = [c for c in self.contents if c["program"] == p["slug"] and c.get("related")]
+            related += [self.content(cid) for cid in p.get("related", [])]
+            related.sort(key=lambda c: (KIND_ORDER[c["kind"]], id_key(c)))
             rel = ""
             if related:
                 rel_items = []
-                for c in related:
-                    rel_items.append("""      <div class="entry is-planned">
-        {meta}
-        <span class="entry-title">{badge}「{title}」</span>
-      </div>""".format(meta=self.entry_meta(self.item_date(c) if c.get("status") == "published" else "", self.item_path(c), c.get("status")),
-                       badge=('<span class="badge">%s</span> ' % esc(c["badge"])) if c.get("badge") else "", title=esc(c["title"])))
+                for k, c in enumerate(related):
+                    e = dict(self.solo_episode(c), date=self.item_date(c), badge=c.get("badge", ""),
+                             excerpt=c.get("excerpt", "") if c.get("status") != "published" else "")
+                    rel_items.append(self.entry(cur, self.program(c["program"]), e, [c], 100 + k, id_prefix="rel-"))
                 rel = """
     <section class="related">
       <h2 class="related-head" data-m="relh"><span data-mt>関連コンテンツ：</span>{logo}</h2>
+      <div class="entries">
 {items}
+      </div>
     </section>
 """.format(logo=self.logo(cur, "logo-mark lm-related"), items="\n".join(rel_items))
             body = """
@@ -891,6 +1015,9 @@ class Site:
             focus = (' style="object-position: %s"' % item["portrait_focus"]) if item.get("portrait_focus") else ""
             portrait = ('  <figure class="article-portrait" data-m="aport"><img src="%s" alt="%s" loading="lazy" decoding="async"%s></figure>\n' % (
                 esc(h("assets/" + item["portrait"])), esc(item["portrait_alt"]), focus)) if item.get("portrait") else ""
+            # 記事の後ろ（人物の写真の前）に、この記事が入っている回の枠を開いた状態で置く（同じ回の TV・ほかの記事へ進める）
+            ep_p, ep_e, ep_items = self.find_episode(item)
+            episode = self.entry(cur, ep_p, ep_e, ep_items, 200, opened=True)
             body = """
   <div class="article-top">
 {hero}  <div class="content article">
@@ -901,8 +1028,11 @@ class Site:
   <div class="content article" id="article-start">
 {rest}
   </div>
+  <section class="content article-episode" aria-label="この回のコンテンツ">
+{episode}
+  </section>
 {portrait}  <div class="home-end article-end">{logo}</div>
-""".format(hero=hero, head=head.rstrip("\n"), rest=rest.strip("\n"), portrait=portrait,
+""".format(hero=hero, head=head.rstrip("\n"), rest=rest.strip("\n"), episode=episode, portrait=portrait,
            arrow=self.arrow("#article-start", "本文へ進む", "arrow-a", m="aarrow"),
            logo=self.logo(cur, "home-logo", m="lma"))
             self.page(cur, "%s %s" % (item.get("badge", ""), item["title"]), body, main_class="page article-page")
@@ -1011,8 +1141,17 @@ class Site:
           <p>{body}</p>
         </figcaption>
       </figure>""".format(img=esc(h("assets/device/" + f["image"])), ttl=lines(f["title"]), body=lines(f["body"])) for f in prod["features"])
-        qa = "\n".join("        <dt>Q.&ensp;%s</dt>\n        <dd>%s</dd>" % (esc(x["q"]), lines(x["a"])) for x in prod["highlights"])
-        specs = "\n".join('        <tr><th scope="row">%s</th><td>%s</td></tr>' % (esc(x["label"]), lines(x["value"])) for x in prod["specs"])
+        # 商品の情緒（映像・記事・音声）: contents.json の device にこの商品の ID を書いたコンテンツを、回の枠で並べる（無ければ出さない）
+        media, seen = [], set()
+        for c in self.contents:
+            if str(prod["id"]) not in [str(x) for x in c.get("device", [])]:
+                continue
+            ep_p, ep_e, ep_items = self.find_episode(c)
+            if (ep_p["slug"], ep_e["key"]) in seen:
+                continue
+            seen.add((ep_p["slug"], ep_e["key"]))
+            media.append(self.entry(cur, ep_p, ep_e, ep_items, 300 + len(media), id_prefix="dv-"))
+        media_html = ('\n      <div class="entries product-media">\n%s\n      </div>' % "\n".join(media)) if media else ""
         # 写真は横に並べてスクロールで送る（スマホは指で送り「1/N」を出す。PC は下の小さな写真で選ぶ）
         slides = "\n".join('          <li><img src="%s" width="720" height="720"%s decoding="async" alt="%s（%s）"></li>' % (
             esc(h("assets/device/" + v["image"])), "" if i == 0 else ' loading="lazy"', esc(prod["name"]), esc(v["color"]))
@@ -1054,15 +1193,7 @@ class Site:
     <section class="product-desc">
       <h2 class="line-head" data-m="pdesc" data-mt>商品説明</h2>
       <p class="pd-copy">{copy}</p>
-      <div class="prose"><p>{body}</p></div>
-      <h3 class="pd-sub">よくあるご質問</h3>
-      <dl class="qa">
-{qa}
-      </dl>
-      <h3 class="pd-sub">仕様</h3>
-      <table class="spec">
-{specs}
-      </table>
+      <div class="prose"><p>{body}</p></div>{media}
     </section>
 
     <section class="features" aria-label="特徴">
@@ -1073,7 +1204,7 @@ class Site:
            slides=slides, count=len(prod["variants"]), thumbs=thumbs, price=esc(self.price_label(prod)),
            note=self.tax_label(), ec=esc(prod["ec_url"]),
            colornames=esc(" / ".join(v["color"] for v in prod["variants"])), colors=colors, copy=esc(prod["copy"]),
-           body=lines(prod["body"]), feats=feats, qa=qa, specs=specs)
+           body=lines(prod["body"]), feats=feats, media=media_html)
         self.page(cur, prod["name"], body, main_class="page product-page")
 
     def build_company(self):
@@ -1094,8 +1225,13 @@ class Site:
         profile = "\n".join('        <div class="pr-row%s%s"><dt>%s :</dt><dd>%s</dd></div>' % (
             {"stack": " pr-stack", "stack-sp": " pr-stack-sp"}.get(r.get("layout", ""), ""), " pr-gap" if r.get("gap_after") else "",
             esc(r["label"]), "".join(value(v) for v in r["value"])) for r in c["profile"])
+        def place(x):
+            # リンクのある施設は水色のリンク、無いものは本文の色（デザインの注記）
+            if x.get("url"):
+                return '<a href="%s" target="_blank" rel="noopener">%s</a>' % (esc(x["url"]), esc(x["name"]))
+            return esc(x["name"])
         fac = "\n".join("""        <li><p class="fac-name">{name}</p><ul>{items}</ul></li>""".format(
-            name=esc(f["name"]), items="".join("<li>%s</li>" % esc(x) for x in f["items"])) for f in c["facilities"])
+            name=place(f), items="".join("<li>%s</li>" % place(x) for x in f["items"])) for f in c["facilities"])
         body = """
   <div class="content">
     <div class="simple-head">
