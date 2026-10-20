@@ -142,7 +142,12 @@ html.light .logo-mark, html.light .home-logo { filter: brightness(0.55); }
 html:not(.js) .menu-btn, html:not(.js) .fold-toggle { display: none; }
 
 /* 360px 未満の小さい画面は、ページ全体を 375px の組みのまま縮める（絵や図の位置はスマホ 375px のデザインに合わせているため） */
-@media (max-width: 359.98px) { body { zoom: 0.8533; } }
+@media (max-width: 359.98px) {
+  body { zoom: 0.8533; }
+  /* 縮めた中では画面の高さ（100svh）も 0.8533 倍に描かれるので、矢印やヒーローが画面の下に届くよう割り戻す */
+  :root { --scr: calc(100vh / 0.8533); }
+  @supports (height: 100svh) { :root { --scr: calc(100svh / 0.8533); } }
+}
 
 /* 481〜1199px（タブレットなど）はデザインが無い。PC の寸法は 1200px 以上でないと収まらないので、
    スマホの寸法のまま 480px の列にして中央に置く */
