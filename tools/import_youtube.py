@@ -21,6 +21,7 @@ import json
 import os
 import re
 import socket
+import stat
 import sys
 import tempfile
 import time
@@ -32,8 +33,10 @@ CONTENTS = os.path.join(ROOT, "src", "contents.json")
 WATCH = "https://www.youtube.com/watch?v=%s"
 VIDEO_ID = r"[A-Za-z0-9_-]{11}"
 TRIES = 3
-# 説明文のここから先は一言に入れない: 「TIMELINE」の見出し（【TIMELINE】・■TIMELINE: なども）と、時刻で始まる行
-STOP = re.compile(r"\s*(?:[^\w\s]\s*)*TIMELINE\b|\s*\d{1,2}:\d{2}(?::\d{2})?(?!\d)", flags=re.I)
+# 説明文のここから先は一言に入れない: 「TIMELINE」の見出し（【TIMELINE】・■TIMELINE: なども）と、
+# 時刻で始まる行が 2 行続く所（「0:00 …」「1:23 …」の目次。「20:00 から配信」のような 1 行は一言に残す）
+HEADING = re.compile(r"\s*(?:[^\w\s]\s*)*TIMELINE\b", flags=re.I)
+TIME = re.compile(r"\s*\d{1,2}:\d{2}(?::\d{2})?(?!\d)")
 
 
 def player_response(html):
@@ -48,10 +51,15 @@ def player_response(html):
 
 def lead_of(description):
     """説明文のうち、TIMELINE の見出しか時刻で始まる行より前。行の終わりの空白と、前後の空行は除く。"""
+    rows = (description or "").replace("\r\n", "\n").split("\n")
     out = []
-    for line in (description or "").replace("\r\n", "\n").split("\n"):
-        if STOP.match(line):
+    for i, line in enumerate(rows):
+        if HEADING.match(line):
             break
+        if TIME.match(line):
+            rest = [x for x in rows[i + 1:] if x.strip()]
+            if rest and TIME.match(rest[0]):
+                break
         out.append(line.rstrip())
     return "\n".join(out).strip("\n").strip()
 
@@ -116,6 +124,8 @@ def write_atomic(path, text):
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(text)
+        # mkstemp は 0600 で作るので、元のファイルの権限に合わせてから置き換える（ほかのアカウントから読めるままにする）
+        os.chmod(tmp, stat.S_IMODE(os.stat(path).st_mode))
         os.replace(tmp, path)
     except BaseException:
         if os.path.exists(tmp):
@@ -155,7 +165,7 @@ def main():
     for line in failed:
         print("読めなかった: " + line, file=sys.stderr)
     for line in changed:
-        print(("ずれている: " if a.check else "更新: ") + line)
+        print(("ずれている: " if a.check else "更新予定: " if failed else "更新: ") + line)
     if a.check:
         return 1 if (changed or failed) else 0
     if failed:
