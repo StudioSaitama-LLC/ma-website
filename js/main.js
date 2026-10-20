@@ -6,7 +6,7 @@
    - 番組の回（details）は、#ep-… で来たときに開く
    - 商品の写真の送り
    - Device Room の検索とお店の絞り込み（商品ページの検索からは ?q= で来る）
-   - Lab の Reference Space の絞り込み（形・用語） */
+   - Lab の Reference Space の絞り込み（要素・形。#e-… で来たらその要素で絞る） */
 
 (function () {
   var root = document.documentElement;
@@ -268,6 +268,12 @@
           });
         });
       });
+      // 要素の欄から #e-… で来たら、その要素で絞った状態で開く
+      var eh = location.hash.slice(1);
+      if (eh.indexOf("e-") === 0) {
+        var ep = document.querySelector('.ref-filters[data-filter="elements"] .pill[data-v="' + eh.slice(2).replace(/[^a-z0-9-]/g, "") + '"]');
+        if (ep) ep.click();
+      }
     }
   });
 })();

@@ -77,10 +77,13 @@ Device の写真は `assets/device/` にファイル名のまま置く（Device 
 - **MA Lab は試作**。`src/lab.json` に用語（Dictionary）・資料（Reference）・検証のテーマ（Research）を書く。
   置き方の決まり: どの項目も、マニフェスト（`src/manifesto.json`）の章 `ch`（整数）と、その本文に一字一句そのまま含まれる
   8 字以上の一節 `quote` を持つ（無ければ `build.py` が止める）
+  - 要素 `elements`: マニフェストの考えを分解したもの。`key`・`name`（6 字まで。地図の札に入れる）・`sub`（一言）・
+    `mitsu`（密の側の姿）・`ma`（間の側の姿）・`ch` と `quote`・`acts`（マニフェストの羅列から、この要素に当たる行い）。
+    用語・資料・検証は `elements` でこの `key` を引く。資料が 1 つも無い要素があると止める
   - 用語 `terms`: `key`（英小文字）・`word`・`reading`・`kind`・一般の意味 `gloss`・マニフェストでの使われ方 `sense`（本文に書いてあることだけ）・
     `onomatopoeia`（手がかりの語の並び）・`related`（他の用語の `key`）・`question`。`acts` は本文の羅列を写すとき
   - 資料 `references`: `id`（英小文字。年は入れない）・`form`（`forms` のどれか）・`field`・`title`・`creator`・`year`（文字列）・
-    `terms`（用語の `key`）・なぜ置くか `why`・`question`・`pole`（0 が密、100 が間）・`status`・`note`。
+    `terms`（用語の `key`）・`elements`（映っている要素。`相談中` 以外は 1 つ以上）・なぜ置くか `why`・`question`・`pole`（0 が密、100 が間）・`status`・`note`。
     `status` は **確認済み**（本は書誌を国会図書館・CiNii・版元で、作品・展覧会・標語は初演・初出・開催年を公開情報で確かめ、PR に確認先を残した）／**候補**（まだ確かめていない）／**相談中**（載せ方を決めていない）
   - 検証 `research`: `id`・`theme`・`lines`・`terms`・`status`。こちらの `status` は Channel と同じ `published / editing / planned`
   - `doors` は扉の日本語名 `ja` と役割 `role`（番号と英名は `site.json` の gates）。`poles` は目盛りの両端の名前

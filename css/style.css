@@ -1047,6 +1047,31 @@ html.light .dc-btn { background: var(--accent); color: var(--on-accent); }
 /* JS 無しでは札は動かないので出さない（資料は全部見える） */
 html:not(.js) .ref-filters { display: none; }
 .ref-count { margin-top: 18px; font-size: var(--small); line-height: 20px; }
+/* 要素の地図と要素の欄（文字ばかりにならないように、地図・対の欄・札で見せる） */
+.lab-map { display: block; width: 100%; max-width: 600px; height: auto; margin: 46.5px auto 0; }
+.lab-map text { font-family: inherit; }
+.lab-map a:hover rect { stroke: var(--accent); }
+.lab-map a:hover circle { r: 8; }
+.el-grid { list-style: none; margin: var(--lh) 0 0; padding: 0; display: grid; gap: 14px; }
+.el { position: relative; padding: 16px 16px 14px; border: 1px solid var(--line); }
+.el-no { position: absolute; right: 14px; top: 12px; font-size: var(--small); line-height: 20px; opacity: 0.6; }
+.el-name { color: var(--accent); font-size: var(--tag); line-height: 1.25; font-weight: 700; }
+.el-sub { margin-top: 2px; }
+.el-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; margin: 14px 0 0; }
+.el-pair > div { padding-top: 6px; border-top: 1px solid var(--line); }
+.el-pair dt { font-size: var(--small); line-height: 20px; opacity: 0.75; }
+.ep-ma dt { color: var(--accent); opacity: 1; }
+.el-pair dd, .el .lab-quote { margin: 0; font-size: 14px; line-height: 24px; }
+.el .lab-quote { margin-top: 14px; }
+.el-acts, .el-links { margin-top: 10px; font-size: var(--small); line-height: 22px; }
+.el-links a { margin-right: 0.8em; }
+.chips { margin-top: 10px; font-size: var(--small); line-height: 22px; }
+.chips-label { margin-right: 6px; opacity: 0.75; }
+.act, .chip { display: inline-block; margin: 0 6px 4px 0; padding: 0 8px; border: 1px solid var(--fg); border-radius: 999px; }
+.chip { border-color: var(--accent); color: var(--accent); }
+.chip:hover { background: var(--accent); color: var(--on-accent); text-decoration: none; }
+.fg { margin-right: 6px; color: var(--accent); }
+.ref-main .chips { margin-top: 8px; }
 .ref-empty { margin-top: 24px; }
 .research-list + .pending-note { margin-top: calc(var(--lh) * 2); }
 @media (min-width: 1200px) {
@@ -1058,4 +1083,12 @@ html:not(.js) .ref-filters { display: none; }
   .term + .term, .ref:not([hidden]) ~ .ref:not([hidden]), .rs + .rs { margin-top: 48px; padding-top: 48px; }
   .ref-filters { margin-top: 48px; }
   .pole { max-width: 560px; }
+  .lab-map { margin-top: 83.5px; }
+  .el-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
+  .el { padding: 20px 20px 18px; }
+  .el-pair dd, .el .lab-quote { font-size: var(--fs); line-height: var(--lh); }
+  /* 資料は左に札と目盛り、右に一節と一言 */
+  .ref { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 0 48px; }
+  .ref .lab-quote { margin-top: 0; }
+  .ref .pole { max-width: none; }
 }

@@ -25,6 +25,8 @@ MARK = "<!-- このファイルは tools/build.py が src/ から生成してい
 STATUS = {"published": "", "editing": "編集中", "planned": "掲載予定"}
 LAB_STATUS = ("確認済み", "候補", "相談中")  # Lab の資料の出典の確かめ具合（確認済み＝書誌を国会図書館・CiNii・版元で確かめた）
 LAB_QUOTE_MIN = 8  # Lab の引用は、この字数以上の一節を写す（1 字の一致で通らないように）
+LAB_NAME_MAX = 6  # Lab の要素の名前の長さ（地図の札に入る長さ）
+LAB_GLYPH = {"言葉": "◇", "文章": "■", "音": "●", "映像": "▶", "写真": "◆", "場": "○"}  # 資料の形の目印
 KIND = {"tv": "TV", "mag": "Magazine", "radio": "Radio"}
 KIND_ORDER = {"tv": 0, "mag": 1, "radio": 2}
 NEW_COUNT = 3  # 日付の新しい順にこの件数だけ <NEW> を付ける
@@ -217,7 +219,7 @@ class Site:
         """Lab の試作データ（src/lab.json）。引用の一節がマニフェストの本文に無ければ止める（マニフェストを軸にする決まり）。"""
         lab = self.lab
         shape = {"version": str, "intro": list, "rule": dict, "poles": dict, "forms": list, "doors": dict,
-                 "terms": list, "references": list, "research": list}
+                 "elements": list, "terms": list, "references": list, "research": list}
         for k, typ in shape.items():
             if not isinstance(lab.get(k), typ):
                 errors.append("lab.json: %s が無いか、形が違う（%s）" % (k, typ.__name__))
@@ -251,9 +253,18 @@ class Site:
             info = lab.get("doors", {}).get(key)
             if not isinstance(info, dict) or not need("doors", key, info, ("ja", "role")):
                 errors.append("lab.json doors: %s に ja と role を書く" % key)
-        if not all(isinstance(x, dict) for x in lab["terms"] + lab["references"] + lab["research"]):
-            errors.append("lab.json: terms / references / research の各項目は {} の形で書く")
+        if not all(isinstance(x, dict) for x in lab["elements"] + lab["terms"] + lab["references"] + lab["research"]):
+            errors.append("lab.json: elements / terms / references / research の各項目は {} の形で書く")
             return
+        ekeys = set()
+        for e in lab["elements"]:
+            if not re.fullmatch(SLUG, e.get("key", "")):
+                errors.append("lab.json elements: key は英小文字・数字・ハイフンだけ: %r" % e.get("key"))
+            if e.get("key") in ekeys:
+                errors.append("lab.json elements: key が重複: %s" % e["key"])
+            ekeys.add(e.get("key"))
+            if need("elements", e.get("key"), e, ("name", "sub", "mitsu", "ma"), ("acts",)) and len(e["name"]) > LAB_NAME_MAX:
+                errors.append("lab.json elements %s: name は %d 字まで（地図の札に入れるため）: %r" % (e["key"], LAB_NAME_MAX, e["name"]))
         keys = set()
         for t in lab["terms"]:
             if not re.fullmatch(SLUG, t.get("key", "")):
@@ -261,7 +272,7 @@ class Site:
             if t.get("key") in keys:
                 errors.append("lab.json terms: key が重複: %s" % t["key"])
             keys.add(t.get("key"))
-            need("terms", t.get("key"), t, ("word", "reading", "kind", "gloss", "sense", "question"), ("onomatopoeia", "related"), ("acts",))
+            need("terms", t.get("key"), t, ("word", "reading", "kind", "gloss", "sense", "question"), ("onomatopoeia", "related", "elements"), ("acts",))
         ids = set()
         for r in lab["references"]:
             if not re.fullmatch(SLUG, r.get("id", "")):
@@ -269,7 +280,9 @@ class Site:
             if r.get("id") in ids:
                 errors.append("lab.json references: id が重複: %s" % r["id"])
             ids.add(r.get("id"))
-            need("references", r.get("id"), r, ("form", "field", "title", "creator", "why", "question", "status"), ("terms",))
+            if need("references", r.get("id"), r, ("form", "field", "title", "creator", "why", "question", "status"), ("terms", "elements")) \
+                    and not r["elements"] and r.get("status") != "相談中":
+                errors.append("lab.json %s: どの要素が映っているか（elements）を 1 つ以上書く（決めていないなら status を 相談中 に）" % r["id"])
             if not isinstance(r.get("year", ""), str) or not isinstance(r.get("note", ""), str):
                 errors.append("lab.json %s: year と note は文字列で書く（年だけでも \"1971\" のように）" % r.get("id"))
             if r.get("form") not in forms:
@@ -284,21 +297,34 @@ class Site:
             if rs.get("id") in ids:
                 errors.append("lab.json research: id が資料と重複: %s" % rs["id"])
             ids.add(rs.get("id"))
-            need("research", rs.get("id"), rs, ("theme",), ("terms", "lines"))
+            need("research", rs.get("id"), rs, ("theme",), ("terms", "lines", "elements"))
             if rs.get("status") not in STATUS:
                 errors.append("lab.json research %s: status は published / editing / planned のどれか: %r" % (rs.get("id"), rs.get("status")))
-        for kind in ("terms", "references", "research"):
+        acts = set(a for t in lab["terms"] for a in t.get("acts", []))
+        used = set()
+        for kind in ("elements", "terms", "references", "research"):
             for it in lab[kind]:
                 name = it.get("key") or it.get("id")
                 for k in list(it.get("terms", [])) + list(it.get("related", [])):
                     if k not in keys:
                         errors.append("lab.json %s %s: 用語集（terms）に無い key: %r" % (kind, name, k))
+                for k in it.get("elements", []):
+                    if k not in ekeys:
+                        errors.append("lab.json %s %s: 要素（elements）に無い key: %r" % (kind, name, k))
+                    elif kind == "references":
+                        used.add(k)
+                if kind == "elements":
+                    for a in it.get("acts", []):
+                        if a not in acts:
+                            errors.append("lab.json elements %s: acts はマニフェストの羅列（用語の acts）にある語だけ: %r" % (name, a))
                 if type(it.get("ch")) is not int or it["ch"] not in chapters:
                     errors.append("lab.json %s %s: ch はマニフェストの章番号（整数）: %r" % (kind, name, it.get("ch")))
                 elif not isinstance(it.get("quote"), str) or len(it["quote"].strip()) < LAB_QUOTE_MIN:
                     errors.append("lab.json %s %s: quote は %d 字以上の一節を写す" % (kind, name, LAB_QUOTE_MIN))
                 elif it["quote"] not in self.chapter_text(it["ch"]):
                     errors.append("lab.json %s %s: quote が第 %s 章の本文に見つからない（一字一句そのまま写す）" % (kind, name, it["ch"]))
+        for k in ekeys - used:
+            errors.append("lab.json elements %s: この要素が映っている資料が 1 つも無い（地図に線が出ない）" % k)
 
     # ---------- データのまとめ ----------
 
@@ -831,6 +857,74 @@ class Site:
     def lab_term(self, key):
         return [t for t in self.lab["terms"] if t["key"] == key][0]
 
+    def lab_element(self, key):
+        return [e for e in self.lab["elements"] if e["key"] == key][0]
+
+    def lab_chips(self, cur, keys, label="要素"):
+        """要素の札（Lab の入口の要素の欄へ飛ぶ）。"""
+        if not keys:
+            return ""
+        chips = " ".join('<a class="chip" href="%s">%s</a>' % (self.href(cur, "lab/#e-%s" % k), esc(self.lab_element(k)["name"])) for k in keys)
+        return '<p class="chips"><span class="chips-label">%s</span>%s</p>' % (esc(label), chips)
+
+    def lab_glyph(self, form):
+        return '<span class="fg" aria-hidden="true">%s</span>' % esc(LAB_GLYPH.get(form, "■"))
+
+    def lab_map(self, cur):
+        """要素の地図（SVG）。中心に「間」、まわりに要素、外側に資料。資料は映っている要素と線でつながる。
+        元の構想（Dictionary の重力空間 — 中心「間」へ語が引き寄せられ、外周には参考資料が浮遊する）を平面にしたもの。"""
+        import math
+        els = self.lab["elements"]
+        refs = [r for r in self.lab["references"] if r.get("elements")]
+        W = 600
+        cx = cy = W / 2
+        n = len(els)
+        ang = {}
+        for i, e in enumerate(els):
+            ang[e["key"]] = -math.pi / 2 + 2 * math.pi * i / n
+        r_el = lambda i: 190 + (14 if i % 2 else -14)  # 札が隣と重ならないよう、交互に内外へ
+        pos = {e["key"]: (cx + r_el(i) * math.cos(ang[e["key"]]), cy + r_el(i) * math.sin(ang[e["key"]])) for i, e in enumerate(els)}
+        # 資料の角度は、映っている要素の向きの平均。近すぎるものは押し広げる
+        want = []
+        for r in refs:
+            x = sum(math.cos(ang[k]) for k in r["elements"])
+            y = sum(math.sin(ang[k]) for k in r["elements"])
+            want.append([math.atan2(y, x) if (x or y) else 0.0, r])
+        want.sort(key=lambda w: w[0])
+        gap = 2 * math.pi / (len(want) + 6)
+        for _ in range(60):
+            for i in range(len(want)):
+                j = (i + 1) % len(want)
+                d = want[j][0] - want[i][0]
+                if j == 0:
+                    d += 2 * math.pi
+                if d < gap:
+                    push = (gap - d) / 2
+                    want[i][0] -= push
+                    want[j][0] += push
+        r_ref = 272
+        out = ['<svg class="lab-map" viewBox="0 0 %d %d" role="img" aria-label="間の要素の地図。中心に間、まわりに %d の要素、外側に %d の資料。資料は映っている要素と線でつながる">'
+               % (W, W, n, len(refs)), '<title>間の要素の地図</title>']
+        out.append('<circle cx="%g" cy="%g" r="%g" fill="none" stroke="var(--fg)" stroke-opacity="0.25" stroke-width="1"/>' % (cx, cy, r_ref))
+        for a, r in want:
+            x, y = cx + r_ref * math.cos(a), cy + r_ref * math.sin(a)
+            for k in r["elements"]:
+                ex, ey = pos[k]
+                out.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="var(--fg)" stroke-opacity="0.35" stroke-width="1"/>' % (x, y, ex, ey))
+        for a, r in want:
+            x, y = cx + r_ref * math.cos(a), cy + r_ref * math.sin(a)
+            out.append('<a href="%s"><title>%s</title><circle cx="%.1f" cy="%.1f" r="14" fill="transparent"/><circle cx="%.1f" cy="%.1f" r="6.5" fill="var(--accent)"/></a>'
+                       % (self.href(cur, "lab/reference/#r-%s" % r["id"]), esc(r["title"]), x, y, x, y))
+        for i, e in enumerate(els):
+            x, y = pos[e["key"]]
+            w = max(len(e["name"]) * 21 + 26, 64)
+            out.append('<a href="#e-%s"><rect x="%.1f" y="%.1f" width="%d" height="36" rx="18" fill="var(--bg)" stroke="var(--fg)" stroke-width="1.2"/>'
+                       '<text x="%.1f" y="%.1f" text-anchor="middle" dominant-baseline="central" fill="var(--fg)" font-size="19">%s</text></a>'
+                       % (esc(e["key"]), x - w / 2, y - 18, w, x, y + 1, esc(e["name"])))
+        out.append('<text x="%g" y="%g" text-anchor="middle" dominant-baseline="central" fill="var(--accent)" font-size="88" font-weight="700">間</text>' % (cx, cy + 4))
+        out.append('</svg>')
+        return "\n    ".join(out)
+
     def lab_quote(self, cur, item):
         """マニフェストの一節と、その章へのリンク（Notion の章は #chN で開く）。"""
         return '<p class="lab-quote"><q>%s</q> <a class="lab-ch" href="%s">第 %d 章</a></p>' % (
@@ -864,8 +958,36 @@ class Site:
         g = self.gate("lab")
         counts = {"dictionary": len(lab["terms"]), "reference": len(lab["references"]), "research": len(lab["research"])}
         units = {"dictionary": "用語", "reference": "資料", "research": "テーマ"}
-        # 入口
+        # 入口: 要素の地図と要素の欄
         cur = "lab/index.html"
+        by_el = {}
+        for r in lab["references"]:
+            for k in r.get("elements", []):
+                by_el.setdefault(k, []).append(r)
+        term_of = {}
+        for t in lab["terms"]:
+            for k in t.get("elements", []):
+                term_of.setdefault(k, []).append(t)
+        cards = []
+        for i, e in enumerate(lab["elements"], 1):
+            acts = "".join('<span class="act">%s</span>' % esc(a) for a in e.get("acts", []))
+            nref = len(by_el.get(e["key"], []))
+            terms = term_of.get(e["key"], [])
+            tlink = ('<a href="%s">用語 %d</a>' % (self.href(cur, "lab/dictionary/#t-%s" % terms[0]["key"]), len(terms))) if terms else ""
+            cards.append("""      <li class="el" id="e-{key}">
+        <p class="el-no">{no:02d}</p>
+        <h2 class="el-name">{name}</h2>
+        <p class="el-sub">{sub}</p>
+        <dl class="el-pair">
+          <div class="ep-mitsu"><dt>{left}</dt><dd>{mitsu}</dd></div>
+          <div class="ep-ma"><dt>{right}</dt><dd>{ma}</dd></div>
+        </dl>
+        {quote}
+        <p class="el-acts"><span class="chips-label">マニフェストの例</span>{acts}</p>
+        <p class="el-links"><a href="{rurl}">資料 {nref}</a>{tlink}</p>
+      </li>""".format(key=esc(e["key"]), no=i, name=esc(e["name"]), sub=esc(e["sub"]), left=esc(lab["poles"]["left"]), right=esc(lab["poles"]["right"]),
+                       mitsu=esc(e["mitsu"]), ma=esc(e["ma"]), quote=self.lab_quote(cur, e), acts=acts,
+                       rurl=self.href(cur, "lab/reference/#e-%s" % e["key"]), nref=nref, tlink=(" " + tlink) if tlink else ""))
         doors = []
         for d in g["doors"]:
             key = d["url"].rstrip("/").split("/")[-1]
@@ -883,6 +1005,11 @@ class Site:
     <div class="lab-lead prose">
 {intro}
     </div>
+    {map}
+    {el_label}
+    <ol class="el-grid">
+{cards}
+    </ol>
     {rule}
     <ol class="lab-rules">
 {rules}
@@ -892,7 +1019,8 @@ class Site:
     </ul>
     <p class="pending-note">{version}</p>
   </div>
-""".format(head=self.gate_head(g), intro="\n".join("      <p>%s</p>" % esc(x) for x in lab["intro"]),
+""".format(head=self.gate_head(g), intro="\n".join("      <p>%s</p>" % esc(x) for x in lab["intro"]), map=self.lab_map(cur),
+           el_label=self.frame("間の要素（%d）" % len(lab["elements"])), cards="\n".join(cards),
            rule=self.frame(lab["rule"]["label"]), rules="\n".join("      <li>%s</li>" % esc(x) for x in lab["rule"]["lines"]),
            doors="\n".join(doors), version=esc(lab["version"]))
         self.page(cur, "MA Lab", body)
@@ -918,13 +1046,15 @@ class Site:
         <div><dt>マニフェストでは</dt><dd>{sense}</dd></div>
         <div><dt>一節</dt><dd>{quote}</dd></div>{acts}
         <div><dt>オノマトペの手がかり</dt><dd>{ono}</dd></div>
+        <div><dt>要素</dt><dd class="lab-links">{chips}</dd></div>
         <div><dt>資料</dt><dd class="lab-links">{refs}</dd></div>
         <div><dt>関連</dt><dd class="lab-links">{related}</dd></div>
       </dl>
       <p class="lab-q"><span class="lq-label">問い</span>{q}</p>
     </li>""".format(key=esc(t["key"]), reading=esc(t["reading"]), word=esc(t["word"]), kind=esc(t["kind"]), gloss=esc(t["gloss"]),
                      sense=esc(t["sense"]), quote=self.lab_quote(cur, t), acts=acts, ono=esc("・".join(t.get("onomatopoeia", []))),
-                     refs=refs or "（まだ無い）", related=related or "—", q=esc(t["question"])))
+                     refs=refs or "（まだ無い）", related=related or "—", q=esc(t["question"]),
+                     chips=" ".join('<a class="chip" href="%s">%s</a>' % (self.href(cur, "lab/#e-%s" % k), esc(self.lab_element(k)["name"])) for k in t.get("elements", []))))
         body = """
   <div class="content lab-page">
     {head}
@@ -937,31 +1067,36 @@ class Site:
 
         # Door 1-2: Reference Space
         cur = "lab/reference/index.html"
+        labels = {"form": "形", "elements": "要素"}
         pills = lambda key, items: ('<div class="ref-filters" data-filter="%s" role="group" aria-label="%sで絞り込む">\n      <p class="rf-label">%s</p>\n      <div class="pills"><div class="pill-row">'
                                     '<button class="pill is-active" type="button" data-v="">ALL</button> %s</div></div>\n    </div>'
-                                    % (key, {"form": "形", "terms": "用語"}[key], {"form": "形", "terms": "用語"}[key],
+                                    % (key, labels[key], labels[key],
                                        " ".join('<button class="pill" type="button" data-v="%s">%s</button>' % (esc(v), esc(l)) for v, l in items)))
-        used_terms = [t["key"] for t in lab["terms"] if any(t["key"] in r["terms"] for r in lab["references"])]
         rows = []
         for r in lab["references"]:
             by = esc(r["creator"]) + (("、" + esc(r["year"])) if r.get("year") else "")
             note = ('\n      <p class="ref-note">※ %s</p>' % esc(r["note"])) if r.get("note") else ""
-            rows.append("""    <li class="ref" id="r-{id}" data-form="{form}" data-terms="{terms}">
-      <p class="ref-meta"><span class="badge">{form}</span><span class="ref-field">{field}</span><span class="status">{status}</span></p>
-      <h2 class="ref-title">{title}<span class="ref-by">{by}</span></h2>
-      {quote}
-      <p class="ref-why">{why}</p>
-      <p class="lab-q"><span class="lq-label">問い</span>{q}</p>
-      {termlinks}
-      {pole}{note}
-    </li>""".format(id=esc(r["id"]), form=esc(r["form"]), terms=esc(" ".join(r["terms"])), field=esc(r["field"]), status=esc(r["status"]),
-                     title=esc(r["title"]), by=by, quote=self.lab_quote(cur, r), why=esc(r["why"]), q=esc(r["question"]),
-                     termlinks=self.lab_terms(cur, r["terms"]), pole=self.lab_pole(r["pole"]), note=note))
+            rows.append("""    <li class="ref" id="r-{id}" data-form="{form}" data-elements="{els}">
+      <div class="ref-main">
+        <p class="ref-meta">{glyph}<span class="badge">{form}</span><span class="ref-field">{field}</span><span class="status">{status}</span></p>
+        <h2 class="ref-title">{title}<span class="ref-by">{by}</span></h2>
+        {chips}
+        {pole}
+      </div>
+      <div class="ref-text">
+        {quote}
+        <p class="ref-why">{why}</p>
+        <p class="lab-q"><span class="lq-label">問い</span>{q}</p>
+        {termlinks}{note}
+      </div>
+    </li>""".format(id=esc(r["id"]), form=esc(r["form"]), els=esc(" ".join(r.get("elements", []))), glyph=self.lab_glyph(r["form"]), field=esc(r["field"]), status=esc(r["status"]),
+                     title=esc(r["title"]), by=by, chips=self.lab_chips(cur, r.get("elements", [])), pole=self.lab_pole(r["pole"]),
+                     quote=self.lab_quote(cur, r), why=esc(r["why"]), q=esc(r["question"]), termlinks=self.lab_terms(cur, r["terms"]), note=note))
         body = """
   <div class="content lab-page">
     {head}
+    {f_elements}
     {f_form}
-    {f_terms}
     <p class="ref-count" aria-live="polite" aria-atomic="true"><span class="rc-now">{n}</span> 件</p>
     <ol class="ref-list">
 {rows}
@@ -969,8 +1104,8 @@ class Site:
     <p class="ref-empty" hidden>この絞り込みに当たる資料はまだありません。</p>
   </div>
 """.format(head=self.lab_head(cur, self.lab_door("reference")),
+           f_elements=pills("elements", [(e["key"], e["name"]) for e in lab["elements"]]),
            f_form=pills("form", [(f, f) for f in lab["forms"]]),
-           f_terms=pills("terms", [(k, self.lab_term(k)["word"]) for k in used_terms]),
            n=len(lab["references"]), rows="\n".join(rows))
         self.page(cur, "Reference Space | MA Lab", body)
 
@@ -982,9 +1117,10 @@ class Site:
       <h2 class="rs-theme">{theme}{status}</h2>
       {quote}
       <p class="rs-lines">{lines}</p>
+      {chips}
       {terms}
     </li>""".format(id=esc(rs["id"]), theme=esc(rs["theme"]), status=self.status_badge(rs["status"]), quote=self.lab_quote(cur, rs),
-                     lines=brs(rs["lines"]), terms=self.lab_terms(cur, rs["terms"])))
+                     lines=brs(rs["lines"]), chips=self.lab_chips(cur, rs.get("elements", [])), terms=self.lab_terms(cur, rs["terms"])))
         body = """
   <div class="content lab-page">
     {head}
