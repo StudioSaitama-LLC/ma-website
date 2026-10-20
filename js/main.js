@@ -56,7 +56,7 @@
         overlay.setAttribute("aria-hidden", open ? "false" : "true");
         openBtn.setAttribute("aria-expanded", open ? "true" : "false");
         // 開いている間は、後ろのページに Tab で移れないようにする
-        document.querySelectorAll("body > header, body > main, body > footer").forEach(function (el) {
+        document.querySelectorAll("body > header, body > .gate-bar, body > main, body > footer").forEach(function (el) {
           if (open) el.setAttribute("inert", ""); else el.removeAttribute("inert");
         });
         if (open) closeBtn.focus();

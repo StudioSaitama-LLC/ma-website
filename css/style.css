@@ -50,9 +50,15 @@
   --tag-h: 40px;
   --tag-out: 15px;   /* 札が本文の左端からはみ出す幅 */
   --small: 13px;     /* フッター */
-  --hdr-h: 100px;
+  --hdr-h: 100px;    /* ページの上の段（サイト名の段＋Gate の札の段）。本文はこの下から */
+  --hdr-top: 40px;   /* サイト名の段（スクロールで上へ流れて消える） */
+  --bar-pad: 13px;   /* Gate の札の段の上の余白（上端に貼り付いたときも同じ） */
+  --fade: 24px;      /* 札の段の下で、本文がゆるやかに消えていく帯 */
+  --bg-clear: rgba(20, 20, 220, 0);  /* 地の色の透明（消えていく帯のグラデーションの終わり） */
+  --scr: 100vh;      /* 画面の高さ（下の @supports で、スマホの道具の帯を除いた高さ 100svh にする） */
   color-scheme: dark;
 }
+@supports (height: 100svh) { :root { --scr: 100svh; } }
 html.light {
   --bg: #cccccc;
   --fg: #111111;
@@ -65,6 +71,7 @@ html.light {
   --new-5: #0000ff;
   --pill-bg: #0000ff;
   --pill-fg: #ffffff;
+  --bg-clear: rgba(204, 204, 204, 0);
   color-scheme: light;
 }
 @media (min-width: 1200px) {
@@ -79,12 +86,15 @@ html.light {
     --tag-out: 54px;
     --small: 15.6px;
     --hdr-h: 178px;
+    --hdr-top: 87px;
+    --bar-pad: 32px;
+    --fade: 40px;
   }
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--hdr-h) - var(--hdr-top) + var(--fade)); }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
 body {
@@ -143,7 +153,9 @@ html:not(.js) .menu-btn, html:not(.js) .fold-toggle { display: none; }
 
 /* ---------- ヘッダー ---------- */
 
-.site-header { position: relative; height: var(--hdr-h); }
+/* 上の段はスクロールで流れて消える。Gate の札の段（.gate-bar）は上端まで来たら貼り付き、
+   その下に重なる本文は、ゆるやかに地の色へ消える（--fade の帯）。メニューのボタンは右上に残す */
+.site-header { position: relative; height: var(--hdr-top); }
 .site-title {
   position: absolute;
   top: 13px;
@@ -166,6 +178,9 @@ html:not(.js) .menu-btn, html:not(.js) .fold-toggle { display: none; }
   background: none;
   cursor: pointer;
 }
+.menu-btn { position: fixed; z-index: 30; }
+/* 481〜1199px は 480px の列の右上に（上の .menu-btn, .menu-close の right を上書きする） */
+@media (min-width: 481px) and (max-width: 1199px) { .menu-btn { right: calc(50% - 225px); } }
 .menu-btn span, .menu-close span {
   position: absolute;
   left: 1px;
@@ -180,15 +195,25 @@ html:not(.js) .menu-btn, html:not(.js) .fold-toggle { display: none; }
 .menu-close span:nth-child(1) { transform: rotate(22deg); }
 .menu-close span:nth-child(2) { transform: rotate(-22deg); }
 
-.gate-tabs {
-  position: absolute;
-  top: 53px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 4px;
-  white-space: nowrap;
+.gate-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: calc(var(--hdr-h) - var(--hdr-top));
+  padding-top: var(--bar-pad);
+  background: var(--bg);
 }
+.gate-bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: var(--fade);
+  background: linear-gradient(var(--bg), var(--bg-clear));
+  pointer-events: none;
+}
+.gate-tabs { display: flex; justify-content: center; gap: 4px; white-space: nowrap; }
 .gate-tab { display: flex; flex-direction: column; color: var(--fg); }
 .gate-tab:hover { text-decoration: none; }
 .gt-no { font-size: 13px; line-height: 17px; }
@@ -218,7 +243,7 @@ html:not(.js) .menu-btn, html:not(.js) .fold-toggle { display: none; }
   .menu-btn span:nth-child(2) { top: 11.8px; }
   .menu-btn span:nth-child(3) { top: 21.4px; height: 1.2px; }
   .menu-close span { top: 12px; }
-  .gate-tabs { top: 119px; gap: 10px; }
+  .gate-tabs { gap: 10px; }
   .gt-no { font-size: 20px; line-height: 26px; }
   .gt-box { padding: 3px 19px 3px 11px; font-size: 20px; line-height: 26px; }
   .gt-channel .gt-box { padding-right: 9px; }
@@ -445,23 +470,28 @@ html.light .new { color: #a000a0; animation-name: ma-new-light; }
 
 /* ---------- Home ---------- */
 
-.hero { position: relative; height: 806px; }
+/* ヒーロー: 最初の画面（ヘッダーの下から画面の下まで＝--h1）の縦の中央に「現在、／1／人が平場に立ちました。／人物」の塊、
+   右下に矢印。画面が低くても塊と矢印が重ならない高さ（424px）は保つ。その下の余白（94px）はデザインどおり */
+.hero { --h1: max(424px, calc(var(--scr) - var(--hdr-h))); position: relative; height: calc(var(--h1) + 94px); }
 .hero > * { position: absolute; }
+.hero-block { left: 0; right: 0; top: calc((var(--h1) - 344.1px) / 2); height: 344.1px; }
+.hero-block > * { position: absolute; }
 .hero-now, .hero-text { left: 0; right: 0; text-align: center; }
-.hero-now { top: 240.5px; }
-.hero-text { top: 345.5px; }
-.hero-count { left: 0; right: 0; top: 289px; height: 44px; }
+.hero-now { top: 0; }
+.hero-text { top: 105px; }
+.hero-count { left: 0; right: 0; top: 48.5px; height: 44px; }
 .hc-line { position: absolute; left: calc(50% - 115.5px); top: 39.8px; width: 200px; height: 2.8px; background: var(--fg); }
 .hc-num { position: absolute; left: calc(50% + 84px); top: -5px; font-size: 48px; line-height: 48px; font-weight: 700; }
-.hero-figure { left: calc(50% - 15.9px); top: 424.8px; width: 42px; }
-.arrow-1 { right: 23px; top: 621px; }
+.hero-figure { left: calc(50% - 15.9px); top: 184.3px; width: 42px; }
+.arrow-1 { right: 23px; top: calc(var(--h1) - 91px); }
 
-.quote { position: relative; height: 817px; }
+/* 引用: ↓ で来たとき（上端に札の段が残る）の画面の右下に次の矢印。画面が低いときは引用の字に重ならない位置で止める */
+.quote { --q1: max(634px, calc(var(--scr) - var(--hdr-h) + var(--hdr-top) - var(--fade))); position: relative; height: max(817px, calc(var(--q1) + 87px)); }
 .quote p { margin: 0; }
 .quote > .pending-note, .quote > p:first-child { text-indent: 1em; }
 .quote-credit { position: absolute; top: 505px; left: 0; }
 .hiraba-illust { position: absolute; left: calc(50% - 12.5px); top: 581px; width: 139px; }
-.arrow-2 { position: absolute; right: 23px; margin-top: -178px; }
+.arrow-2 { position: absolute; right: calc(23px - var(--gut)); top: calc(var(--q1) - 91px); }
 
 .toc { position: relative; }
 .formula {
@@ -503,19 +533,21 @@ html.light .new { color: #a000a0; animation-name: ma-new-light; }
 .news .news-item:last-child { padding-bottom: 0; }
 
 @media (min-width: 1200px) {
-  .hero { height: 1194.5px; }
-  .hero-now { top: 273.5px; }
-  .hero-text { top: 416.5px; }
-  .hero-count { top: 338px; height: 57px; }
+  .hero { --h1: max(607px, calc(var(--scr) - var(--hdr-h))); height: calc(var(--h1) + 292.5px); }
+  .hero-block { top: calc((var(--h1) - 487.2px) / 2); height: 487.2px; }
+  .hero-now { top: 0; }
+  .hero-text { top: 143px; }
+  .hero-count { top: 64.5px; height: 57px; }
   .hc-line { left: calc(50% - 148px); top: 51.6px; width: 260.4px; height: 3.6px; }
   .hc-num { left: calc(50% + 110px); top: -6px; font-size: 62px; line-height: 62px; }
-  .hero-figure { left: calc(50% - 303px); top: 502px; width: 68px; }
-  .arrow-1 { right: 90px; top: 785px; }
+  .hero-figure { left: calc(50% - 303px); top: 228.5px; width: 68px; }
+  .arrow-1 { right: 90px; top: calc(var(--h1) - 117px); }
 
-  .quote { height: 907.5px; }
+  /* 幅 1450px 未満では「平場」の絵が矢印の列に掛かるので、矢印は絵の下（500px）より上には行かない */
+  .quote { --q1: max(605px, calc(var(--scr) - var(--hdr-h) + var(--hdr-top) - var(--fade))); height: max(907.5px, calc(var(--q1) + 120px)); }
   .quote-credit { top: 364.5px; }
   .hiraba-illust { left: calc(50% + 299px); top: 267.5px; width: 283px; }
-  .arrow-2 { right: 90px; margin-top: -225px; width: 50px; height: 75px; }
+  .arrow-2 { right: calc(90px - var(--gut)); top: calc(var(--q1) - 105px); width: 50px; height: 75px; }
 
   .formula { flex-direction: row; justify-content: center; gap: 29px; margin-top: 88.5px; font-size: 32px; line-height: 33px; }
   .fm-left { flex-direction: row; gap: 0.3em; }
@@ -660,7 +692,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .latest .news-list { margin-top: 17px; }
 .latest .news-item { padding: 0; border: 0; }
 .latest .news-item + .news-item { margin-top: var(--lh); }
-.news-text { margin-top: 12px; }
+.news-text { margin-top: 12px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
 .distribution-illust { width: 217px; margin: 90px 0 0 76px; }
 .channel-page + .site-footer { margin-top: 30.5px; }
 @media (min-width: 1200px) {
@@ -681,8 +713,12 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 
 /* ---------- 番組のページ ---------- */
 
-.program-top { position: relative; height: 807px; }
-.pg-ma-development-process .program-top { height: 835px; }
+/* 冒頭の段: --p1＝最初の画面のうちヘッダーの下の高さ。矢印（高さ 70px）はその右下（下から 18px）。
+   --p-min は、矢印が紹介文や右端に掛かる絵の下に来る最小（幅 375px で測った下端＋10px＋88px。番組ごと）。
+   段の高さは、矢印の下にデザインと同じ余白を残す（画面 812px でデザインの 807px・835px になる） */
+.program-top { --p-min: 617px; --p1: max(var(--p-min), calc(var(--scr) - var(--hdr-h))); position: relative; height: max(807px, calc(var(--p1) + 95px)); }
+.pg-ma-development-process .program-top { --p-min: 699px; height: max(835px, calc(var(--p1) + 94px)); }
+.pg-ma-crosstalk .program-top { --p-min: 477px; }
 .program-top .content { position: relative; z-index: 1; }
 .program-head { padding-top: 52px; }
 .ph-title { line-height: var(--lh); }
@@ -698,8 +734,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .pg-beyond-the-vanishingpoint .program-illust { left: calc(50% - 174.8px); top: 649.6px; width: 389.4px; }
 .pg-ma-crosstalk .program-illust { left: calc(50% - 122.5px); top: 476px; width: 139px; }
 .lm-program { left: calc(50% - 102.5px); top: 553px; width: 30px; transform: rotate(-24deg); }
-.arrow-p { right: 22px; top: 624px; }
-.pg-ma-development-process .arrow-p { top: 653px; }
+.arrow-p { right: 22px; top: calc(var(--p1) - 88px); }
 .program-end { position: relative; height: 200px; }
 .lm-end { position: absolute; left: calc(50% + 38.5px); top: 94px; width: 34px; transform: rotate(-22deg); }
 .program-illust-end { position: absolute; left: calc(50% - 74.5px); top: 84px; width: 177px; }
@@ -720,6 +755,11 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .door .video, .door .audio-ph { margin-top: 18px; }
 .door-blurb { margin-top: 18px; }
 .door-text { margin-top: 17px; }
+.door-text.is-clamped { max-height: calc(var(--lh) * 4); overflow: hidden; }
+.door-text.is-clamped::before { content: ""; float: right; width: 0; height: calc(var(--lh) * 3); }
+.door-text.is-clamped .more { float: right; clear: right; margin-left: 0.25em; white-space: nowrap; }
+/* まだ載せていない記事（関連コンテンツ）の冒頭 4 行 */
+.entry-excerpt { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden; margin-top: 10px; }
 .door-text + .door-text { margin-top: 35px; }
 .read-link { padding: 0 3px; background: var(--accent); color: var(--on-accent); }
 .read-link:hover { text-decoration: none; opacity: 0.85; }
@@ -736,9 +776,11 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .related { margin-top: 101px; }
 .related-head { display: flex; align-items: center; gap: 12px; line-height: var(--lh); }
 .lm-related { width: 30px; transform: rotate(-22deg); }
-.related .entry { margin-top: 27px; padding-top: 0; border: 0; }
+.related .entries { margin-top: 27px; }
+.related .entry + .entry { margin-top: 27px; padding-top: 27px; }
 @media (min-width: 1200px) {
-  .program-top, .pg-ma-development-process .program-top { height: 1015px; }
+  /* PC は紹介文と絵が中央の列なので、右端の矢印は上がってよい（画面 1080px でデザインの 1015px） */
+  .program-top, .pg-ma-development-process .program-top, .pg-ma-crosstalk .program-top { --p-min: 416px; height: max(1015px, calc(var(--p1) + 113px)); }
   .program-head { padding-top: 148px; }
   .ph-title .en { font-size: var(--head); }
   .ph-sub { margin-top: -6.5px; }
@@ -746,7 +788,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
   .pg-ma-development-process .program-illust { left: calc(50% - 20.7px); top: 424.5px; width: 520.4px; }
   .pg-ma-crosstalk .program-illust { left: calc(50% - 62.3px); top: 439.9px; width: 304.2px; }
   .lm-program { left: calc(50% - 432px); top: 648px; width: 52px; }
-  .arrow-p, .pg-ma-development-process .arrow-p { right: 90px; top: 786px; }
+  .arrow-p { right: 90px; top: calc(var(--p1) - 116px); }
   .program-end { height: 269px; }
   .lm-end { left: calc(50% + 180px); top: 84px; width: 52px; }
   .entry + .entry { margin-top: 41px; padding-top: 41px; }
@@ -761,13 +803,14 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
   .door-text { margin-top: 26px; }
   .door-text + .door-text { margin-top: 48px; }
   .related { margin-top: 109.5px; }
-  .related .entry { margin-top: 27px; }
+  .related .entry + .entry { margin-top: 33px; padding-top: 33px; }
 }
 
 /* ---------- 記事 ---------- */
 
 /* 上の段: 冒頭の写真（スマホ 315×350・PC 770 角）→ 札・日付・副題・Place/Words/Photo → 右の矢印 */
-.article-top { position: relative; }
+/* flow-root: 写真の上の余白を箱の中に収める（箱の上端＝ヘッダーの下。右下の矢印の位置をそこから計る） */
+.article-top { position: relative; display: flow-root; }
 .article-hero { position: relative; overflow: hidden; margin: 55px 30px 0; aspect-ratio: 315 / 350; }
 .hs-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
 .hs-img.is-on { opacity: 1; z-index: 2; }
@@ -785,7 +828,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .article-head .entry-meta { margin-top: 7.5px; }
 .article-title { margin: 0; font-size: var(--fs); font-weight: 400; line-height: var(--lh); }
 .article-cred { display: grid; }
-.arrow-a { right: 22px; top: calc(100% + 21.5px); }
+.arrow-a { right: 22px; top: clamp(calc(100% + 21.5px), calc(var(--scr) - var(--hdr-h) - 91px), calc(100% + 113px)); }
 
 /* 本文の段 */
 .article-answer { margin: 203px 0 var(--lh); font-size: var(--fs); font-weight: 700; line-height: var(--lh); }
@@ -800,6 +843,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .indent { text-indent: 1em; }
 .fold-body:focus { outline: none; }
 .credits { margin-top: 70px; font-size: 13px; line-height: 22px; }
+.article-episode { margin-top: 72px; padding-top: 33px; border-top: 1px solid var(--line); }
 .c-head { margin-top: 16px !important; font-weight: 700; }
 
 /* 記事の終わり: 対象の人物の写真を画面いっぱいに */
@@ -816,7 +860,8 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
   .article-head .badge { padding: 0 7px; font-size: 19.2px; line-height: 31px; }
   .article-head .entry-meta { margin-top: 11px; }
   .article-cred { display: flex; flex-wrap: wrap; gap: 0 1.5em; }
-  .arrow-a { right: 90px; top: calc(100% + 26px); }
+  /* PC は写真・字が中央の列だけなので、右端の矢印は最初の画面の右下に置ける（本文の手前より下には行かない） */
+  .arrow-a { right: 90px; top: clamp(300px, calc(var(--scr) - var(--hdr-h) - 117px), calc(100% + 26px)); }
   .article-answer, #article-start > .article-answer:first-child, #article-start > .article-body:first-child { margin-top: 136px; }
   .article-photo, .article-figure .article-photo { width: 770px; max-width: 100%; margin-left: auto; margin-right: auto; }
   .article-photo { margin-top: 52.5px; margin-bottom: 48.5px; }
@@ -825,6 +870,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
   .article-photo + .article-photo { margin-top: 32px; }
   .article-figure figcaption { width: 770px; max-width: 100%; margin: 25px auto 0; font-size: 14px; line-height: 20px; }
   .article-portrait { aspect-ratio: 1920 / 2290.2; margin-top: 143px; }
+  .article-episode { margin-top: 120px; padding-top: 41px; }
   .article-end { padding-top: 147.7px; }
   .article-end .home-logo { width: 50px; margin-left: max(14px, calc(var(--gut) - 179.5px)); transform: rotate(-56deg); }
   .article-page + .site-footer { margin-top: 117px; }
@@ -860,10 +906,9 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .dc-name + .price { margin-top: 5.5px; }
 .tax { font-size: 0.6em; font-style: normal; font-weight: 400; margin-left: 0.4em; }
 .dc-btn, .buy-btn { display: block; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-weight: 700; text-align: center; }
-/* 詳細のボタンは、スマホのデザインでは灰色、PC では水色 */
-.dc-btn { margin-top: 9.5px; background: #919191; color: #fff; font-size: 15px; line-height: 26px; }
+/* 詳細のボタンは水色（スマホも PC と同じ） */
+.dc-btn { margin-top: 9.5px; font-size: 15px; line-height: 26px; }
 .dc-btn:hover, .buy-btn:hover { text-decoration: none; opacity: 0.85; }
-html.light .dc-btn { background: var(--accent); color: var(--on-accent); }
 .dev-empty { margin-top: 24px; text-align: center; }
 @media (min-width: 1200px) {
   .dev-search { height: 46px; margin-top: 151px; }
@@ -880,7 +925,7 @@ html.light .dc-btn { background: var(--accent); color: var(--on-accent); }
   .dc-name { margin-top: 5px; }
   .price { font-size: 21px; line-height: 30px; }
   .dc-name + .price { margin-top: 8.5px; }
-  .dc-btn { margin-top: 9px; background: var(--accent); color: var(--on-accent); }
+  .dc-btn { margin-top: 9px; }
 }
 
 /* 商品: スマホは 写真 → 色 → 商品詳細、PC は左に写真（540px）、右に名前・価格・ボタン・色 */
@@ -914,16 +959,13 @@ html.light .dc-btn { background: var(--accent); color: var(--on-accent); }
 .product-desc { margin-top: 54px; }
 .line-head { margin: 0 0 20px; font-size: 14px; font-weight: 700; line-height: 22px; }
 .pd-copy { margin-bottom: 20px; font-size: 17px; line-height: 30px; }
-.pd-sub { margin: 50px 0 10px; font-size: var(--fs); font-weight: 700; line-height: var(--lh); }
+/* 商品の情緒（映像・記事・音声）を回の枠で並べる */
+.product-media { margin-top: 50px; padding-top: 20px; border-top: 1px solid var(--line); }
+.product-media .entry + .entry { margin-top: 20px; padding-top: 20px; }
 .features { display: grid; gap: 72px; margin-top: 72px; }
 .feature { margin: 0; }
 .feature img { display: block; width: 100%; height: auto; margin: 0 0 21.5px; background: var(--ph); }
 .feature-ttl { margin: 0; font-weight: 700; line-height: var(--lh); }
-.qa dt { margin-top: 18px; font-weight: 700; }
-.qa dd { margin: 4px 0 0; }
-.spec { width: 100%; border-collapse: collapse; }
-.spec th, .spec td { padding: 10px 10px 10px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; font-weight: 400; }
-.spec th { width: 6em; white-space: nowrap; }
 @media (min-width: 1200px) {
   .product-page .dev-search { margin-top: 151px; }
   .product-page .crumb { margin-top: 98.5px; }
@@ -963,8 +1005,8 @@ html.light .dc-btn { background: var(--accent); color: var(--on-accent); }
 .seg-bracket { margin-left: -0.47em; }
 .fac-label { margin-top: var(--lh); }
 .facilities > li + li { margin-top: var(--lh); }
-.fac-name { color: var(--accent); }
-.facilities ul li { color: var(--accent); }
+.fac-name, .facilities ul li { color: var(--fg); }
+.facilities a { color: var(--accent); }
 .company-page + .site-footer { margin-top: 104px; }
 .contact-group:first-of-type { margin-top: 43.5px; }
 .contact-group + .contact-group { margin-top: 59px; }

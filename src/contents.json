@@ -9,6 +9,8 @@
     "place": "長野県大町市・白馬村・小谷村",
     "status": "published",
     "youtube": "8ZBRdx4mg9U",
+    "yt_title": "「死を、教えてくれ。」4000mのアンデス山脈で死のキワに立った、 Pro Snowboarder/Artist 仁科正史の独自の死生観。「死とは、悦びだ」",
+    "yt_lead": "死のキワに3度立ち、自然と対峙してきた仁科正史。彼がたどり着いた平場は、「死は恐怖ではなく、重力からの解放であり生まれ変わりの悦び」という境地だった。\n命をかける瞬間が消え、死が遠ざかったと語る仁科。そんな現代において、なぜ私たちは生きづらさを抱えるのか？を考察する。 16年間死の周辺にいた まなか宮嶋 が、問いをぶつけ、彷徨い、自分らしく生き切るため、正解の無い旅に出る。",
     "memo": "10/18 受領の YouTube。8 月版のサイトは TgoZ6e3va3A を使っていた",
     "date": "2026-09-30"
   },
@@ -22,7 +24,6 @@
     "caption": "ANSwer：死とは悦びである",
     "status": "published",
     "article": "articles/2-2-1.html",
-    "excerpt": "「実は俺ね、20 歳の時一回、死んでるの。」おっとー。いきなりやばいフレーズが。右隣のロックスターさながらの風体した、少年おじさんは喜々としてそう語る。",
     "redirect_from": [
       "article-2-2-1.html",
       "article-3-2-1.html"
@@ -46,7 +47,6 @@
     "caption": "取材後記　死を、教えてくれ。仁科正史編",
     "status": "published",
     "article": "articles/2-2-4.html",
-    "excerpt": "3 月末、長野県白馬村・小谷村。重い雪と泥が足元を絡め取って行く、冬の終わり。",
     "redirect_from": [
       "article-2-2-1-postscript.html"
     ],
@@ -100,7 +100,7 @@
     "kind": "mag",
     "program": "beyond-the-vanishingpoint",
     "badge": "関連記事",
-    "title": "第 0 回 荒井記事",
+    "title": "なぜオッさん達が、「死」を叫ぶのか。 (Behind The Scenes: 企画 死を、教えてくれ。)",
     "status": "planned",
     "related": true
   },
@@ -113,6 +113,8 @@
     "recorded": "2026-05-11",
     "status": "published",
     "youtube": "wtHW3PYv9Ik",
+    "yt_title": "SPACE? BETWEEN? DISTANCE!? まなか宮嶋の思想 \"間\" の平場の中心に加藤が秒で立つ。 メディア \"間｜MA\" とは何か？",
+    "yt_lead": "16年間の暗黙知を可視化し、表現する。まなか宮嶋の持つ \"怪文書\" を経て一気に立ち現れたのは、合理主義の象徴 \"密\" と、揺れ動く人の感情に気づく \"間\" であった。情報過多の時代に立ち止まり、問いや意思を感じるための場を創る覚悟を胸に、メディア \"間｜MA\" の原点が今、動き出す。",
     "memo": "10/18 受領の YouTube を #2-1-1 と推定（要確認）。8 月版は tVxXxgj9dXo（About Website MA）"
   },
   {
@@ -124,6 +126,8 @@
     "recorded": "2026-05-25",
     "status": "published",
     "youtube": "AV7jnVH9m-c",
+    "yt_title": "MA Channel #2.1.2 Gateway Shuffle. [90%]",
+    "yt_lead": "",
     "memo": "8 月版のサイトに入っていた YouTube"
   },
   {

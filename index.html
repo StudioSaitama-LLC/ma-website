@@ -30,12 +30,14 @@
   <button class="menu-btn" type="button" aria-controls="site-menu" aria-expanded="false" aria-label="メニューを開く" data-m="ham">
     <span></span><span></span><span></span>
   </button>
-  <nav class="gate-tabs" aria-label="Gate">
+</header>
+<nav class="gate-bar" aria-label="Gate">
+  <div class="gate-tabs">
     <a class="gate-tab gt-lab" href="lab/"><span class="gt-no" data-m="tl-lab" data-mt>Gate 1:</span><span class="gt-box" data-m="tb-lab"><span data-m="tt-lab" data-mt>MA Lab</span></span></a>
     <a class="gate-tab gt-channel" href="channel/"><span class="gt-no" data-m="tl-channel" data-mt>Gate 2:</span><span class="gt-box" data-m="tb-channel"><span data-m="tt-channel" data-mt>MA Channel</span></span></a>
     <a class="gate-tab gt-do" href="do/"><span class="gt-no" data-m="tl-do" data-mt>Gate 3:</span><span class="gt-box" data-m="tb-do"><span data-m="tt-do" data-mt>MA Do</span></span></a>
-  </nav>
-</header>
+  </div>
+</nav>
 
 <div class="menu-overlay" id="site-menu" aria-hidden="true">
   <div class="bar">
@@ -85,10 +87,12 @@
   <h1 class="visually-hidden">Indies Lifestyle Media 間｜MA</h1>
 
   <section class="hero" id="top">
-    <p class="hero-now" data-m="now" data-mt>現在、</p>
-    <p class="hero-count" data-m="count"><span class="hc-line" data-m="hcline"></span><span class="hc-num" data-m="hcnum">1</span></p>
-    <p class="hero-text" data-m="htext" data-mt>人が平場に立ちました。</p>
-    <svg class="illust hero-figure" viewBox="0 0 332 1263" aria-hidden="true" focusable="false" data-m="figure"><use href="assets/illust/figure.svg#art"/></svg>
+    <div class="hero-block">
+      <p class="hero-now" data-m="now" data-mt>現在、</p>
+      <p class="hero-count" data-m="count"><span class="hc-line" data-m="hcline"></span><span class="hc-num" data-m="hcnum">1</span></p>
+      <p class="hero-text" data-m="htext" data-mt>人が平場に立ちました。</p>
+      <svg class="illust hero-figure" viewBox="0 0 332 1263" aria-hidden="true" focusable="false" data-m="figure"><use href="assets/illust/figure.svg#art"/></svg>
+    </div>
     <a class="arrow-btn arrow-1" href="#quote" aria-label="引用へ進む" data-m="arrow1"><span aria-hidden="true">↓</span></a>
   </section>
 
@@ -96,8 +100,8 @@
     <p class="pending-note" data-m="q1" data-mt>ここに Ryan Gander『The Markers of Our Time』からの引用が入ります（掲載の可否を確かめてから載せます）。</p>
     <p class="quote-credit" data-m="credit" data-mt>(-Ryan Gander: The Markers of Our Time)</p>
     <svg class="illust hiraba-illust" viewBox="0 0 910 714" aria-hidden="true" focusable="false" data-m="hiraba"><use href="assets/illust/hiraba.svg#art"/></svg>
+    <a class="arrow-btn arrow-2" href="#toc" aria-label="目次へ進む" data-m="arrow2"><span aria-hidden="true">↓</span></a>
   </section>
-  <a class="arrow-btn arrow-2" href="#toc" aria-label="目次へ進む" data-m="arrow2"><span aria-hidden="true">↓</span></a>
 
   <section class="toc col" id="toc">
     <h2 class="tag tag-b" data-m="toctag"><span data-m="toctag-t" data-mt>Table of Contents</span></h2>
@@ -139,11 +143,13 @@
     <ol class="news-list">
       <li class="news-item" data-m="ni1">
         <p class="entry-meta" data-m="nm1" data-mt><span class="new">&lt;NEW&gt;</span> <span class="em-date">26/09/30</span> <span class="em-path">MA Channel/TV/2-1-3</span></p>
-        <p class="news-title" data-m="nt1" data-mt><a href="channel/beyond-the-vanishingpoint/#ep-nishina">「Beyond the Vanishing point / 死を、教えてくれ。」 仁科 正史 (Pro Snowboarder/Artist)</a></p>
+        <p class="news-title" data-m="nt1" data-mt><a href="channel/beyond-the-vanishingpoint/#ep-nishina">「Beyond the Vanishing point / 死を、教えてくれ。」 「死を、教えてくれ。」4000mのアンデス山脈で死のキワに立った、 Pro Snowboarder/Artist 仁科正史の独自の死生観。「死とは、悦びだ」</a></p>
+        <p class="news-text" data-m="nx1" data-mt>死のキワに3度立ち、自然と対峙してきた仁科正史。彼がたどり着いた平場は、「死は恐怖ではなく、重力からの解放であり生まれ変わりの悦び」という境地だった。命をかける瞬間が消え、死が遠ざかったと語る仁科。そんな現代において、なぜ私たちは生きづらさを抱えるのか？を考察する。 16年間死の周辺にいた まなか宮嶋 が、問いをぶつけ、彷徨い、自分らしく生き切るため、正解の無い旅に出る。</p>
       </li>
       <li class="news-item" data-m="ni2">
         <p class="entry-meta" data-m="nm2" data-mt><span class="em-date">26/07/28</span> <span class="em-path">MA</span></p>
         <p class="news-title" data-m="nt2" data-mt>サイトの更新を、AI エージェントと。</p>
+        <p class="news-text" data-m="nx2" data-mt>Slack で話しかけると記事がサイトに反映される、新しい編集の運用を準備しています。</p>
       </li>
     </ol>
   </section>
@@ -151,7 +157,7 @@
 </main>
 
 <footer class="site-footer">
-  <p class="fc-1"><span class="fc-name" data-m="f1" data-mt>Indies Lifestyle Media 間｜MA</span> <span class="fc-follow" data-m="f2" data-mt>Follow us on <a href="https://www.youtube.com/@ma_jpn_com" target="_blank" rel="noopener">YouTube</a> , <b>Podcast</b> and <a href="https://note.com/" target="_blank" rel="noopener">note</a>.</span></p>
+  <p class="fc-1"><span class="fc-name" data-m="f1" data-mt>Indies Lifestyle Media 間｜MA</span> <span class="fc-follow" data-m="f2" data-mt>Follow us on <a href="https://www.youtube.com/@ma_jpn_com" target="_blank" rel="noopener">YouTube</a> , <a href="https://soundcloud.com/ma-jpn" target="_blank" rel="noopener">Podcast</a> and <a href="https://note.com/manaka_notepr" target="_blank" rel="noopener">note</a>.</span></p>
   <p class="fc-2" data-m="f3" data-mt>©2026, Manaka Ltd.　β版（関係者確認用）</p>
   <button class="theme-toggle" type="button" aria-label="表示の色を切り替える" data-m="toggle">
     <span class="tt-knob"></span><span class="tt-label">Dark</span><span class="tt-icon" aria-hidden="true">☾</span>

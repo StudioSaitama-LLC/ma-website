@@ -112,30 +112,73 @@
   "facilities": [
     {
       "name": "祈りの道具屋 まなか",
+      "url": "https://manaka-store.com",
       "items": [
-        "銀座ショールーム",
-        "横浜ショールーム"
+        {
+          "name": "銀座ショールーム",
+          "url": "https://manaka-store.com/user_data/showroom"
+        },
+        {
+          "name": "横浜ショールーム",
+          "url": "https://manaka-store.com/user_data/showroom"
+        },
+        {
+          "name": "日々香好日 TOKYO",
+          "url": "https://hibiko.jp"
+        }
       ]
     },
     {
       "name": "まなかのお葬式相談サロン",
+      "url": "https://hajioso.jp",
       "items": [
-        "銀座サロン ( 銀座ショールーム内 )",
-        "新宿サロン ( 新宿ショールーム内 )"
+        {
+          "name": "銀座サロン ( 銀座ショールーム内 )"
+        },
+        {
+          "name": "新宿サロン ( 新宿ショールーム内 )"
+        }
       ]
     },
     {
       "name": "まなかのお墓",
       "items": [
-        "川口納骨堂 八聖殿",
-        "川口草加霊園 はじまりの杜",
-        "日野宿 みちの墓苑",
-        "大田区霊園 百月院",
-        "府中市霊園 ようようの杜",
-        "巣鴨霊園 陽の葉や",
-        "早稲田霊園 想咲手水 花手水のお墓",
-        "墨田区霊園 想盆 盆栽のお墓",
-        "中野区霊園 石想居 青空のお墓"
+        {
+          "name": "川口納骨堂 八聖殿",
+          "url": "http://hasshoden.com"
+        },
+        {
+          "name": "川口草加霊園 はじまりの杜",
+          "url": "https://hajimarinomori.jp"
+        },
+        {
+          "name": "日野宿 みちの墓苑",
+          "url": "https://michinoboen.jp"
+        },
+        {
+          "name": "大田区霊園 百月院",
+          "url": "https://hyakutsuki.jp"
+        },
+        {
+          "name": "府中市霊園 ようようの杜",
+          "url": "https://yoyononiwa.jp"
+        },
+        {
+          "name": "巣鴨霊園 陽の葉や",
+          "url": "https://hinohaya.jp"
+        },
+        {
+          "name": "早稲田霊園 想咲手水 花手水のお墓",
+          "url": "https://sosyo.jp"
+        },
+        {
+          "name": "墨田区霊園 想盆 盆栽のお墓",
+          "url": "https://sobon.jp"
+        },
+        {
+          "name": "中野区霊園 石想居 青空のお墓",
+          "url": "https://sekisokyo.jp"
+        }
       ]
     }
   ],

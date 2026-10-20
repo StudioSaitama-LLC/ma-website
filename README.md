@@ -14,17 +14,18 @@ Indies Lifestyle Media 間｜MA のウェブサイト（株式会社まなか ×
 ```
 src/                           # 直すのはここ
   site.json                    # サイト名・Gate と Door・Home の言葉・NEWS・Notion の図の言葉・お店の一覧・値段の表示
-  programs.json                # 番組（間を、喰う／死を、教えてくれ。／異能の表現者たち）と回（ゲストごとのまとまり）
+  programs.json                # 番組（間を、喰う／死を、教えてくれ。／異能の表現者たち）と回（ゲストごとのまとまり）・関連コンテンツ（related に番号を並べる）
   contents.json                # コンテンツ（#2-1-3 など。種類・番組・回・状態・YouTube・記事）
   manifesto.json               # MA Notion のマニフェスト（tools/import_manifesto.py で docx から作る）
   device.json                  # Device の商品（tools/import_device.py で荒井さんの Device 表から作る）
-  company.json                 # Company（まなかの軌道・会社概要・運営施設）と Contact us の窓口
+  company.json                 # Company（まなかの軌道・会社概要・運営施設）と Contact us の窓口。運営施設は {"name", "url"}（url が無いものは本文の色で出す）
   articles/*.html              # Magazine 記事の本文（HTML の断片。画像の @/ はサイトの最上位。article-head の中に日付の目印 <!-- build:meta --> を置く）
   lab.json                     # Gate 1: MA Lab の試作データ（用語・資料・検証のテーマ）
 tools/
   build.py                     # src/ → 公開用 HTML（標準ライブラリだけ・Python 3.9 以上）
   import_manifesto.py          # Notion の docx → src/manifesto.json
   import_device.py             # Device 表の xlsx → src/device.json
+  import_youtube.py            # YouTube の題と説明文の冒頭 → src/contents.json の yt_title・yt_lead
   generated.txt                # build.py が生成したファイルの一覧
 css/ js/ assets/               # 見た目と画像（assets/device/ は Device の写真、assets/illust/ は手描きの絵）
 
@@ -53,10 +54,13 @@ about.html ほか 8 月版のページ   # 新しいページへ転送するだ�
 | `status` | 必須。`published`（公開）/ `editing`（編集中）/ `planned`（掲載予定）。公開以外は枠だけ出す |
 | `title` `caption` `badge` `place` `recorded` | 表示する題・ひとこと・記事の種類・場所・収録日（`YYYY-MM-DD`） |
 | `youtube` | YouTube の動画 ID（11 文字）。公開のときだけ埋め込む |
-| `article` `excerpt` | Magazine の本文（`src/articles/` の断片）と抜き出し。公開のときだけ記事ページを作る |
+| `yt_title` `yt_lead` | YouTube の題と、説明文のうち「TIMELINE」より前（`tools/import_youtube.py` が書く。手で直さない）。あれば回の題と一言はこれを使う（題・一言を YouTube にいつも合わせるため）。説明文が空なら `caption` が一言になる |
+| `article` | Magazine の本文（`src/articles/` の断片）。公開のときだけ記事ページを作る。Door の抜き出しは本文の冒頭から作り、4 行で切って 4 行目の終わりに「…… ○○を読む」を置く |
+| `excerpt` | 記事がまだ無いときの抜き出し（掲載予定の関連記事などで、冒頭 4 行だけ見せる） |
+| `device` | このコンテンツを、商品ページの商品説明に回の枠で出すときの商品 ID の並び（例 `["2"]`）。無ければ出さない |
 | `redirect_from` | この記事へ転送する 8 月版の URL |
 | `hero` `portrait` `portrait_focus` | 記事の冒頭で切り替わる写真（`assets/` の名前の並び）・記事の終わりに画面いっぱいに出す人物の写真・その切り抜きの中心（例 `"68% 50%"`） |
-| `related` | 番組ページで「関連コンテンツ」に回すとき `true` |
+| `related` | 番組ページで「関連コンテンツ」に回すとき `true`（ほかの番組の回を関連に入れるときは、`programs.json` の番組に `"related": ["2-1-2"]` と番号を並べる） |
 | `memo` | 作業用のメモ。ページには出ないが、この repo は公開なので人に見せられないことは書かない |
 
 `build.py` は生成の前にこれらを検査し、綴り違い・未登録の番組・画像の置き忘れがあると止まる。
@@ -87,6 +91,9 @@ Device の写真は `assets/device/` にファイル名のまま置く（Device 
     `status` は **確認済み**（本は書誌を国会図書館・CiNii・版元で、作品・展覧会・標語は初演・初出・開催年を公開情報で確かめ、PR に確認先を残した）／**候補**（まだ確かめていない）／**相談中**（載せ方を決めていない）
   - 検証 `research`: `id`・`theme`・`lines`・`terms`・`status`。こちらの `status` は Channel と同じ `published / editing / planned`
   - `doors` は扉の日本語名 `ja` と役割 `role`（番号と英名は `site.json` の gates）。`poles` は目盛りの両端の名前
+- ページの上の段: サイト名の段はスクロールで流れて消え、Gate の札の段は上端まで来たら貼り付く。その下に重なる本文はゆるやかに地の色へ消える。メニューのボタンは右上に残る
+- 下へ進む矢印は、その段を開いたときの画面の右下に出す（画面の高さ `100svh` から計算。字や絵に重なる低い画面では、重ならない位置で止める）。Home の「現在、／1／人が平場に立ちました。」は、ヘッダーの下から画面の下までの縦の中央に置く
+- 回（番組のページ・関連コンテンツ・記事の後ろ・商品ページ）は同じ枠で出す。題に「」が入っているとき（YouTube の題など）は、入れ子が読みにくいので『』で囲む
 - Home の Ryan Gander の引用は、掲載の可否を確かめてから `src/site.json` の `quote.lines` に入れる（空のあいだは案内の一文が出る）
 - 商品の値段は Device 表では税抜なので、`src/site.json` の `price` の決まりで税込にして出す（総額表示）
 
@@ -102,6 +109,14 @@ python3 tools/build.py --check    # 生成結果と repo のファイルが一�
 ```bash
 python3 tools/import_manifesto.py <Notion_YYYYMMDD.docx>
 python3 tools/import_device.py <Device_YYYYMMDD.xlsx> --ids 2
+python3 tools/build.py
+```
+
+YouTube の題や説明文を変えたとき（回の題と一言はいつも YouTube に合わせる）:
+
+```bash
+python3 tools/import_youtube.py --check   # ずれている動画を出すだけ
+python3 tools/import_youtube.py           # contents.json の yt_title・yt_lead を書き換える
 python3 tools/build.py
 ```
 
