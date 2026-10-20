@@ -86,8 +86,8 @@ def id_key(item):
 
 
 def lab_spread(angles, gap):
-    """円周上の角度の並びを、順序を保ったまま隣との間隔が gap 以上になるように動かす（動かす量が小さくなるように、単調回帰で解く）。
-    全部は入らないときは等間隔にする。"""
+    """円周上の角度の並びを、順序を保ったまま隣との間隔が gap 以上になるように動かす。
+    いちばん広い隙間で円を切って一列にし、動かす量が小さくなるように単調回帰（PAV）で解く。全部は入らないときは等間隔にする。"""
     import math
     n = len(angles)
     if n == 0:
@@ -95,8 +95,15 @@ def lab_spread(angles, gap):
     full = 2 * math.pi
     if n * gap > full:
         gap = full / n
-    idx = sorted(range(n), key=lambda i: angles[i])
-    y = [angles[i] - k * gap for k, i in enumerate(idx)]
+    idx = sorted(range(n), key=lambda i: angles[i] % full)
+    if n > 1:
+        a = [angles[i] % full for i in idx]
+        gaps = [(a[(k + 1) % n] - a[k]) % full for k in range(n)]
+        cut = gaps.index(max(gaps))  # a[cut] と a[cut+1] の間が最も広い → その次から並べる
+        idx = idx[cut + 1:] + idx[:cut + 1]
+    base = angles[idx[0]]
+    seq = [(angles[i] - base) % full for i in idx]  # base から増える向きに 0 〜 2π
+    y = [v - k * gap for k, v in enumerate(seq)]
     blocks = []  # [合計, 個数]。前の塊の平均が後ろより大きければ合わせる（PAV）
     for v in y:
         blocks.append([v, 1])
@@ -107,13 +114,12 @@ def lab_spread(angles, gap):
     fitted = []
     for total, count in blocks:
         fitted += [total / count] * count
+    placed = [fitted[k] + k * gap for k in range(n)]
+    if n > 1 and placed[-1] - placed[0] > full - gap:  # 切った所でぶつかる → 等間隔
+        placed = [placed[0] + k * full / n for k in range(n)]
     out = [0.0] * n
     for k, i in enumerate(idx):
-        out[i] = fitted[k] + k * gap
-    first, last = out[idx[0]], out[idx[-1]]
-    if first + full - last < gap:  # 一周の継ぎ目でぶつかる → 等間隔
-        for k, i in enumerate(idx):
-            out[i] = first + k * full / n
+        out[i] = base + placed[k]
     return out
 
 
@@ -933,17 +939,19 @@ class Site:
             for k in r["elements"]:
                 ex, ey = pos[k]
                 out.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="var(--fg)" stroke-opacity="0.35" stroke-width="1"/>' % (x, y, ex, ey))
+        out.append('<text x="%g" y="%g" text-anchor="middle" dominant-baseline="central" fill="var(--accent)" font-size="88" font-weight="700">間</text>' % (cx, cy + 4))
+        for i, e in enumerate(els):
+            x, y = pos[e["key"]]
+            w = max(len(e["name"]) * 26 + 28, 76)
+            x = min(max(x, w / 2 + 2), W - w / 2 - 2)  # 札が枠からはみ出さないように
+            out.append('<a href="#e-%s"><rect x="%.1f" y="%.1f" width="%d" height="42" rx="21" fill="var(--bg)" stroke="var(--fg)" stroke-width="1.2"/>'
+                       '<text x="%.1f" y="%.1f" text-anchor="middle" dominant-baseline="central" fill="var(--fg)" font-size="24">%s</text></a>'
+                       % (esc(e["key"]), x - w / 2, y - 21, w, x, y + 1, esc(e["name"])))
+        # 点は札より後に描く（札の端に隠れないように）
         for a, r in zip(angles, refs):
             x, y = cx + r_ref * math.cos(a), cy + r_ref * math.sin(a)
             out.append('<a href="%s"><title>%s</title><circle class="hit" cx="%.1f" cy="%.1f" r="20" fill="transparent"/><circle class="dot" cx="%.1f" cy="%.1f" r="7.5" fill="var(--accent)"/></a>'
                        % (self.href(cur, "lab/reference/#r-%s" % r["id"]), esc(r["title"]), x, y, x, y))
-        for i, e in enumerate(els):
-            x, y = pos[e["key"]]
-            w = max(len(e["name"]) * 26 + 28, 76)
-            out.append('<a href="#e-%s"><rect x="%.1f" y="%.1f" width="%d" height="42" rx="21" fill="var(--bg)" stroke="var(--fg)" stroke-width="1.2"/>'
-                       '<text x="%.1f" y="%.1f" text-anchor="middle" dominant-baseline="central" fill="var(--fg)" font-size="24">%s</text></a>'
-                       % (esc(e["key"]), x - w / 2, y - 21, w, x, y + 1, esc(e["name"])))
-        out.append('<text x="%g" y="%g" text-anchor="middle" dominant-baseline="central" fill="var(--accent)" font-size="88" font-weight="700">間</text>' % (cx, cy + 4))
         out.append('</svg>')
         return "\n    ".join(out)
 
@@ -992,7 +1000,7 @@ class Site:
                 term_of.setdefault(k, []).append(t)
         cards = []
         for i, e in enumerate(lab["elements"], 1):
-            mark = lambda side: '<span class="guess" title="本文に無い、Lab の見立て">※</span>' if side in e.get("guess", []) else ""
+            mark = lambda side: '<span class="guess" role="img" aria-label="（Lab の見立て）" title="本文に無い、Lab の見立て">※</span>' if side in e.get("guess", []) else ""
             acts = "".join('<span class="act">%s</span>' % esc(a) for a in e.get("acts", []))
             nref = len(by_el.get(e["key"], []))
             terms = term_of.get(e["key"], [])

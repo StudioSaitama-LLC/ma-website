@@ -137,7 +137,6 @@ html:not(.js) .menu-btn, html:not(.js) .fold-toggle { display: none; }
 /* 481〜1199px（タブレットなど）はデザインが無い。PC の寸法は 1200px 以上でないと収まらないので、
    スマホの寸法のまま 480px の列にして中央に置く */
 @media (min-width: 481px) and (max-width: 1199px) {
-  .lab-map { width: 100%; margin-left: 0; }
   body > header, body > main, body > footer { max-width: 480px; margin-left: auto; margin-right: auto; }
   .menu-overlay { right: auto; left: 50%; width: 480px; margin-left: -240px; box-shadow: 0 0 0 100vmax var(--bg); }
 }
