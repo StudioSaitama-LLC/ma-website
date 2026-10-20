@@ -30,7 +30,7 @@ css/ js/ assets/               # 見た目と画像（assets/device/ は Device 
 # 生成されるページ（URL）
 index.html                     # Home
 notion/                        # Gate 0: MA Notion（マニフェスト・密と間・三段の図）
-lab/                           # Gate 1: MA Lab（準備中）
+lab/                           # Gate 1: MA Lab（試作。dictionary/ reference/ research/ の 3 部屋）
 channel/                       # Gate 2: MA Channel（番組の一覧と、TV・Magazine・Radio ごとの新着）
 channel/<番組>/                # 番組ごとのページ（回ごとに開閉。#ep-<回> で開いた状態で来られる）
 channel/<番組>/<番号>/         # Magazine 記事
@@ -73,6 +73,10 @@ Device の写真は `assets/device/` にファイル名のまま置く（Device 
   - 取り決めに合わないと `build.py` が止まる
 - `assets/figures/` の「密」「間」の球（Notion）は、デザインの描画から球の中心と大きさを測って `tools/make_spheres.py` で作った SVG（光は右上から・下に影）
 - 生成した HTML にある `data-m` / `data-mt` は、デザインの位置と比べる採寸用の目印（表示や動きには使っていない）
+- **MA Lab は試作**。`src/lab.json` に用語（Dictionary）・資料（Reference）・検証のテーマ（Research）を書く。
+  置き方の決まり: どの項目も、マニフェスト（`src/manifesto.json`）の章 `ch` と、その本文に一字一句そのまま含まれる一節 `quote` を持つ
+  （無ければ `build.py` が止める）。資料には `form`（言葉・文章・音・映像・写真・場）、`pole`（0 が密、100 が間）、
+  `status`（確認済み・候補・相談中）、なぜ置くか `why`、読む人への `question` を書く。用語の `key` は資料の `terms` から引く
 - Home の Ryan Gander の引用は、掲載の可否を確かめてから `src/site.json` の `quote.lines` に入れる（空のあいだは案内の一文が出る）
 - 商品の値段は Device 表では税抜なので、`src/site.json` の `price` の決まりで税込にして出す（総額表示）
 

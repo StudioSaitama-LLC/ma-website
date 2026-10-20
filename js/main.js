@@ -5,7 +5,8 @@
    - 記事の冒頭の写真の切り替え
    - 番組の回（details）は、#ep-… で来たときに開く
    - 商品の写真の送り
-   - Device Room の検索とお店の絞り込み（商品ページの検索からは ?q= で来る） */
+   - Device Room の検索とお店の絞り込み（商品ページの検索からは ?q= で来る）
+   - Lab の Reference Space の絞り込み（形・用語） */
 
 (function () {
   var root = document.documentElement;
@@ -25,6 +26,11 @@
     if (!id) return;
     var el = document.getElementById(id);
     if (el && el.tagName === "DETAILS") el.open = true;
+    // 章（Notion・Company）も、#ch3 のように来たら開く（Lab の引用から戻れるように）
+    if (el && el.classList.contains("fold") && el.classList.contains("is-folded")) {
+      var t = el.querySelector(".fold-toggle");
+      if (t) t.click();
+    }
   }
 
   document.addEventListener("DOMContentLoaded", function () {
@@ -223,6 +229,45 @@
       if (asked) { q.value = asked; apply(); }
       var wanted = location.hash.slice(1);
       pills.forEach(function (p) { if (wanted && p.dataset.shop === wanted) p.click(); });
+    }
+
+    // ---------- Lab / Reference Space ----------
+    // 札（形・用語）はそれぞれ一つ選べる。両方に当たる資料だけ残す。JS 無しでは全部見える
+    var refs = document.querySelectorAll(".ref-list .ref");
+    var groups = document.querySelectorAll(".ref-filters");
+    if (refs.length && groups.length) {
+      var want = {};
+      var rcount = document.querySelector(".rc-now");
+      var rempty = document.querySelector(".ref-empty");
+      var applyRefs = function () {
+        var shown = 0;
+        refs.forEach(function (r) {
+          var ok = true;
+          Object.keys(want).forEach(function (k) {
+            if (want[k] && (" " + (r.dataset[k] || "") + " ").indexOf(" " + want[k] + " ") < 0) ok = false;
+          });
+          r.hidden = !ok;
+          if (ok) shown++;
+        });
+        if (rcount) rcount.textContent = String(shown);
+        if (rempty) rempty.hidden = shown > 0;
+      };
+      groups.forEach(function (g) {
+        var key = g.dataset.filter;
+        want[key] = "";
+        var gp = g.querySelectorAll(".pill");
+        gp.forEach(function (p) {
+          p.setAttribute("aria-pressed", p.classList.contains("is-active") ? "true" : "false");
+          p.addEventListener("click", function () {
+            want[key] = p.dataset.v || "";
+            gp.forEach(function (x) {
+              x.classList.toggle("is-active", x === p);
+              x.setAttribute("aria-pressed", x === p ? "true" : "false");
+            });
+            applyRefs();
+          });
+        });
+      });
     }
   });
 })();

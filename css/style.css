@@ -989,3 +989,67 @@ html.light .dc-btn { background: var(--accent); color: var(--on-accent); }
   .contact-group + .contact-group { margin-top: 52px; }
   .contact-page + .site-footer { margin-top: 274.5px; }
 }
+
+/* ---------- Lab（試作: 辞書・資料庫・検証。デザインに頁は無いので、Notion の章と Device の札の組みを借りる） ---------- */
+
+.lab-page .crumb { margin-bottom: 8px; }
+.lab-page .crumb a { color: var(--fg); }
+.lab-lead { margin-top: 46.5px; }
+.lab-page .frame-label { margin-top: 46.5px; }
+.lab-rules { margin: var(--lh) 0 0; padding-left: 1.5em; list-style: decimal; }
+.lab-rules li { line-height: var(--lh); }
+.lab-doors { gap: 21px; }
+.lab-doors li { display: grid; }
+.ld-head { color: var(--accent); }
+.ld-head strong { font-weight: 700; }
+.ld-role { opacity: 0.85; }
+.ld-count { font-size: var(--small); line-height: 20px; opacity: 0.75; }
+.term-list, .ref-list, .research-list { list-style: none; margin: 46.5px 0 0; padding: 0; }
+.term + .term, .ref + .ref, .rs + .rs { margin-top: 33px; padding-top: 33px; border-top: 1px solid var(--line); }
+.term-word, .ref-title, .rs-theme { color: var(--accent); font-size: var(--head); line-height: var(--lh); font-weight: 700; }
+.term-kana { display: block; color: var(--fg); font-size: var(--small); line-height: 20px; font-weight: 400; }
+.term-word .status, .rs-theme .status { color: var(--fg); font-weight: 400; }
+.term-body { margin: 14px 0 0; }
+/* スマホは見出し語（一般には・マニフェストでは…）を上に、PC は左の列に */
+.term-body > div + div { margin-top: 7px; }
+.term-body dt { font-size: var(--small); line-height: 20px; opacity: 0.75; }
+.term-body dd { margin: 0; }
+.lab-links a { margin-right: 0.8em; }
+.lab-quote { margin: 0; }
+.lab-ch { margin-left: 8px; font-size: var(--small); white-space: nowrap; }
+.lab-q { margin: 14px 0 0; }
+.lq-label { display: inline-block; margin-right: 8px; padding: 0 6px; border: 1px solid var(--accent); color: var(--accent); font-size: var(--small); line-height: 20px; vertical-align: 2px; }
+.ref-meta { font-size: var(--small); line-height: 20px; }
+.ref-meta .badge { font-size: var(--small); }
+.ref-field { margin-right: 8px; opacity: 0.85; }
+.ref-meta .status { margin-left: 0; }
+.ref-title { margin-top: 6px; }
+.ref-by { display: block; color: var(--fg); font-size: var(--fs); font-weight: 400; }
+.ref .lab-quote, .rs .lab-quote { margin-top: 14px; }
+.ref-why, .rs-lines { margin-top: 14px; }
+.ref-terms { margin-top: 14px; font-size: var(--small); line-height: 20px; }
+.ref-terms a { margin-right: 0.8em; }
+.ref-note { margin-top: 6px; font-size: var(--small); line-height: 20px; opacity: 0.75; }
+/* 密と間の目盛り（0 が密、100 が間） */
+.pole { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; margin-top: 14px; font-size: var(--small); line-height: 20px; }
+.pole-bar { position: relative; height: 1px; background: var(--line); }
+.pole-dot { position: absolute; top: -5px; width: 11px; height: 11px; margin-left: -5.5px; border-radius: 50%; background: var(--accent); }
+/* 札（Device の札と同じ見た目。横スクロールはせず折り返す） */
+.ref-filters { margin-top: 33px; }
+.ref-filters + .ref-filters { margin-top: 18px; }
+.rf-label { margin-bottom: 8px; font-size: var(--small); line-height: 20px; opacity: 0.85; }
+.lab-page .pills { display: block; margin: 0; padding: 0; overflow: visible; }
+.lab-page .pill-row { flex-wrap: wrap; gap: 8px 6px; width: auto; }
+.ref-count { margin-top: 18px; font-size: var(--small); line-height: 20px; }
+.ref-empty { margin-top: 24px; }
+.research-list + .pending-note { margin-top: calc(var(--lh) * 2); }
+@media (min-width: 1200px) {
+  .lab-page .crumb { margin-bottom: 12px; }
+  .lab-lead, .lab-page .frame-label, .term-list, .ref-list, .research-list { margin-top: 83.5px; }
+  .lab-doors { gap: 28px; }
+  .term-body > div { display: grid; grid-template-columns: 11em minmax(0, 1fr); gap: 0 16px; }
+  .term-body dt { font-size: var(--fs); line-height: var(--lh); }
+  .term + .term, .ref + .ref, .rs + .rs { margin-top: 48px; padding-top: 48px; }
+  .ref-filters { margin-top: 48px; }
+  .pole { max-width: 560px; }
+}

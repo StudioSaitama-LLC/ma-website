@@ -38,22 +38,25 @@
       "en": "MA Lab",
       "ja": "間、定義化への試み",
       "url": "lab/",
-      "ready": false,
+      "ready": true,
       "doors": [
         {
           "no": "1-1",
           "en": "Dictionary Space",
-          "ready": false
+          "url": "lab/dictionary/",
+          "ready": true
         },
         {
           "no": "1-2",
           "en": "Reference Space",
-          "ready": false
+          "url": "lab/reference/",
+          "ready": true
         },
         {
           "no": "1-3",
           "en": "Research Space",
-          "ready": false
+          "url": "lab/research/",
+          "ready": true
         }
       ]
     },
