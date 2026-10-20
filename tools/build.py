@@ -31,6 +31,7 @@ SLUG = r"[a-z0-9][a-z0-9-]*"  # URL と id に入る名前（番組・回・お�
 IMAGE_NAME = r"[A-Za-z0-9_-]+\.(?:jpg|jpeg|png|webp)"
 BLANK_GIF = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"  # 1px の透明な画像
 ARTICLE_META = "<!-- build:meta -->"  # 記事の断片で、日付の行を入れる場所
+CJK = "[\u3000-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff00-\uffef]"  # 和文の字（ソースの改行を詰める間）
 
 
 def load(name):
@@ -103,16 +104,19 @@ def flat(rows):
 def body_blocks(frag):
     """記事の断片から、class に article-body を持つ div の中身を順に返す（コメントは除き、入れ子の div を数える）。"""
     frag = re.sub(r"<!--.*?-->", "", frag, flags=re.S)
-    out = []
+    out, done = [], 0
     for m in re.finditer(r"<div\b([^>]*)>", frag, flags=re.I):
-        cls = re.search(r"\bclass\s*=\s*(\"[^\"]*\"|'[^']*')", m.group(1), flags=re.I)
-        if not cls or "article-body" not in cls.group(1)[1:-1].split():
+        if m.start() < done:
+            continue  # 前の本文の塊の中（article-body の入れ子は二重に数えない）
+        cls = re.search(r"(?<![\w-])class\s*=\s*(\"[^\"]*\"|'[^']*'|[^\s\"'>]+)", m.group(1), flags=re.I)
+        if not cls or "article-body" not in cls.group(1).strip("\"'").split():
             continue
         depth, start = 1, m.end()
         for t in re.finditer(r"<div\b|</div\s*>", frag[start:], flags=re.I):
             depth += 1 if t.group(0)[1] != "/" else -1
             if depth == 0:
                 out.append(frag[start:start + t.start()])
+                done = start + t.end()
                 break
     return out
 
@@ -125,7 +129,7 @@ def article_text(frag, limit=400):
         for para in re.findall(r"<p\b[^>]*>(.*?)</p\s*>", body, flags=re.S | re.I):
             para = re.sub(r"<br\s*/?>", "\x00", para, flags=re.I)
             para = html.unescape(re.sub(r"<[^>]+>", "", para))
-            para = re.sub(r"(?<=[^\x00-\x7f])[ \t\r]*\n\s*(?=[^\x00-\x7f])", "", para)
+            para = re.sub(r"(?<=%s)[ \t\r]*\n\s*(?=%s)" % (CJK, CJK), "", para)
             para = re.sub(r"\s*\n\s*", " ", para)
             out += [x.strip() for x in para.split("\x00") if x.strip()]
         if sum(len(x) for x in out) >= limit:
@@ -584,7 +588,7 @@ class Site:
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{full}</title>{robots}
-<script>document.documentElement.classList.add("js");try{{if(localStorage.getItem("ma-theme")==="light")document.documentElement.classList.add("light")}}catch(e){{}}try{{if(matchMedia("(max-width:359.98px)").matches){{var z=document.createElement("div");z.style.cssText="position:absolute;visibility:hidden;width:0;height:100vh;zoom:.5";document.documentElement.appendChild(z);if(z.getBoundingClientRect().height<innerHeight*.75)document.documentElement.classList.add("zoom-vh");z.remove()}}}}catch(e){{}}</script>
+<script>document.documentElement.classList.add("js");try{{if(localStorage.getItem("ma-theme")==="light")document.documentElement.classList.add("light")}}catch(e){{}}(function(){{try{{if(!matchMedia("(max-width:359.98px)").matches)return;var d=document.documentElement,z=document.createElement("div");z.style.cssText="position:absolute;visibility:hidden;width:0;height:100vh;zoom:.5";d.appendChild(z);var h=z.getBoundingClientRect().height;z.remove();if(h>0&&h<innerHeight*.75)d.classList.add("zoom-vh")}}catch(e){{}}}})()</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
