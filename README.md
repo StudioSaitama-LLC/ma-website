@@ -81,7 +81,7 @@ Device の写真は `assets/device/` にファイル名のまま置く（Device 
     `onomatopoeia`（手がかりの語の並び）・`related`（他の用語の `key`）・`question`。`acts` は本文の羅列を写すとき
   - 資料 `references`: `id`（英小文字。年は入れない）・`form`（`forms` のどれか）・`field`・`title`・`creator`・`year`（文字列）・
     `terms`（用語の `key`）・なぜ置くか `why`・`question`・`pole`（0 が密、100 が間）・`status`・`note`。
-    `status` は **確認済み**（書誌を国会図書館・CiNii・版元の情報で確かめた）／**候補**（まだ確かめていない）／**相談中**（載せ方を決めていない）
+    `status` は **確認済み**（本は書誌を国会図書館・CiNii・版元で、作品・展覧会・標語は初演・初出・開催年を公開情報で確かめ、PR に確認先を残した）／**候補**（まだ確かめていない）／**相談中**（載せ方を決めていない）
   - 検証 `research`: `id`・`theme`・`lines`・`terms`・`status`。こちらの `status` は Channel と同じ `published / editing / planned`
   - `doors` は扉の日本語名 `ja` と役割 `role`（番号と英名は `site.json` の gates）。`poles` は目盛りの両端の名前
 - Home の Ryan Gander の引用は、掲載の可否を確かめてから `src/site.json` の `quote.lines` に入れる（空のあいだは案内の一文が出る）

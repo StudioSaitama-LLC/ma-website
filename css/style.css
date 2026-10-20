@@ -1010,7 +1010,7 @@ html.light .dc-btn { background: var(--accent); color: var(--on-accent); }
 .term-word, .ref-title, .rs-theme { color: var(--accent); font-size: var(--head); line-height: var(--lh); font-weight: 700; }
 .term-kana { color: var(--fg); font-size: var(--small); line-height: 20px; }
 .term-head { display: flex; align-items: center; gap: 2px; }
-.term-word .status, .rs-theme .status { color: var(--fg); font-weight: 400; }
+.term-head .status, .rs-theme .status { color: var(--fg); font-weight: 400; }
 .term-body { margin: 14px 0 0; }
 /* スマホは見出し語（一般には・マニフェストでは…）を上に、PC は左の列に */
 .term-body > div + div { margin-top: 7px; }

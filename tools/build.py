@@ -216,17 +216,31 @@ class Site:
     def validate_lab(self, errors):
         """Lab の試作データ（src/lab.json）。引用の一節がマニフェストの本文に無ければ止める（マニフェストを軸にする決まり）。"""
         lab = self.lab
+        shape = {"version": str, "intro": list, "rule": dict, "poles": dict, "forms": list, "doors": dict,
+                 "terms": list, "references": list, "research": list}
+        for k, typ in shape.items():
+            if not isinstance(lab.get(k), typ):
+                errors.append("lab.json: %s が無いか、形が違う（%s）" % (k, typ.__name__))
+        if any(not isinstance(lab.get(k), typ) for k, typ in shape.items()):
+            return  # 形が崩れていると以下の検査自体ができない
         chapters = set(c["no"] for c in self.manifesto["chapters"])
         forms = set(lab["forms"])
 
-        def need(kind, name, it, keys, lists=()):
-            """必須の項目が、空でない文字列（lists は文字列の並び）で入っているか。"""
+        def need(kind, name, it, keys, lists=(), optional=()):
+            """必須の項目が、空でない文字列（lists は文字列の並び。optional は書くなら文字列の並び）で入っているか。"""
             ok = True
+            if not isinstance(it, dict):
+                errors.append("lab.json %s: 項目が {} の形でない: %r" % (kind, it))
+                return False
             for k in keys:
                 if not isinstance(it.get(k), str) or not it[k].strip():
                     errors.append("lab.json %s %s: %s が無いか、文字列でない" % (kind, name, k))
                     ok = False
             for k in lists:
+                if k not in it:
+                    errors.append("lab.json %s %s: %s（文字列の並び）が無い" % (kind, name, k))
+                    ok = False
+            for k in tuple(lists) + tuple(optional):
                 v = it.get(k, [])
                 if not (isinstance(v, list) and all(isinstance(x, str) for x in v)):
                     errors.append("lab.json %s %s: %s は文字列の並びで書く" % (kind, name, k))
@@ -237,6 +251,9 @@ class Site:
             info = lab.get("doors", {}).get(key)
             if not isinstance(info, dict) or not need("doors", key, info, ("ja", "role")):
                 errors.append("lab.json doors: %s に ja と role を書く" % key)
+        if not all(isinstance(x, dict) for x in lab["terms"] + lab["references"] + lab["research"]):
+            errors.append("lab.json: terms / references / research の各項目は {} の形で書く")
+            return
         keys = set()
         for t in lab["terms"]:
             if not re.fullmatch(SLUG, t.get("key", "")):
@@ -244,7 +261,7 @@ class Site:
             if t.get("key") in keys:
                 errors.append("lab.json terms: key が重複: %s" % t["key"])
             keys.add(t.get("key"))
-            need("terms", t.get("key"), t, ("word", "reading", "kind", "gloss", "sense", "question"), ("onomatopoeia", "related", "acts"))
+            need("terms", t.get("key"), t, ("word", "reading", "kind", "gloss", "sense", "question"), ("onomatopoeia", "related"), ("acts",))
         ids = set()
         for r in lab["references"]:
             if not re.fullmatch(SLUG, r.get("id", "")):
@@ -832,7 +849,8 @@ class Site:
     def lab_door(self, key):
         """扉の番号と英名は site.json の gates、日本語名と役割は lab.json の doors から。"""
         d = [x for x in self.gate("lab")["doors"] if x["url"].rstrip("/").split("/")[-1] == key][0]
-        return dict(d, **self.lab["doors"][key])
+        info = self.lab["doors"][key]
+        return dict(d, ja=info["ja"], role=info["role"])
 
     def lab_head(self, cur, door):
         """扉のページの見出し（Gate の見出しと同じ組みで、上にパンくず）。"""
@@ -894,7 +912,7 @@ class Site:
                 acts = '\n        <div><dt>羅列</dt><dd>%s</dd></div>' % esc("・".join(t["acts"]))
             rows.append("""    <li class="term" id="t-{key}">
       <p class="term-kana">{reading}</p>
-      <div class="term-head"><h2 class="term-word">{word}</h2><span class="status">{kind}</span></div>
+      <div class="term-head"><h2 class="term-word">{word}</h2><span class="status"><span class="visually-hidden">種類: </span>{kind}</span></div>
       <dl class="term-body">
         <div><dt>一般には</dt><dd>{gloss}</dd></div>
         <div><dt>マニフェストでは</dt><dd>{sense}</dd></div>
@@ -944,7 +962,7 @@ class Site:
     {head}
     {f_form}
     {f_terms}
-    <p class="ref-count" aria-live="polite"><span class="rc-now">{n}</span> 件</p>
+    <p class="ref-count" aria-live="polite" aria-atomic="true"><span class="rc-now">{n}</span> 件</p>
     <ol class="ref-list">
 {rows}
     </ol>
