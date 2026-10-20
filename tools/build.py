@@ -143,6 +143,12 @@ def flat(rows):
     return out
 
 
+def class_list(attrs):
+    """タグの属性の文字列から class の並びを取り出す（data-class などは見ない。引用符の無い値も読む）。"""
+    m = re.search(r"(?<![\w-])class\s*=\s*(\"[^\"]*\"|'[^']*'|[^\s\"'>]+)", attrs, flags=re.I)
+    return m.group(1).strip("\"'").split() if m else []
+
+
 def body_blocks(frag):
     """記事の断片から、class に article-body を持つ div の中身を順に返す（コメントは除き、入れ子の div を数える）。"""
     frag = re.sub(r"<!--.*?-->", "", frag, flags=re.S)
@@ -150,8 +156,7 @@ def body_blocks(frag):
     for m in re.finditer(r"<div\b([^>]*)>", frag, flags=re.I):
         if m.start() < done:
             continue  # 前の本文の塊の中（article-body の入れ子は二重に数えない）
-        cls = re.search(r"(?<![\w-])class\s*=\s*(\"[^\"]*\"|'[^']*'|[^\s\"'>]+)", m.group(1), flags=re.I)
-        if not cls or "article-body" not in cls.group(1).strip("\"'").split():
+        if "article-body" not in class_list(m.group(1)):
             continue
         depth, start = 1, m.end()
         for t in re.finditer(r"<div\b|</div\s*>", frag[start:], flags=re.I):
@@ -1464,7 +1469,8 @@ class Site:
             frag = frag.replace(ARTICLE_META, self.entry_meta(self.item_date(item), self.item_path(item), item.get("status"), m="am"))
             # 見出しの塊（article-head）までを上の段に、残りを本文の段に分ける。矢印は上の段の右下に置く
             head, rest = split_after_block(frag, '<div class="article-head">', item["article"])
-            if not re.match(r'\s*<(h2 class="article-answer"|div class="article-body")', rest):
+            first = re.match(r"\s*<(h2|div)\b([^>]*)>", rest, flags=re.I)
+            if not (first and {"h2": "article-answer", "div": "article-body"}[first.group(1).lower()] in class_list(first.group(2))):
                 raise SystemExit("src/%s: article-head の次は <h2 class=\"article-answer\"> か <div class=\"article-body\"> にする（右の矢印と重ならない余白がそこに付く）" % item["article"])
             # 冒頭の写真は、参考（tei-ku.com）と同じく、ゆっくり拡大しながら次の写真へ溶け替える（動きは js/main.js）
             # 2 枚目からは data-src に置き、切り替えが動くとき（js/main.js がページを開いた時点で）に読む。

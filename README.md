@@ -54,7 +54,7 @@ about.html ほか 8 月版のページ   # 新しいページへ転送するだ�
 | `status` | 必須。`published`（公開）/ `editing`（編集中）/ `planned`（掲載予定）。公開以外は枠だけ出す |
 | `title` `caption` `badge` `place` `recorded` | 表示する題・ひとこと・記事の種類・場所・収録日（`YYYY-MM-DD`） |
 | `youtube` | YouTube の動画 ID（11 文字）。公開のときだけ埋め込む |
-| `yt_title` `yt_lead` | YouTube の題と、説明文のうち「TIMELINE」の見出しや時刻の行より前（`tools/import_youtube.py` が公開の動画だけ書く。手で直さない）。あれば回の題と一言はこれを使う（題・一言を YouTube にいつも合わせるため）。説明文が空なら `caption` が一言になる |
+| `yt_title` `yt_lead` | YouTube の題と、説明文のうち「TIMELINE」の見出しか、時刻で始まる行が 2 行続く所より前（`tools/import_youtube.py` が公開の動画だけ書く。手で直さない）。あれば回の題と一言はこれを使う（題・一言を YouTube にいつも合わせるため）。説明文が空なら `caption` が一言になる |
 | `article` | Magazine の本文（`src/articles/` の断片）。公開のときだけ記事ページを作る。Door の抜き出しは本文（class に `article-body` を持つ div の中の `<p>`）の冒頭から作り、4 行で切って 4 行目の終わりに「…… ○○を読む」を置く（本文が取れないと `build.py` が止まる） |
 | `excerpt` | 記事がまだ無いときの抜き出し（掲載予定の関連記事などで、冒頭 4 行だけ見せる） |
 | `device` | このコンテンツを、商品ページの商品説明に回の枠で出すときの商品 ID の並び（例 `["2"]`）。無ければ出さない |
