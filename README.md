@@ -53,13 +53,13 @@ about.html ほか 8 月版のページ   # 新しいページへ転送するだ�
 | `status` | 必須。`published`（公開）/ `editing`（編集中）/ `planned`（掲載予定）。公開以外は枠だけ出す |
 | `title` `caption` `badge` `place` `recorded` | 表示する題・ひとこと・記事の種類・場所・収録日（`YYYY-MM-DD`） |
 | `youtube` | YouTube の動画 ID（11 文字）。公開のときだけ埋め込む |
-| `yt_title` `yt_lead` | YouTube の題と、説明文のうち「TIMELINE」より前（`tools/import_youtube.py` が書く。手で直さない）。あれば回の題と一言はこれを使う（題・一言を YouTube にいつも合わせるため）。説明文が空なら `caption` が一言になる |
-| `article` | Magazine の本文（`src/articles/` の断片）。公開のときだけ記事ページを作る。Door の抜き出しは本文の冒頭から作り、4 行で切って 4 行目の終わりに「…… ○○を読む」を置く |
+| `yt_title` `yt_lead` | YouTube の題と、説明文のうち「TIMELINE」の見出しや時刻の行より前（`tools/import_youtube.py` が公開の動画だけ書く。手で直さない）。あれば回の題と一言はこれを使う（題・一言を YouTube にいつも合わせるため）。説明文が空なら `caption` が一言になる |
+| `article` | Magazine の本文（`src/articles/` の断片）。公開のときだけ記事ページを作る。Door の抜き出しは本文（class に `article-body` を持つ div の中の `<p>`）の冒頭から作り、4 行で切って 4 行目の終わりに「…… ○○を読む」を置く（本文が取れないと `build.py` が止まる） |
 | `excerpt` | 記事がまだ無いときの抜き出し（掲載予定の関連記事などで、冒頭 4 行だけ見せる） |
 | `device` | このコンテンツを、商品ページの商品説明に回の枠で出すときの商品 ID の並び（例 `["2"]`）。無ければ出さない |
 | `redirect_from` | この記事へ転送する 8 月版の URL |
 | `hero` `portrait` `portrait_focus` | 記事の冒頭で切り替わる写真（`assets/` の名前の並び）・記事の終わりに画面いっぱいに出す人物の写真・その切り抜きの中心（例 `"68% 50%"`） |
-| `related` | 番組ページで「関連コンテンツ」に回すとき `true`（ほかの番組の回を関連に入れるときは、`programs.json` の番組に `"related": ["2-1-2"]` と番号を並べる） |
+| `related` | 番組ページで「関連コンテンツ」に回すとき `true`。ほかの番組のコンテンツを関連に入れるときは、`programs.json` の番組に `"related": ["2-1-2"]` と番号を並べる（1 件ずつの枠で出る。並びは TV・Magazine・Radio の順、その中は番号順） |
 | `memo` | 作業用のメモ。ページには出ないが、この repo は公開なので人に見せられないことは書かない |
 
 `build.py` は生成の前にこれらを検査し、綴り違い・未登録の番組・画像の置き忘れがあると止まる。
@@ -117,7 +117,7 @@ python3 -m http.server 8000
 ```
 
 main への直 push は禁止。ブランチ → PR でマージする（Pages は main から自動配信）。
-β版の間（2026-10-26 の定例で一般公開を決めるまで）は `src/site.json` の `noindex` を `true` にしておく。
+β版の間（一般公開を決めるまで）は `src/site.json` の `noindex` を `true` にしておく。
 
 ## Provenance（archived-from）
 
