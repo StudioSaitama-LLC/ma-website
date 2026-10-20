@@ -26,7 +26,7 @@ STATUS = {"published": "", "editing": "編集中", "planned": "掲載予定"}
 LAB_STATUS = ("確認済み", "候補", "相談中")  # Lab の資料の出典の確かめ具合（確認済み＝書誌を国会図書館・CiNii・版元で確かめた）
 LAB_QUOTE_MIN = 8  # Lab の引用は、この字数以上の一節を写す（1 字の一致で通らないように）
 LAB_NAME_MAX = 6  # Lab の要素の名前の長さ（地図の札に入る長さ）
-LAB_GLYPH = {"言葉": "◇", "文章": "■", "音": "●", "映像": "▶", "写真": "◆", "場": "○"}  # 資料の形の目印
+LAB_GLYPH = {"言葉": "◆", "文章": "■", "音": "●", "映像": "▶", "写真": "▲", "場": "◉"}  # 資料の形の目印（塗りの記号でそろえる）
 KIND = {"tv": "TV", "mag": "Magazine", "radio": "Radio"}
 KIND_ORDER = {"tv": 0, "mag": 1, "radio": 2}
 NEW_COUNT = 3  # 日付の新しい順にこの件数だけ <NEW> を付ける
@@ -83,6 +83,38 @@ def bad_date(d):
 
 def id_key(item):
     return [int(x) for x in item["id"].split("-")]
+
+
+def lab_spread(angles, gap):
+    """円周上の角度の並びを、順序を保ったまま隣との間隔が gap 以上になるように動かす（動かす量が小さくなるように、単調回帰で解く）。
+    全部は入らないときは等間隔にする。"""
+    import math
+    n = len(angles)
+    if n == 0:
+        return []
+    full = 2 * math.pi
+    if n * gap > full:
+        gap = full / n
+    idx = sorted(range(n), key=lambda i: angles[i])
+    y = [angles[i] - k * gap for k, i in enumerate(idx)]
+    blocks = []  # [合計, 個数]。前の塊の平均が後ろより大きければ合わせる（PAV）
+    for v in y:
+        blocks.append([v, 1])
+        while len(blocks) > 1 and blocks[-2][0] / blocks[-2][1] > blocks[-1][0] / blocks[-1][1]:
+            last = blocks.pop()
+            blocks[-1][0] += last[0]
+            blocks[-1][1] += last[1]
+    fitted = []
+    for total, count in blocks:
+        fitted += [total / count] * count
+    out = [0.0] * n
+    for k, i in enumerate(idx):
+        out[i] = fitted[k] + k * gap
+    first, last = out[idx[0]], out[idx[-1]]
+    if first + full - last < gap:  # 一周の継ぎ目でぶつかる → 等間隔
+        for k, i in enumerate(idx):
+            out[i] = first + k * full / n
+    return out
 
 
 def split_after_block(html, open_tag, where):
@@ -263,8 +295,10 @@ class Site:
             if e.get("key") in ekeys:
                 errors.append("lab.json elements: key が重複: %s" % e["key"])
             ekeys.add(e.get("key"))
-            if need("elements", e.get("key"), e, ("name", "sub", "mitsu", "ma"), ("acts",)) and len(e["name"]) > LAB_NAME_MAX:
+            if need("elements", e.get("key"), e, ("name", "sub", "mitsu", "ma"), ("acts",), ("guess",)) and len(e["name"]) > LAB_NAME_MAX:
                 errors.append("lab.json elements %s: name は %d 字まで（地図の札に入れるため）: %r" % (e["key"], LAB_NAME_MAX, e["name"]))
+            if any(g not in ("mitsu", "ma") for g in e.get("guess", [])):
+                errors.append("lab.json elements %s: guess（本文に無い見立ての印）は mitsu / ma のどれか" % e.get("key"))
         keys = set()
         for t in lab["terms"]:
             if not re.fullmatch(SLUG, t.get("key", "")):
@@ -863,7 +897,7 @@ class Site:
     def lab_chips(self, cur, keys, label="要素"):
         """要素の札（Lab の入口の要素の欄へ飛ぶ）。"""
         if not keys:
-            return ""
+            return '<p class="chips"><span class="chips-label">%s</span><span class="chip-none">まだ決めていない</span></p>' % esc(label)
         chips = " ".join('<a class="chip" href="%s">%s</a>' % (self.href(cur, "lab/#e-%s" % k), esc(self.lab_element(k)["name"])) for k in keys)
         return '<p class="chips"><span class="chips-label">%s</span>%s</p>' % (esc(label), chips)
 
@@ -872,55 +906,43 @@ class Site:
 
     def lab_map(self, cur):
         """要素の地図（SVG）。中心に「間」、まわりに要素、外側に資料。資料は映っている要素と線でつながる。
-        元の構想（Dictionary の重力空間 — 中心「間」へ語が引き寄せられ、外周には参考資料が浮遊する）を平面にしたもの。"""
+        元の構想（Dictionary の重力空間 — 中心「間」へ語が引き寄せられ、外周には参考資料が浮遊する）を平面にしたもの。
+        文字は viewBox 600 に対して 24（スマホの全幅 375px で約 15px）。要素を決めていない資料は載せない。"""
         import math
         els = self.lab["elements"]
         refs = [r for r in self.lab["references"] if r.get("elements")]
         W = 600
         cx = cy = W / 2
         n = len(els)
-        ang = {}
-        for i, e in enumerate(els):
-            ang[e["key"]] = -math.pi / 2 + 2 * math.pi * i / n
-        r_el = lambda i: 190 + (14 if i % 2 else -14)  # 札が隣と重ならないよう、交互に内外へ
+        ang = {e["key"]: -math.pi / 2 + 2 * math.pi * i / n for i, e in enumerate(els)}
+        r_el = lambda i: 215 if i % 2 else 170  # 札が隣と重ならないよう、交互に内外へ
         pos = {e["key"]: (cx + r_el(i) * math.cos(ang[e["key"]]), cy + r_el(i) * math.sin(ang[e["key"]])) for i, e in enumerate(els)}
-        # 資料の角度は、映っている要素の向きの平均。近すぎるものは押し広げる
+        # 資料の角度は、映っている要素の向きの平均。正反対で打ち消し合うときは先頭の要素の右 90 度
         want = []
         for r in refs:
             x = sum(math.cos(ang[k]) for k in r["elements"])
             y = sum(math.sin(ang[k]) for k in r["elements"])
-            want.append([math.atan2(y, x) if (x or y) else 0.0, r])
-        want.sort(key=lambda w: w[0])
-        gap = 2 * math.pi / (len(want) + 6)
-        for _ in range(60):
-            for i in range(len(want)):
-                j = (i + 1) % len(want)
-                d = want[j][0] - want[i][0]
-                if j == 0:
-                    d += 2 * math.pi
-                if d < gap:
-                    push = (gap - d) / 2
-                    want[i][0] -= push
-                    want[j][0] += push
+            want.append(ang[r["elements"][0]] + math.pi / 2 if math.hypot(x, y) < 1e-9 else math.atan2(y, x))
+        angles = lab_spread(want, 2 * math.pi / (len(want) + 6))
         r_ref = 272
-        out = ['<svg class="lab-map" viewBox="0 0 %d %d" role="img" aria-label="間の要素の地図。中心に間、まわりに %d の要素、外側に %d の資料。資料は映っている要素と線でつながる">'
+        out = ['<svg class="lab-map" viewBox="0 0 %d %d" role="group" aria-label="間の要素の地図。中心に間、まわりに %d の要素、外側に %d の資料。資料は映っている要素と線でつながる">'
                % (W, W, n, len(refs)), '<title>間の要素の地図</title>']
         out.append('<circle cx="%g" cy="%g" r="%g" fill="none" stroke="var(--fg)" stroke-opacity="0.25" stroke-width="1"/>' % (cx, cy, r_ref))
-        for a, r in want:
+        for a, r in zip(angles, refs):
             x, y = cx + r_ref * math.cos(a), cy + r_ref * math.sin(a)
             for k in r["elements"]:
                 ex, ey = pos[k]
                 out.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="var(--fg)" stroke-opacity="0.35" stroke-width="1"/>' % (x, y, ex, ey))
-        for a, r in want:
+        for a, r in zip(angles, refs):
             x, y = cx + r_ref * math.cos(a), cy + r_ref * math.sin(a)
-            out.append('<a href="%s"><title>%s</title><circle cx="%.1f" cy="%.1f" r="14" fill="transparent"/><circle cx="%.1f" cy="%.1f" r="6.5" fill="var(--accent)"/></a>'
+            out.append('<a href="%s"><title>%s</title><circle class="hit" cx="%.1f" cy="%.1f" r="20" fill="transparent"/><circle class="dot" cx="%.1f" cy="%.1f" r="7.5" fill="var(--accent)"/></a>'
                        % (self.href(cur, "lab/reference/#r-%s" % r["id"]), esc(r["title"]), x, y, x, y))
         for i, e in enumerate(els):
             x, y = pos[e["key"]]
-            w = max(len(e["name"]) * 21 + 26, 64)
-            out.append('<a href="#e-%s"><rect x="%.1f" y="%.1f" width="%d" height="36" rx="18" fill="var(--bg)" stroke="var(--fg)" stroke-width="1.2"/>'
-                       '<text x="%.1f" y="%.1f" text-anchor="middle" dominant-baseline="central" fill="var(--fg)" font-size="19">%s</text></a>'
-                       % (esc(e["key"]), x - w / 2, y - 18, w, x, y + 1, esc(e["name"])))
+            w = max(len(e["name"]) * 26 + 28, 76)
+            out.append('<a href="#e-%s"><rect x="%.1f" y="%.1f" width="%d" height="42" rx="21" fill="var(--bg)" stroke="var(--fg)" stroke-width="1.2"/>'
+                       '<text x="%.1f" y="%.1f" text-anchor="middle" dominant-baseline="central" fill="var(--fg)" font-size="24">%s</text></a>'
+                       % (esc(e["key"]), x - w / 2, y - 21, w, x, y + 1, esc(e["name"])))
         out.append('<text x="%g" y="%g" text-anchor="middle" dominant-baseline="central" fill="var(--accent)" font-size="88" font-weight="700">間</text>' % (cx, cy + 4))
         out.append('</svg>')
         return "\n    ".join(out)
@@ -970,23 +992,24 @@ class Site:
                 term_of.setdefault(k, []).append(t)
         cards = []
         for i, e in enumerate(lab["elements"], 1):
+            mark = lambda side: '<span class="guess" title="本文に無い、Lab の見立て">※</span>' if side in e.get("guess", []) else ""
             acts = "".join('<span class="act">%s</span>' % esc(a) for a in e.get("acts", []))
             nref = len(by_el.get(e["key"], []))
             terms = term_of.get(e["key"], [])
-            tlink = ('<a href="%s">用語 %d</a>' % (self.href(cur, "lab/dictionary/#t-%s" % terms[0]["key"]), len(terms))) if terms else ""
+            tlink = ('<span class="chips-label">用語</span>' + " ".join('<a href="%s">%s</a>' % (self.href(cur, "lab/dictionary/#t-%s" % t["key"]), esc(t["word"])) for t in terms)) if terms else ""
             cards.append("""      <li class="el" id="e-{key}">
         <p class="el-no">{no:02d}</p>
         <h2 class="el-name">{name}</h2>
         <p class="el-sub">{sub}</p>
         <dl class="el-pair">
-          <div class="ep-mitsu"><dt>{left}</dt><dd>{mitsu}</dd></div>
-          <div class="ep-ma"><dt>{right}</dt><dd>{ma}</dd></div>
+          <div class="ep-mitsu"><dt>{left}の側</dt><dd>{mitsu}{gm}</dd></div>
+          <div class="ep-ma"><dt>{right}の側</dt><dd>{ma}{ga}</dd></div>
         </dl>
         {quote}
-        <p class="el-acts"><span class="chips-label">マニフェストの例</span>{acts}</p>
+        <p class="el-acts"><span class="chips-label">羅列から（Lab の見立て）</span>{acts}</p>
         <p class="el-links"><a href="{rurl}">資料 {nref}</a>{tlink}</p>
       </li>""".format(key=esc(e["key"]), no=i, name=esc(e["name"]), sub=esc(e["sub"]), left=esc(lab["poles"]["left"]), right=esc(lab["poles"]["right"]),
-                       mitsu=esc(e["mitsu"]), ma=esc(e["ma"]), quote=self.lab_quote(cur, e), acts=acts,
+                       mitsu=esc(e["mitsu"]), ma=esc(e["ma"]), gm=mark("mitsu"), ga=mark("ma"), quote=self.lab_quote(cur, e), acts=acts,
                        rurl=self.href(cur, "lab/reference/#e-%s" % e["key"]), nref=nref, tlink=(" " + tlink) if tlink else ""))
         doors = []
         for d in g["doors"]:
@@ -1006,7 +1029,12 @@ class Site:
 {intro}
     </div>
     {map}
+    <p class="map-note">要素の札を押すと下の欄へ、資料の点を押すとその資料へ。{unmapped}</p>
+    <ul class="door-list lab-doors">
+{doors}
+    </ul>
     {el_label}
+    <p class="el-legend">※ は、本文に無い Lab の見立て。</p>
     <ol class="el-grid">
 {cards}
     </ol>
@@ -1014,13 +1042,11 @@ class Site:
     <ol class="lab-rules">
 {rules}
     </ol>
-    <ul class="door-list lab-doors">
-{doors}
-    </ul>
     <p class="pending-note">{version}</p>
   </div>
 """.format(head=self.gate_head(g), intro="\n".join("      <p>%s</p>" % esc(x) for x in lab["intro"]), map=self.lab_map(cur),
-           el_label=self.frame("間の要素（%d）" % len(lab["elements"])), cards="\n".join(cards),
+           unmapped=("要素を決めていない %d 件は、地図に載せていない。" % sum(1 for r in lab["references"] if not r.get("elements"))) if any(not r.get("elements") for r in lab["references"]) else "",
+           el_label=self.frame("間の要素（%d・Lab の見立て）" % len(lab["elements"])), cards="\n".join(cards),
            rule=self.frame(lab["rule"]["label"]), rules="\n".join("      <li>%s</li>" % esc(x) for x in lab["rule"]["lines"]),
            doors="\n".join(doors), version=esc(lab["version"]))
         self.page(cur, "MA Lab", body)

@@ -78,7 +78,7 @@ Device の写真は `assets/device/` にファイル名のまま置く（Device 
   置き方の決まり: どの項目も、マニフェスト（`src/manifesto.json`）の章 `ch`（整数）と、その本文に一字一句そのまま含まれる
   8 字以上の一節 `quote` を持つ（無ければ `build.py` が止める）
   - 要素 `elements`: マニフェストの考えを分解したもの。`key`・`name`（6 字まで。地図の札に入れる）・`sub`（一言）・
-    `mitsu`（密の側の姿）・`ma`（間の側の姿）・`ch` と `quote`・`acts`（マニフェストの羅列から、この要素に当たる行い）。
+    `mitsu`（密の側の姿）・`ma`（間の側の姿。本文に無い言い換えは `guess` に `"mitsu"` / `"ma"` を書くと ※ が付く）・`ch` と `quote`・`acts`（マニフェストの羅列から、この要素に当たる行い。Lab の見立て）。
     用語・資料・検証は `elements` でこの `key` を引く。資料が 1 つも無い要素があると止める
   - 用語 `terms`: `key`（英小文字）・`word`・`reading`・`kind`・一般の意味 `gloss`・マニフェストでの使われ方 `sense`（本文に書いてあることだけ）・
     `onomatopoeia`（手がかりの語の並び）・`related`（他の用語の `key`）・`question`。`acts` は本文の羅列を写すとき
