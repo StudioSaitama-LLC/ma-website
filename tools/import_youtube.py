@@ -5,10 +5,14 @@
   python3 tools/import_youtube.py          # YouTube を読み、変わっていれば contents.json を書き換える
   python3 tools/import_youtube.py --check  # 書き換えず、YouTube とずれている項目だけを出す（ずれていれば終了コード 1）
 
-- 標準ライブラリだけで動く。読むのは contents.json に youtube（動画 ID）がある項目だけ。
-- 書くのは yt_title（動画の題そのまま）と yt_lead（説明文のうち「TIMELINE」の行より前。前後の空行は除く）。
-  build.py はこの 2 つがあれば、回の題と一言にこれを使う（無ければ title・caption を使う）。
+- 標準ライブラリだけで動く。読むのは contents.json で youtube（動画 ID）があり、公開（published）の項目だけ。
+  公開前の動画（限定公開など）の題と説明文を、公開の repo に入れないため。公開でない項目に残っている
+  yt_title・yt_lead は取り除く（build.py の検査もこれを止める）。
+- 書くのは yt_title（動画の題そのまま）と yt_lead（説明文のうち「TIMELINE」の見出しや「0:00」のような
+  時刻で始まる行より前。前後の空行は除く）。build.py はこの 2 つがあれば、回の題と一言にこれを使う。
 - 説明文が空の動画は yt_lead を空にする（このときは caption が一言として出る）。
+- 読むのは YouTube の動画ページ（ページに埋め込まれた動画の情報）。YouTube 側の作りが変わると読めなくなるので、
+  そのときは「読めなかった」と出して終了コード 1 にする（contents.json は書き換えない）。
 - 書き換えたあとは python3 tools/build.py で生成し直す。
 """
 import argparse
@@ -16,14 +20,20 @@ import http.client
 import json
 import os
 import re
+import socket
 import sys
+import tempfile
 import time
+import urllib.error
 import urllib.request
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CONTENTS = os.path.join(ROOT, "src", "contents.json")
 WATCH = "https://www.youtube.com/watch?v=%s"
 VIDEO_ID = r"[A-Za-z0-9_-]{11}"
+TRIES = 3
+# 説明文のここから先は一言に入れない: 「TIMELINE」の見出し（【TIMELINE】・■TIMELINE: なども）と、時刻で始まる行
+STOP = re.compile(r"\s*(?:[^\w\s]\s*)*TIMELINE\b|\s*\d{1,2}:\d{2}(?::\d{2})?(?!\d)", flags=re.I)
 
 
 def player_response(html):
@@ -37,37 +47,45 @@ def player_response(html):
 
 
 def lead_of(description):
-    """説明文のうち TIMELINE の行より前。行の終わりの空白と、前後の空行は除く。"""
+    """説明文のうち、TIMELINE の見出しか時刻で始まる行より前。行の終わりの空白と、前後の空行は除く。"""
     out = []
     for line in (description or "").replace("\r\n", "\n").split("\n"):
-        if re.match(r"\s*TIMELINE\b", line, flags=re.I):
+        if STOP.match(line):
             break
         out.append(line.rstrip())
     return "\n".join(out).strip("\n").strip()
 
 
-def fetch(video_id):
-    req = urllib.request.Request(WATCH % video_id, headers={
-        "Accept-Language": "ja,en;q=0.8",
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-    })
-    html, last = "", None
-    for attempt in range(3):
+def get_page(video_id):
+    """動画のページを読む。通信の失敗（時間切れ・429・5xx）と、途中で切れた応答は、間を空けて読み直す。"""
+    req = urllib.request.Request(WATCH % video_id, headers={"Accept-Language": "ja,en;q=0.8", "User-Agent": "Mozilla/5.0"})
+    last = None
+    for attempt in range(TRIES):
+        if attempt:
+            time.sleep(2 * attempt)
         try:
             with urllib.request.urlopen(req, timeout=30) as r:
                 data = r.read()
         except http.client.IncompleteRead as e:
             # 途中で切れても、題と説明文はページの前のほうにあるので、読めた分で足りることが多い
             data = e.partial
-        html = data.decode("utf-8", errors="replace")
+        except urllib.error.HTTPError as e:
+            last = e
+            if e.code == 429 or e.code >= 500:
+                continue
+            raise
+        except (urllib.error.URLError, socket.timeout, ConnectionError) as e:
+            last = e
+            continue
         try:
-            pr = player_response(html)
-            break
+            return player_response(data.decode("utf-8", errors="replace"))
         except ValueError as e:
             last = e
-            time.sleep(2)
-    else:
-        raise last
+    raise last
+
+
+def fetch(video_id):
+    pr = get_page(video_id)
     status = (pr.get("playabilityStatus") or {}).get("status", "")
     vd = pr.get("videoDetails") or {}
     if vd.get("videoId") != video_id or not vd.get("title"):
@@ -88,6 +106,23 @@ def with_fields(item, title, lead):
     return out
 
 
+def without_fields(item):
+    return {k: v for k, v in item.items() if k not in ("yt_title", "yt_lead")}
+
+
+def write_atomic(path, text):
+    """途中で止まっても元のファイルが壊れないよう、同じフォルダの一時ファイルに書いてから置き換える。"""
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), prefix=".contents-", suffix=".json")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+        os.replace(tmp, path)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+        raise
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true", help="書き換えず、YouTube とずれている項目だけを出す")
@@ -98,7 +133,10 @@ def main():
     new = []
     for item in contents:
         vid = item.get("youtube", "")
-        if not vid:
+        if not vid or item.get("status") != "published":
+            if "yt_title" in item or "yt_lead" in item:
+                changed.append("#%s: 公開でない（または動画 ID が無い）ので yt_title・yt_lead を外す" % item.get("id"))
+                item = without_fields(item)
             new.append(item)
             continue
         if not re.fullmatch(VIDEO_ID, vid):
@@ -120,13 +158,16 @@ def main():
         print(("ずれている: " if a.check else "更新: ") + line)
     if a.check:
         return 1 if (changed or failed) else 0
+    if failed:
+        # 一部だけ読めた状態で書くと、読めなかった動画の古い題が残ったことに気づきにくいので、書かない
+        print("読めなかった動画があるので contents.json は書き換えていない（時間をおいて、もう一度実行する）", file=sys.stderr)
+        return 1
     if changed:
-        with open(CONTENTS, "w", encoding="utf-8") as f:
-            f.write(json.dumps(new, ensure_ascii=False, indent=2) + "\n")
+        write_atomic(CONTENTS, json.dumps(new, ensure_ascii=False, indent=2) + "\n")
         print("src/contents.json を書き換えた（%d 件）。python3 tools/build.py で生成し直す" % len(changed))
     else:
         print("変更なし")
-    return 1 if failed else 0
+    return 0
 
 
 if __name__ == "__main__":
