@@ -543,7 +543,8 @@ html.light .new { color: #a000a0; animation-name: ma-new-light; }
   .hero-figure { left: calc(50% - 303px); top: 228.5px; width: 68px; }
   .arrow-1 { right: 90px; top: calc(var(--h1) - 117px); }
 
-  .quote { --q1: max(505px, calc(var(--scr) - var(--hdr-h) + var(--hdr-top) - var(--fade))); height: max(907.5px, calc(var(--q1) + 120px)); }
+  /* 幅 1450px 未満では「平場」の絵が矢印の列に掛かるので、矢印は絵の下（500px）より上には行かない */
+  .quote { --q1: max(605px, calc(var(--scr) - var(--hdr-h) + var(--hdr-top) - var(--fade))); height: max(907.5px, calc(var(--q1) + 120px)); }
   .quote-credit { top: 364.5px; }
   .hiraba-illust { left: calc(50% + 299px); top: 267.5px; width: 283px; }
   .arrow-2 { right: calc(90px - var(--gut)); top: calc(var(--q1) - 105px); width: 50px; height: 75px; }
@@ -712,10 +713,12 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 
 /* ---------- 番組のページ ---------- */
 
-/* 冒頭の段: --p1＝最初の画面のうちヘッダーの下の高さ。矢印はその右下。--p-min は字や絵に重ならない最小（番組ごと） */
-.program-top { --p-min: 508px; --p1: max(var(--p-min), calc(var(--scr) - var(--hdr-h))); position: relative; height: max(807px, calc(var(--p1) + 113px)); }
-.pg-ma-development-process .program-top { --p-min: 741px; height: max(835px, calc(var(--p1) + 112px)); }
-.pg-ma-crosstalk .program-top { --p-min: 448px; }
+/* 冒頭の段: --p1＝最初の画面のうちヘッダーの下の高さ。矢印（高さ 70px）はその右下（下から 18px）。
+   --p-min は、矢印が紹介文や右端に掛かる絵の下に来る最小（幅 375px で測った下端＋10px＋88px。番組ごと）。
+   段の高さは、矢印の下にデザインと同じ余白を残す（画面 812px でデザインの 807px・835px になる） */
+.program-top { --p-min: 617px; --p1: max(var(--p-min), calc(var(--scr) - var(--hdr-h))); position: relative; height: max(807px, calc(var(--p1) + 95px)); }
+.pg-ma-development-process .program-top { --p-min: 699px; height: max(835px, calc(var(--p1) + 94px)); }
+.pg-ma-crosstalk .program-top { --p-min: 477px; }
 .program-top .content { position: relative; z-index: 1; }
 .program-head { padding-top: 52px; }
 .ph-title { line-height: var(--lh); }
@@ -776,7 +779,8 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .related .entries { margin-top: 27px; }
 .related .entry + .entry { margin-top: 27px; padding-top: 27px; }
 @media (min-width: 1200px) {
-  .program-top, .pg-ma-development-process .program-top, .pg-ma-crosstalk .program-top { --p-min: 416px; height: max(1015px, calc(var(--p1) + 142px)); }
+  /* PC は紹介文と絵が中央の列なので、右端の矢印は上がってよい（画面 1080px でデザインの 1015px） */
+  .program-top, .pg-ma-development-process .program-top, .pg-ma-crosstalk .program-top { --p-min: 416px; height: max(1015px, calc(var(--p1) + 113px)); }
   .program-head { padding-top: 148px; }
   .ph-title .en { font-size: var(--head); }
   .ph-sub { margin-top: -6.5px; }
