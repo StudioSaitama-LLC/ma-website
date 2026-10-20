@@ -816,8 +816,9 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
   .related { margin-top: 109.5px; }
   .related .entry + .entry { margin-top: 33px; padding-top: 33px; }
 }
-/* 幅 1300px 未満の PC では、Development Process の絵（右端＝中央から 499.7px）が矢印の列に掛かるので、矢印は絵の下で止める */
-@media (min-width: 1200px) and (max-width: 1299.98px) {
+/* 幅 1260px 未満の PC では、Development Process の絵（右端＝中央から 499.7px）の線が矢印に掛かるので、矢印は絵の下で止める
+   （1260〜1279px は絵の外枠だけが掛かり、線との重なりは矢印の 1% 未満なので、画面の右下のままにする） */
+@media (min-width: 1200px) and (max-width: 1259.98px) {
   .pg-ma-development-process .program-top { --p-min: 806px; }
 }
 
