@@ -352,6 +352,8 @@ class Site:
                 if re.fullmatch(r"\d+-\d+-\d+", e.get("key", "")):
                     errors.append("programs.json %s: 回の key に番号の形（%s）は使わない（記事の住所と重なる）" % (p["slug"], e["key"]))
         for g in self.site.get("gates", []):
+            if not re.fullmatch(SLUG, g.get("key", "")):
+                errors.append("site.json gates: key は英小文字・数字・ハイフンだけ（class の名前に使う）: %r" % g.get("key"))
             for k in ("name", "short", "ja", "url"):
                 if not isinstance(g.get(k), str) or not g[k].strip():
                     errors.append("site.json gates %s: %s（文字）が要る" % (g.get("key"), k))
@@ -1230,7 +1232,7 @@ class Site:
                 cur_attr = ' aria-current="true"'
             if cur_attr:
                 bar = '<span class="ln-bar" aria-hidden="true"></span>'  # いまいる所の下線。部屋を移ると横へ滑って移る（css の view-transition）
-            lis.append('<li><a href="%s"%s>%s%s</a></li>' % (self.href(cur, url), cur_attr, esc(label), bar))
+            lis.append('<li><a href="%s"%s data-label="%s">%s%s</a></li>' % (self.href(cur, url), cur_attr, esc(label), esc(label), bar))
         return '<nav class="local-nav ln-%s" aria-label="%s の部屋"><ul>%s</ul></nav>' % (g["key"], esc(g["name"]), "".join(lis))
 
     def lab_glyph(self, form):
@@ -1348,10 +1350,11 @@ class Site:
           {mitsu}
           {ma}
         </dl>{quote}
-        <p class="el-acts"><span class="el-label">当てはまる行い</span>{acts}</p>
+{acts}
         <p class="el-links">{links}</p>
       </li>""".format(key=esc(e["key"]), no=i, name=esc(e["name"]), sub=esc(e["sub"]),
-                       mitsu=row("mitsu", lab["poles"]["left"]), ma=row("ma", lab["poles"]["right"]), quote=quote, acts=acts,
+                       mitsu=row("mitsu", lab["poles"]["left"]), ma=row("ma", lab["poles"]["right"]), quote=quote,
+                       acts=('\n        <p class="el-acts"><span class="el-label">当てはまる行い</span>%s</p>' % acts) if acts else "",
                        links="　".join(links)))
         # 3 つの部屋はカードにして、導入文のすぐ後（地図より先）に置く（部門の入口は下の階層へすぐ進めることが先）
         rooms = []
