@@ -1214,7 +1214,9 @@ class Site:
         門の入口が扉と同じ住所（Do の入口＝Device）なら「入口」は出さない。開いていない扉は灰色で押せない。
         here の下のページ（商品ページなど）では、その扉を「いまいる所」として示す。"""
         items = [] if g["url"] in [d.get("url") for d in g["doors"]] else [(g["url"], "入口", True)]
-        items += [(d.get("url"), d["en"], bool(d["ready"] and d.get("url"))) for d in g["doors"]]
+        # 開いている扉を先に、準備中は後ろに（並びの中は site.json の順）
+        doors = [(d.get("url"), d["en"], bool(d["ready"] and d.get("url"))) for d in g["doors"]]
+        items += [x for x in doors if x[2]] + [x for x in doors if not x[2]]
         lis = []
         for url, label, ok in items:
             if not ok:
@@ -1226,7 +1228,7 @@ class Site:
             elif label != "入口" and here.startswith(url):
                 cur_attr = ' aria-current="true"'
             lis.append('<li><a href="%s"%s>%s</a></li>' % (self.href(cur, url), cur_attr, esc(label)))
-        return '<nav class="local-nav" aria-label="%sの中"><ul>%s</ul></nav>' % (esc(g["name"]), "".join(lis))
+        return '<nav class="local-nav" aria-label="%s の部屋"><ul>%s</ul></nav>' % (esc(g["name"]), "".join(lis))
 
     def lab_glyph(self, form):
         return '<span class="fg" aria-hidden="true">%s</span>' % esc(LAB_GLYPH.get(form, "■"))
@@ -1417,7 +1419,7 @@ class Site:
     </li>""".format(key=esc(t["key"]), reading=esc(t["reading"]), word=esc(t["word"]), kind=esc(t["kind"]), gloss=esc(t["gloss"]),
                      sense=esc(t["sense"]), quote=self.lab_quote(cur, t), acts=acts, ono=esc("・".join(t.get("onomatopoeia", []))),
                      refs=refs or "（まだ無い）", related=related or "—", q=esc(t["question"]),
-                     chips=" ".join('<a class="chip" href="%s">%s</a>' % (self.href(cur, "lab/#e-%s" % k), esc(self.lab_element(k)["name"])) for k in t.get("elements", []))))
+                     chips="・".join('<a class="chip" href="%s">%s</a>' % (self.href(cur, "lab/#e-%s" % k), esc(self.lab_element(k)["name"])) for k in t.get("elements", []))))
         body = """
   <div class="content lab-page">
     {head}
@@ -1458,8 +1460,8 @@ class Site:
         body = """
   <div class="content lab-page">
     {head}
-    <div class="filter-box" role="group" aria-label="資料を絞り込む">
-      <p class="fb-label">絞り込む</p>
+    <div class="filter-box" role="group" aria-labelledby="fb-label">
+      <p class="fb-label" id="fb-label">絞り込む</p>
     {f_elements}
     {f_form}
       <p class="ref-count" aria-live="polite" aria-atomic="true"><span class="rc-now">{n}</span> 件</p>
@@ -1709,7 +1711,7 @@ class Site:
         counts = {}
         for prod in self.device["products"]:
             counts[self.shop_of(prod)["slug"]] = counts.get(self.shop_of(prod)["slug"], 0) + 1
-        pills = ['<button class="pill is-active" type="button" data-shop="">ALL</button>']
+        pills = ['<button class="pill is-active" type="button" data-shop="">すべて</button>']
         for s_ in self.site["shops"]:
             pills.append('<button class="pill%s" type="button" data-shop="%s">%s</button>' % (
                 "" if counts.get(s_["slug"]) else " is-empty", esc(s_["slug"]), esc(s_["name"])))
