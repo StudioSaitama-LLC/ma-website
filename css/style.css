@@ -1388,3 +1388,4 @@ html:not(.js) .filter-box { display: none; }
 .cards-feature .card-title { font-size: var(--head); line-height: 1.4; }
 .cards-feature .card-link { padding-top: 16px; padding-bottom: 16px; border-width: 2px; }
 .channel-latest + .channel-menu { margin-top: 56px; }
+.lab-links .chip { margin-right: 0; }  /* 要素は「・」区切りなので、リンクの右の余白は付けない */
