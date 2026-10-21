@@ -17,6 +17,9 @@ do/device/manaka-store/index.html
 do/index.html
 edge-riders.html
 index.html
+lab/dictionary/index.html
 lab/index.html
+lab/reference/index.html
+lab/research/index.html
 ma-channel.html
 notion/index.html

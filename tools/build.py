@@ -23,6 +23,10 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SRC = os.path.join(ROOT, "src")
 MARK = "<!-- このファイルは tools/build.py が src/ から生成しています。直接編集せず src/ を直して再生成してください。 -->"
 STATUS = {"published": "", "editing": "編集中", "planned": "掲載予定"}
+LAB_STATUS = ("確認済み", "候補", "相談中")  # Lab の資料の出典の確かめ具合（確認済み＝書誌を国会図書館・CiNii・版元で確かめた）
+LAB_QUOTE_MIN = 8  # Lab の引用は、この字数以上の一節を写す（1 字の一致で通らないように）
+LAB_NAME_MAX = 6  # Lab の要素の名前の長さ（地図の札に入る長さ）
+LAB_GLYPH = {"言葉": "◆", "文章": "■", "音": "●", "映像": "▶", "写真": "▲", "場": "◉"}  # 資料の形の目印（塗りの記号でそろえる）
 KIND = {"tv": "TV", "mag": "Magazine", "radio": "Radio"}
 KIND_ORDER = {"tv": 0, "mag": 1, "radio": 2}
 NEW_COUNT = 3  # 日付の新しい順にこの件数だけ <NEW> を付ける
@@ -80,6 +84,44 @@ def bad_date(d):
 
 def id_key(item):
     return [int(x) for x in item["id"].split("-")]
+
+
+def lab_spread(angles, gap):
+    """円周上の角度の並びを、順序を保ったまま隣との間隔が gap 以上になるように動かす。
+    いちばん広い隙間で円を切って一列にし、動かす量が小さくなるように単調回帰（PAV）で解く。全部は入らないときは等間隔にする。"""
+    import math
+    n = len(angles)
+    if n == 0:
+        return []
+    full = 2 * math.pi
+    if n * gap > full:
+        gap = full / n
+    idx = sorted(range(n), key=lambda i: angles[i] % full)
+    if n > 1:
+        a = [angles[i] % full for i in idx]
+        gaps = [(a[(k + 1) % n] - a[k]) % full for k in range(n)]
+        cut = gaps.index(max(gaps))  # a[cut] と a[cut+1] の間が最も広い → その次から並べる
+        idx = idx[cut + 1:] + idx[:cut + 1]
+    base = angles[idx[0]]
+    seq = [(angles[i] - base) % full for i in idx]  # base から増える向きに 0 〜 2π
+    y = [v - k * gap for k, v in enumerate(seq)]
+    blocks = []  # [合計, 個数]。前の塊の平均が後ろより大きければ合わせる（PAV）
+    for v in y:
+        blocks.append([v, 1])
+        while len(blocks) > 1 and blocks[-2][0] / blocks[-2][1] > blocks[-1][0] / blocks[-1][1]:
+            last = blocks.pop()
+            blocks[-1][0] += last[0]
+            blocks[-1][1] += last[1]
+    fitted = []
+    for total, count in blocks:
+        fitted += [total / count] * count
+    placed = [fitted[k] + k * gap for k in range(n)]
+    if n > 1 and placed[-1] - placed[0] > full - gap:  # 切った所でぶつかる → 等間隔
+        placed = [placed[0] + k * full / n for k in range(n)]
+    out = [0.0] * n
+    for k, i in enumerate(idx):
+        out[i] = base + placed[k]
+    return out
 
 
 def bracket(title):
@@ -166,6 +208,7 @@ class Site:
         self.device = load("device.json")
         self.manifesto = load("manifesto.json")
         self.company = load("company.json")
+        self.lab = load("lab.json")
         self.pages = {}
         self.validate()
         self.news = self.collect_news()
@@ -309,8 +352,122 @@ class Site:
         photo = self.company.get("photo", {}).get("src")
         if photo and not os.path.exists(os.path.join(ROOT, "assets", photo)):
             errors.append("company.json: assets/%s が無い" % photo)
+        self.validate_lab(errors)
         if errors:
             raise SystemExit("データに問題があります:\n  " + "\n  ".join(errors))
+
+    def validate_lab(self, errors):
+        """Lab の試作データ（src/lab.json）。引用の一節がマニフェストの本文に無ければ止める（マニフェストを軸にする決まり）。"""
+        lab = self.lab
+        shape = {"version": str, "intro": list, "rule": dict, "poles": dict, "forms": list, "doors": dict,
+                 "elements": list, "terms": list, "references": list, "research": list}
+        for k, typ in shape.items():
+            if not isinstance(lab.get(k), typ):
+                errors.append("lab.json: %s が無いか、形が違う（%s）" % (k, typ.__name__))
+        if any(not isinstance(lab.get(k), typ) for k, typ in shape.items()):
+            return  # 形が崩れていると以下の検査自体ができない
+        chapters = set(c["no"] for c in self.manifesto["chapters"])
+        forms = set(lab["forms"])
+
+        def need(kind, name, it, keys, lists=(), optional=()):
+            """必須の項目が、空でない文字列（lists は文字列の並び。optional は書くなら文字列の並び）で入っているか。"""
+            ok = True
+            if not isinstance(it, dict):
+                errors.append("lab.json %s: 項目が {} の形でない: %r" % (kind, it))
+                return False
+            for k in keys:
+                if not isinstance(it.get(k), str) or not it[k].strip():
+                    errors.append("lab.json %s %s: %s が無いか、文字列でない" % (kind, name, k))
+                    ok = False
+            for k in lists:
+                if k not in it:
+                    errors.append("lab.json %s %s: %s（文字列の並び）が無い" % (kind, name, k))
+                    ok = False
+            for k in tuple(lists) + tuple(optional):
+                v = it.get(k, [])
+                if not (isinstance(v, list) and all(isinstance(x, str) for x in v)):
+                    errors.append("lab.json %s %s: %s は文字列の並びで書く" % (kind, name, k))
+                    ok = False
+            return ok
+
+        for key in ("dictionary", "reference", "research"):
+            info = lab.get("doors", {}).get(key)
+            if not isinstance(info, dict) or not need("doors", key, info, ("ja", "role")):
+                errors.append("lab.json doors: %s に ja と role を書く" % key)
+        if not all(isinstance(x, dict) for x in lab["elements"] + lab["terms"] + lab["references"] + lab["research"]):
+            errors.append("lab.json: elements / terms / references / research の各項目は {} の形で書く")
+            return
+        ekeys = set()
+        for e in lab["elements"]:
+            if not re.fullmatch(SLUG, e.get("key", "")):
+                errors.append("lab.json elements: key は英小文字・数字・ハイフンだけ: %r" % e.get("key"))
+            if e.get("key") in ekeys:
+                errors.append("lab.json elements: key が重複: %s" % e["key"])
+            ekeys.add(e.get("key"))
+            if need("elements", e.get("key"), e, ("name", "sub", "mitsu", "ma"), ("acts",), ("guess",)) and len(e["name"]) > LAB_NAME_MAX:
+                errors.append("lab.json elements %s: name は %d 字まで（地図の札に入れるため）: %r" % (e["key"], LAB_NAME_MAX, e["name"]))
+            if any(g not in ("mitsu", "ma") for g in e.get("guess", [])):
+                errors.append("lab.json elements %s: guess（本文に無い見立ての印）は mitsu / ma のどれか" % e.get("key"))
+        keys = set()
+        for t in lab["terms"]:
+            if not re.fullmatch(SLUG, t.get("key", "")):
+                errors.append("lab.json terms: key は英小文字・数字・ハイフンだけ: %r" % t.get("key"))
+            if t.get("key") in keys:
+                errors.append("lab.json terms: key が重複: %s" % t["key"])
+            keys.add(t.get("key"))
+            need("terms", t.get("key"), t, ("word", "reading", "kind", "gloss", "sense", "question"), ("onomatopoeia", "related", "elements"), ("acts",))
+        ids = set()
+        for r in lab["references"]:
+            if not re.fullmatch(SLUG, r.get("id", "")):
+                errors.append("lab.json references: id は英小文字・数字・ハイフンだけ: %r" % r.get("id"))
+            if r.get("id") in ids:
+                errors.append("lab.json references: id が重複: %s" % r["id"])
+            ids.add(r.get("id"))
+            if need("references", r.get("id"), r, ("form", "field", "title", "creator", "why", "question", "status"), ("terms", "elements")) \
+                    and not r["elements"] and r.get("status") != "相談中":
+                errors.append("lab.json %s: どの要素が映っているか（elements）を 1 つ以上書く（決めていないなら status を 相談中 に）" % r["id"])
+            if not isinstance(r.get("year", ""), str) or not isinstance(r.get("note", ""), str):
+                errors.append("lab.json %s: year と note は文字列で書く（年だけでも \"1971\" のように）" % r.get("id"))
+            if r.get("form") not in forms:
+                errors.append("lab.json %s: form は forms のどれか: %r" % (r.get("id"), r.get("form")))
+            if type(r.get("pole")) is not int or not 0 <= r["pole"] <= 100:
+                errors.append("lab.json %s: pole は 0（密）〜100（間）の整数: %r" % (r.get("id"), r.get("pole")))
+            if r.get("status") not in LAB_STATUS:
+                errors.append("lab.json %s: status は %s のどれか: %r" % (r.get("id"), "・".join(LAB_STATUS), r.get("status")))
+        for rs in lab["research"]:
+            if not re.fullmatch(SLUG, rs.get("id", "")):
+                errors.append("lab.json research: id は英小文字・数字・ハイフンだけ: %r" % rs.get("id"))
+            if rs.get("id") in ids:
+                errors.append("lab.json research: id が資料と重複: %s" % rs["id"])
+            ids.add(rs.get("id"))
+            need("research", rs.get("id"), rs, ("theme",), ("terms", "lines", "elements"))
+            if rs.get("status") not in STATUS:
+                errors.append("lab.json research %s: status は published / editing / planned のどれか: %r" % (rs.get("id"), rs.get("status")))
+        acts = set(a for t in lab["terms"] for a in t.get("acts", []))
+        used = set()
+        for kind in ("elements", "terms", "references", "research"):
+            for it in lab[kind]:
+                name = it.get("key") or it.get("id")
+                for k in list(it.get("terms", [])) + list(it.get("related", [])):
+                    if k not in keys:
+                        errors.append("lab.json %s %s: 用語集（terms）に無い key: %r" % (kind, name, k))
+                for k in it.get("elements", []):
+                    if k not in ekeys:
+                        errors.append("lab.json %s %s: 要素（elements）に無い key: %r" % (kind, name, k))
+                    elif kind == "references":
+                        used.add(k)
+                if kind == "elements":
+                    for a in it.get("acts", []):
+                        if a not in acts:
+                            errors.append("lab.json elements %s: acts はマニフェストの羅列（用語の acts）にある語だけ: %r" % (name, a))
+                if type(it.get("ch")) is not int or it["ch"] not in chapters:
+                    errors.append("lab.json %s %s: ch はマニフェストの章番号（整数）: %r" % (kind, name, it.get("ch")))
+                elif not isinstance(it.get("quote"), str) or len(it["quote"].strip()) < LAB_QUOTE_MIN:
+                    errors.append("lab.json %s %s: quote は %d 字以上の一節を写す" % (kind, name, LAB_QUOTE_MIN))
+                elif it["quote"] not in self.chapter_text(it["ch"]):
+                    errors.append("lab.json %s %s: quote が第 %s 章の本文に見つからない（一字一句そのまま写す）" % (kind, name, it["ch"]))
+        for k in ekeys - used:
+            errors.append("lab.json elements %s: この要素が映っている資料が 1 つも無い（地図に線が出ない）" % k)
 
     # ---------- データのまとめ ----------
 
@@ -538,7 +695,7 @@ class Site:
                 for p in self.programs:
                     rows.append('<li><a href="%s"><span class="en">%s</span> / %s</a></li>'
                                 % (h("channel/%s/" % p["slug"]), esc(p["en"]), esc(p["ja"])))
-            elif g["key"] == "do":
+            elif g["key"] in ("lab", "do"):
                 for d in g["doors"]:
                     if d["ready"]:
                         rows.append('<li><a href="%s"><span class="en">%s</span></a></li>' % (h(d["url"]), esc(d["en"])))
@@ -895,20 +1052,286 @@ class Site:
            flow="\n".join(flow), book=self.illust(cur, "book", "book-illust", m="book"))
         self.page(cur, "MA Notion", body)
 
+    # ---------- Gate 1: MA Lab（試作） ----------
+
+    def chapter_text(self, no):
+        """マニフェストの章の本文を一つの文字列に（引用の一節がそこにあるかを確かめる用）。"""
+        for c in self.manifesto["chapters"]:
+            if c["no"] == no:
+                return "\n".join(("\n".join(p["box"]) if isinstance(p, dict) else p) for p in c["paragraphs"])
+        return ""
+
+    def lab_term(self, key):
+        return [t for t in self.lab["terms"] if t["key"] == key][0]
+
+    def lab_element(self, key):
+        return [e for e in self.lab["elements"] if e["key"] == key][0]
+
+    def lab_chips(self, cur, keys, label="要素"):
+        """要素の札（Lab の入口の要素の欄へ飛ぶ）。"""
+        if not keys:
+            return '<p class="chips"><span class="chips-label">%s</span><span class="chip-none">まだ決めていない</span></p>' % esc(label)
+        chips = " ".join('<a class="chip" href="%s">%s</a>' % (self.href(cur, "lab/#e-%s" % k), esc(self.lab_element(k)["name"])) for k in keys)
+        return '<p class="chips"><span class="chips-label">%s</span>%s</p>' % (esc(label), chips)
+
+    def lab_glyph(self, form):
+        return '<span class="fg" aria-hidden="true">%s</span>' % esc(LAB_GLYPH.get(form, "■"))
+
+    def lab_map(self, cur):
+        """要素の地図（SVG）。中心に「間」、まわりに要素、外側に資料。資料は映っている要素と線でつながる。
+        元の構想（Dictionary の重力空間 — 中心「間」へ語が引き寄せられ、外周には参考資料が浮遊する）を平面にしたもの。
+        文字は viewBox 600 に対して 24（スマホの全幅 375px で約 15px）。要素を決めていない資料は載せない。"""
+        import math
+        els = self.lab["elements"]
+        refs = [r for r in self.lab["references"] if r.get("elements")]
+        W = 600
+        cx = cy = W / 2
+        n = len(els)
+        ang = {e["key"]: -math.pi / 2 + 2 * math.pi * i / n for i, e in enumerate(els)}
+        r_el = lambda i: 215 if i % 2 else 170  # 札が隣と重ならないよう、交互に内外へ
+        pos = {e["key"]: (cx + r_el(i) * math.cos(ang[e["key"]]), cy + r_el(i) * math.sin(ang[e["key"]])) for i, e in enumerate(els)}
+        # 資料の角度は、映っている要素の向きの平均。正反対で打ち消し合うときは先頭の要素の右 90 度
+        want = []
+        for r in refs:
+            x = sum(math.cos(ang[k]) for k in r["elements"])
+            y = sum(math.sin(ang[k]) for k in r["elements"])
+            want.append(ang[r["elements"][0]] + math.pi / 2 if math.hypot(x, y) < 1e-9 else math.atan2(y, x))
+        angles = lab_spread(want, 2 * math.pi / (len(want) + 6))
+        r_ref = 272
+        out = ['<svg class="lab-map" viewBox="0 0 %d %d" role="group" aria-label="間の要素の地図。中心に間、まわりに %d の要素、外側に %d の資料。資料は映っている要素と線でつながる">'
+               % (W, W, n, len(refs)), '<title>間の要素の地図</title>']
+        out.append('<circle cx="%g" cy="%g" r="%g" fill="none" stroke="var(--fg)" stroke-opacity="0.25" stroke-width="1"/>' % (cx, cy, r_ref))
+        for a, r in zip(angles, refs):
+            x, y = cx + r_ref * math.cos(a), cy + r_ref * math.sin(a)
+            for k in r["elements"]:
+                ex, ey = pos[k]
+                out.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="var(--fg)" stroke-opacity="0.35" stroke-width="1"/>' % (x, y, ex, ey))
+        out.append('<text x="%g" y="%g" text-anchor="middle" dominant-baseline="central" fill="var(--accent)" font-size="88" font-weight="700">間</text>' % (cx, cy + 4))
+        for i, e in enumerate(els):
+            x, y = pos[e["key"]]
+            w = max(len(e["name"]) * 26 + 28, 76)
+            x = min(max(x, w / 2 + 2), W - w / 2 - 2)  # 札が枠からはみ出さないように
+            out.append('<a href="#e-%s"><rect x="%.1f" y="%.1f" width="%d" height="42" rx="21" fill="var(--bg)" stroke="var(--fg)" stroke-width="1.2"/>'
+                       '<text x="%.1f" y="%.1f" text-anchor="middle" dominant-baseline="central" fill="var(--fg)" font-size="24">%s</text></a>'
+                       % (esc(e["key"]), x - w / 2, y - 21, w, x, y + 1, esc(e["name"])))
+        # 点は札より後に描く（札の端に隠れないように）
+        for a, r in zip(angles, refs):
+            x, y = cx + r_ref * math.cos(a), cy + r_ref * math.sin(a)
+            out.append('<a href="%s"><title>%s</title><circle class="hit" cx="%.1f" cy="%.1f" r="20" fill="transparent"/><circle class="dot" cx="%.1f" cy="%.1f" r="7.5" fill="var(--accent)"/></a>'
+                       % (self.href(cur, "lab/reference/#r-%s" % r["id"]), esc(r["title"]), x, y, x, y))
+        out.append('</svg>')
+        return "\n    ".join(out)
+
+    def lab_quote(self, cur, item):
+        """マニフェストの一節と、その章へのリンク（Notion の章は #chN で開く）。"""
+        return '<p class="lab-quote"><q>%s</q> <a class="lab-ch" href="%s">第 %d 章</a></p>' % (
+            esc(item["quote"]), self.href(cur, "notion/#ch%d" % item["ch"]), item["ch"])
+
+    def lab_terms(self, cur, keys, label="用語"):
+        links = " ".join('<a href="%s">%s</a>' % (self.href(cur, "lab/dictionary/#t-%s" % k), esc(self.lab_term(k)["word"])) for k in keys)
+        return '<p class="ref-terms">%s: %s</p>' % (esc(label), links) if keys else ""
+
+    def lab_pole(self, v):
+        p = self.lab["poles"]
+        return ('<p class="pole" role="img" aria-label="%s 0 〜 %s 100 の目盛りで %d"><span class="pole-l" aria-hidden="true">%s</span>'
+                '<span class="pole-bar"><span class="pole-dot" style="left:%d%%"></span></span><span class="pole-r" aria-hidden="true">%s</span></p>'
+                % (esc(p["left"]), esc(p["right"]), v, esc(p["left"]), v, esc(p["right"])))
+
+    def lab_door(self, key):
+        """扉の番号と英名は site.json の gates、日本語名と役割は lab.json の doors から。"""
+        d = [x for x in self.gate("lab")["doors"] if x["url"].rstrip("/").split("/")[-1] == key][0]
+        info = self.lab["doors"][key]
+        return dict(d, ja=info["ja"], role=info["role"])
+
+    def lab_head(self, cur, door):
+        """扉のページの見出し（Gate の見出しと同じ組みで、上にパンくず）。"""
+        return ('<div class="gate-head">\n    <p class="crumb"><a href="%s">Gate 1: MA Lab</a></p>\n'
+                '    <h1 class="gh-title"><span class="gh-no">Door %s:</span> <strong>%s</strong></h1>\n'
+                '    <p class="gh-sub">/ %s</p>\n  </div>\n    <p class="lab-lead">%s</p>'
+                % (self.href(cur, "lab/"), esc(door["no"]), esc(door["en"]), esc(door["ja"]), esc(door["role"])))
+
     def build_lab(self):
-        cur = "lab/index.html"
+        lab = self.lab
         g = self.gate("lab")
-        doors = "\n".join('      <li class="is-dim">Door %s: %s</li>' % (esc(d["no"]), esc(d["en"])) for d in g["doors"])
+        counts = {"dictionary": len(lab["terms"]), "reference": len(lab["references"]), "research": len(lab["research"])}
+        units = {"dictionary": "用語", "reference": "資料", "research": "テーマ"}
+        # 入口: 要素の地図と要素の欄
+        cur = "lab/index.html"
+        by_el = {}
+        for r in lab["references"]:
+            for k in r.get("elements", []):
+                by_el.setdefault(k, []).append(r)
+        term_of = {}
+        for t in lab["terms"]:
+            for k in t.get("elements", []):
+                term_of.setdefault(k, []).append(t)
+        cards = []
+        for i, e in enumerate(lab["elements"], 1):
+            mark = lambda side: '<span class="guess" role="img" aria-label="（Lab の見立て）" title="本文に無い、Lab の見立て">※</span>' if side in e.get("guess", []) else ""
+            acts = "".join('<span class="act">%s</span>' % esc(a) for a in e.get("acts", []))
+            nref = len(by_el.get(e["key"], []))
+            terms = term_of.get(e["key"], [])
+            tlink = ('<span class="chips-label">用語</span>' + " ".join('<a href="%s">%s</a>' % (self.href(cur, "lab/dictionary/#t-%s" % t["key"]), esc(t["word"])) for t in terms)) if terms else ""
+            cards.append("""      <li class="el" id="e-{key}">
+        <p class="el-no">{no:02d}</p>
+        <h2 class="el-name">{name}</h2>
+        <p class="el-sub">{sub}</p>
+        <dl class="el-pair">
+          <div class="ep-mitsu"><dt>{left}の側</dt><dd>{mitsu}{gm}</dd></div>
+          <div class="ep-ma"><dt>{right}の側</dt><dd>{ma}{ga}</dd></div>
+        </dl>
+        {quote}
+        <p class="el-acts"><span class="chips-label">羅列から（Lab の見立て）</span>{acts}</p>
+        <p class="el-links"><a href="{rurl}">資料 {nref}</a>{tlink}</p>
+      </li>""".format(key=esc(e["key"]), no=i, name=esc(e["name"]), sub=esc(e["sub"]), left=esc(lab["poles"]["left"]), right=esc(lab["poles"]["right"]),
+                       mitsu=esc(e["mitsu"]), ma=esc(e["ma"]), gm=mark("mitsu"), ga=mark("ma"), quote=self.lab_quote(cur, e), acts=acts,
+                       rurl=self.href(cur, "lab/reference/#e-%s" % e["key"]), nref=nref, tlink=(" " + tlink) if tlink else ""))
+        doors = []
+        for d in g["doors"]:
+            key = d["url"].rstrip("/").split("/")[-1]
+            info = lab["doors"][key]
+            doors.append("""      <li>
+        <a class="ld-head" href="{url}"><span class="gh-no">Door {no}:</span> <strong>{en}</strong></a>
+        <span class="ld-ja">/ {ja}</span>
+        <span class="ld-role">{role}</span>
+        <span class="ld-count">{unit} {n}</span>
+      </li>""".format(url=self.href(cur, d["url"]), no=esc(d["no"]), en=esc(d["en"]), ja=esc(info["ja"]),
+                       role=esc(info["role"]), unit=units[key], n=counts[key]))
         body = """
-  <div class="content">
+  <div class="content lab-page">
     {head}
-    <ul class="door-list">
+    <div class="lab-lead prose">
+{intro}
+    </div>
+    {map}
+    <p class="map-note">要素の札を押すと下の欄へ、資料の点を押すとその資料へ。{unmapped}</p>
+    <ul class="door-list lab-doors">
 {doors}
     </ul>
-    <p class="pending-note">MA Lab は準備中です。</p>
+    {el_label}
+    <p class="el-legend">※ は、本文に無い Lab の見立て。</p>
+    <ol class="el-grid">
+{cards}
+    </ol>
+    {rule}
+    <ol class="lab-rules">
+{rules}
+    </ol>
+    <p class="pending-note">{version}</p>
   </div>
-""".format(head=self.gate_head(g), doors=doors)
+""".format(head=self.gate_head(g), intro="\n".join("      <p>%s</p>" % esc(x) for x in lab["intro"]), map=self.lab_map(cur),
+           unmapped=("要素を決めていない %d 件は、地図に載せていない。" % sum(1 for r in lab["references"] if not r.get("elements"))) if any(not r.get("elements") for r in lab["references"]) else "",
+           el_label=self.frame("間の要素（%d・Lab の見立て）" % len(lab["elements"])), cards="\n".join(cards),
+           rule=self.frame(lab["rule"]["label"]), rules="\n".join("      <li>%s</li>" % esc(x) for x in lab["rule"]["lines"]),
+           doors="\n".join(doors), version=esc(lab["version"]))
         self.page(cur, "MA Lab", body)
+
+        # Door 1-1: Dictionary Space
+        cur = "lab/dictionary/index.html"
+        by_term = {}
+        for r in lab["references"]:
+            for k in r["terms"]:
+                by_term.setdefault(k, []).append(r)
+        rows = []
+        for t in lab["terms"]:
+            refs = " ".join('<a href="%s">%s</a>' % (self.href(cur, "lab/reference/#r-%s" % r["id"]), esc(r["title"])) for r in by_term.get(t["key"], []))
+            related = " ".join('<a href="#t-%s">%s</a>' % (esc(k), esc(self.lab_term(k)["word"])) for k in t.get("related", []))
+            acts = ""
+            if t.get("acts"):
+                acts = '\n        <div><dt>羅列</dt><dd>%s</dd></div>' % esc("・".join(t["acts"]))
+            rows.append("""    <li class="term" id="t-{key}">
+      <p class="term-kana">{reading}</p>
+      <div class="term-head"><h2 class="term-word">{word}</h2><span class="status"><span class="visually-hidden">種類: </span>{kind}</span></div>
+      <dl class="term-body">
+        <div><dt>一般には</dt><dd>{gloss}</dd></div>
+        <div><dt>マニフェストでは</dt><dd>{sense}</dd></div>
+        <div><dt>一節</dt><dd>{quote}</dd></div>{acts}
+        <div><dt>オノマトペの手がかり</dt><dd>{ono}</dd></div>
+        <div><dt>要素</dt><dd class="lab-links">{chips}</dd></div>
+        <div><dt>資料</dt><dd class="lab-links">{refs}</dd></div>
+        <div><dt>関連</dt><dd class="lab-links">{related}</dd></div>
+      </dl>
+      <p class="lab-q"><span class="lq-label">問い</span>{q}</p>
+    </li>""".format(key=esc(t["key"]), reading=esc(t["reading"]), word=esc(t["word"]), kind=esc(t["kind"]), gloss=esc(t["gloss"]),
+                     sense=esc(t["sense"]), quote=self.lab_quote(cur, t), acts=acts, ono=esc("・".join(t.get("onomatopoeia", []))),
+                     refs=refs or "（まだ無い）", related=related or "—", q=esc(t["question"]),
+                     chips=" ".join('<a class="chip" href="%s">%s</a>' % (self.href(cur, "lab/#e-%s" % k), esc(self.lab_element(k)["name"])) for k in t.get("elements", []))))
+        body = """
+  <div class="content lab-page">
+    {head}
+    <ol class="term-list">
+{rows}
+    </ol>
+  </div>
+""".format(head=self.lab_head(cur, self.lab_door("dictionary")), rows="\n".join(rows))
+        self.page(cur, "Dictionary Space | MA Lab", body)
+
+        # Door 1-2: Reference Space
+        cur = "lab/reference/index.html"
+        labels = {"form": "形", "elements": "要素"}
+        pills = lambda key, items: ('<div class="ref-filters" data-filter="%s" role="group" aria-label="%sで絞り込む">\n      <p class="rf-label">%s</p>\n      <div class="pills"><div class="pill-row">'
+                                    '<button class="pill is-active" type="button" data-v="">ALL</button> %s</div></div>\n    </div>'
+                                    % (key, labels[key], labels[key],
+                                       " ".join('<button class="pill" type="button" data-v="%s">%s</button>' % (esc(v), esc(l)) for v, l in items)))
+        rows = []
+        for r in lab["references"]:
+            by = esc(r["creator"]) + (("、" + esc(r["year"])) if r.get("year") else "")
+            note = ('\n      <p class="ref-note">※ %s</p>' % esc(r["note"])) if r.get("note") else ""
+            rows.append("""    <li class="ref" id="r-{id}" data-form="{form}" data-elements="{els}">
+      <div class="ref-main">
+        <p class="ref-meta">{glyph}<span class="badge">{form}</span><span class="ref-field">{field}</span><span class="status">{status}</span></p>
+        <h2 class="ref-title">{title}<span class="ref-by">{by}</span></h2>
+        {chips}
+        {pole}
+      </div>
+      <div class="ref-text">
+        {quote}
+        <p class="ref-why">{why}</p>
+        <p class="lab-q"><span class="lq-label">問い</span>{q}</p>
+        {termlinks}{note}
+      </div>
+    </li>""".format(id=esc(r["id"]), form=esc(r["form"]), els=esc(" ".join(r.get("elements", []))), glyph=self.lab_glyph(r["form"]), field=esc(r["field"]), status=esc(r["status"]),
+                     title=esc(r["title"]), by=by, chips=self.lab_chips(cur, r.get("elements", [])), pole=self.lab_pole(r["pole"]),
+                     quote=self.lab_quote(cur, r), why=esc(r["why"]), q=esc(r["question"]), termlinks=self.lab_terms(cur, r["terms"]), note=note))
+        body = """
+  <div class="content lab-page">
+    {head}
+    {f_elements}
+    {f_form}
+    <p class="ref-count" aria-live="polite" aria-atomic="true"><span class="rc-now">{n}</span> 件</p>
+    <ol class="ref-list">
+{rows}
+    </ol>
+    <p class="ref-empty" hidden>この絞り込みに当たる資料はまだありません。</p>
+  </div>
+""".format(head=self.lab_head(cur, self.lab_door("reference")),
+           f_elements=pills("elements", [(e["key"], e["name"]) for e in lab["elements"]]),
+           f_form=pills("form", [(f, f) for f in lab["forms"]]),
+           n=len(lab["references"]), rows="\n".join(rows))
+        self.page(cur, "Reference Space | MA Lab", body)
+
+        # Door 1-3: Research Space
+        cur = "lab/research/index.html"
+        rows = []
+        for rs in lab["research"]:
+            rows.append("""    <li class="rs" id="rs-{id}">
+      <h2 class="rs-theme">{theme}{status}</h2>
+      {quote}
+      <p class="rs-lines">{lines}</p>
+      {chips}
+      {terms}
+    </li>""".format(id=esc(rs["id"]), theme=esc(rs["theme"]), status=self.status_badge(rs["status"]), quote=self.lab_quote(cur, rs),
+                     lines=brs(rs["lines"]), chips=self.lab_chips(cur, rs.get("elements", [])), terms=self.lab_terms(cur, rs["terms"])))
+        body = """
+  <div class="content lab-page">
+    {head}
+    <ol class="research-list">
+{rows}
+    </ol>
+    <p class="pending-note">テーマはまだ決まっていない。ここでは、マニフェストから取れる問いを候補として置いている。</p>
+  </div>
+""".format(head=self.lab_head(cur, self.lab_door("research")), rows="\n".join(rows))
+        self.page(cur, "Research Space | MA Lab", body)
 
     def build_channel(self):
         cur = "channel/index.html"

@@ -20,6 +20,7 @@ src/                           # 直すのはここ
   device.json                  # Device の商品（tools/import_device.py で荒井さんの Device 表から作る）
   company.json                 # Company（まなかの軌道・会社概要・運営施設）と Contact us の窓口。運営施設は {"name", "url"}（url が無いものは本文の色で出す）
   articles/*.html              # Magazine 記事の本文（HTML の断片。画像の @/ はサイトの最上位。article-head の中に日付の目印 <!-- build:meta --> を置く）
+  lab.json                     # Gate 1: MA Lab の試作データ（用語・資料・検証のテーマ）
 tools/
   build.py                     # src/ → 公開用 HTML（標準ライブラリだけ・Python 3.9 以上）
   import_manifesto.py          # Notion の docx → src/manifesto.json
@@ -32,7 +33,7 @@ css/ js/ assets/               # 見た目と画像（assets/device/ は Device 
 # 生成されるページ（URL）
 index.html                     # Home
 notion/                        # Gate 0: MA Notion（マニフェスト・密と間・三段の図）
-lab/                           # Gate 1: MA Lab（準備中）
+lab/                           # Gate 1: MA Lab（試作。dictionary/ reference/ research/ の 3 部屋）
 channel/                       # Gate 2: MA Channel（番組の一覧と、TV・Magazine・Radio ごとの新着）
 channel/<番組>/                # 番組ごとのページ（回ごとに開閉。#ep-<回> で開いた状態で来られる）
 channel/<番組>/<番号>/         # Magazine 記事
@@ -78,6 +79,19 @@ Device の写真は `assets/device/` にファイル名のまま置く（Device 
   - 取り決めに合わないと `build.py` が止まる
 - `assets/figures/` の「密」「間」の球（Notion）は、デザインの描画から球の中心と大きさを測って `tools/make_spheres.py` で作った SVG（光は右上から・下に影）
 - 生成した HTML にある `data-m` / `data-mt` は、デザインの位置と比べる採寸用の目印（表示や動きには使っていない）
+- **MA Lab は試作**。`src/lab.json` に用語（Dictionary）・資料（Reference）・検証のテーマ（Research）を書く。
+  置き方の決まり: どの項目も、マニフェスト（`src/manifesto.json`）の章 `ch`（整数）と、その本文に一字一句そのまま含まれる
+  8 字以上の一節 `quote` を持つ（無ければ `build.py` が止める）
+  - 要素 `elements`: マニフェストの考えを分解したもの。`key`・`name`（6 字まで。地図の札に入れる）・`sub`（一言）・
+    `mitsu`（密の側の姿）・`ma`（間の側の姿。本文に無い言い換えは `guess` に `"mitsu"` / `"ma"` を書くと ※ が付く）・`ch` と `quote`・`acts`（マニフェストの羅列から、この要素に当たる行い。Lab の見立て）。
+    用語・資料・検証は `elements` でこの `key` を引く。資料が 1 つも無い要素があると止める
+  - 用語 `terms`: `key`（英小文字）・`word`・`reading`・`kind`・一般の意味 `gloss`・マニフェストでの使われ方 `sense`（本文に書いてあることだけ）・
+    `onomatopoeia`（手がかりの語の並び）・`related`（他の用語の `key`）・`question`。`acts` は本文の羅列を写すとき
+  - 資料 `references`: `id`（英小文字。年は入れない）・`form`（`forms` のどれか）・`field`・`title`・`creator`・`year`（文字列）・
+    `terms`（用語の `key`）・`elements`（映っている要素。`相談中` 以外は 1 つ以上）・なぜ置くか `why`・`question`・`pole`（0 が密、100 が間）・`status`・`note`。
+    `status` は **確認済み**（本は書誌を国会図書館・CiNii・版元で、作品・展覧会・標語は初演・初出・開催年を公開情報で確かめ、PR に確認先を残した）／**候補**（まだ確かめていない）／**相談中**（載せ方を決めていない）
+  - 検証 `research`: `id`・`theme`・`lines`・`terms`・`status`。こちらの `status` は Channel と同じ `published / editing / planned`
+  - `doors` は扉の日本語名 `ja` と役割 `role`（番号と英名は `site.json` の gates）。`poles` は目盛りの両端の名前
 - ページの上の段: サイト名の段はスクロールで流れて消え、Gate の札の段は上端まで来たら貼り付く。その下に重なる本文はゆるやかに地の色へ消える。メニューのボタンは右上に残る
 - 下へ進む矢印は、その段を開いたときの画面の右下に出す（画面の高さ `100svh` から計算。字や絵に重なる低い画面では、重ならない位置で止める）。Home の「現在、／1／人が平場に立ちました。」は、ヘッダーの下から画面の下までの縦の中央に置く
 - 回（番組のページ・関連コンテンツ・記事の後ろ・商品ページ）は同じ枠で出す。題に「」が入っているとき（YouTube の題など）は、入れ子が読みにくいので『』で囲む
