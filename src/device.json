@@ -60,25 +60,25 @@
           "color": "消水晶",
           "list_price": 50000,
           "price": 50000,
-          "image": "seihai_g01.jpg"
+          "image": "seihai_c01.jpg"
         },
         {
           "color": "紫金石",
           "list_price": 60000,
           "price": 60000,
-          "image": "seihai_10.jpg"
+          "image": "seihai_g04.jpg"
         },
         {
           "color": "アベン",
           "list_price": 70000,
           "price": 70000,
-          "image": "seihai_15.jpg"
+          "image": "seihai_g03.jpg"
         },
         {
           "color": "ピンククォーツ",
           "list_price": 70000,
           "price": 70000,
-          "image": "seihai_08.jpg"
+          "image": "seihai_ishi_pink.jpg"
         }
       ],
       "ec_url": "https://manaka-store.com/products/detail/2"
