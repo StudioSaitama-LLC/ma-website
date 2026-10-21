@@ -22,15 +22,17 @@ import sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SRC = os.path.join(ROOT, "src")
 MARK = "<!-- このファイルは tools/build.py が src/ から生成しています。直接編集せず src/ を直して再生成してください。 -->"
-STATUS = {"published": "", "editing": "編集中", "planned": "掲載予定"}
+STATUS = {"published": "", "editing": "準備中", "planned": "準備中"}  # 来た人に作る側の段階の違いは要らないので、公開前は「準備中」の 1 つ
 LAB_STATUS = ("確認済み", "候補", "相談中")  # Lab の資料の出典の確かめ具合（確認済み＝書誌を国会図書館・CiNii・版元で確かめた）
 LAB_QUOTE_MIN = 8  # Lab の引用は、この字数以上の一節を写す（1 字の一致で通らないように）
 LAB_NAME_MAX = 6  # Lab の要素の名前の長さ（地図の札に入る長さ）
 LAB_GLYPH = {"言葉": "◆", "文章": "■", "音": "●", "映像": "▶", "写真": "▲", "場": "◉"}  # 資料の形の目印（塗りの記号でそろえる）
-KIND = {"tv": "TV", "mag": "Magazine", "radio": "Radio"}
+KIND = {"tv": "TV", "mag": "Magazine", "radio": "Radio"}  # 扉の名前（Home の地図だけで使う）
+VIEW = {"tv": "動画", "mag": "読み物", "radio": "音声"}  # 回の中での呼び名（Magazine は badge の「随想記事」などを使う）
 KIND_ORDER = {"tv": 0, "mag": 1, "radio": 2}
 NEW_COUNT = 3  # 日付の新しい順にこの件数だけ <NEW> を付ける
 NEW_DAYS = 60  # ただし、いちばん新しい日付からこの日数より古いものには付けない
+DEVICE_SEARCH_MIN = 10  # 道具がこの数に満たない間は、検索欄とお店の絞り込みを出さない（1 つを探すための道具は要らない）
 SLUG = r"[a-z0-9][a-z0-9-]*"  # URL と id に入る名前（番組・回・お店）
 IMAGE_NAME = r"[A-Za-z0-9_-]+\.(?:jpg|jpeg|png|webp)"
 BLANK_GIF = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"  # 1px の透明な画像
@@ -273,6 +275,10 @@ class Site:
                 errors.append("contents.json #%s: yt_title・yt_lead は youtube があって公開（published）の項目だけ（tools/import_youtube.py が書く）" % cid)
             if "device" in c and not (isinstance(c["device"], list) and all(isinstance(x, (str, int)) for x in c["device"])):
                 errors.append("contents.json #%s: device は商品 ID の並び（[\"2\"] など）" % cid)
+            if c.get("prologue") and (c.get("episode") or c.get("related")):
+                errors.append("contents.json #%s: prologue（番組の第 0 回）は回にも関連にも入れない（episode・related を外す）" % cid)
+            if c.get("kind") == "mag" and c.get("badge") and c.get("status") == "published" and c["badge"] not in self.site.get("views", {}):
+                errors.append("contents.json #%s: site.json の views に「%s」の一言が無い（見方のカードに出す）" % (cid, c["badge"]))
             if c.get("portrait_focus") and not re.fullmatch(r"\d{1,3}% \d{1,3}%", c["portrait_focus"]):
                 errors.append("contents.json #%s: portrait_focus は \"68%% 50%%\" の形で書く" % cid)
             hero = c.get("hero", [])
@@ -353,6 +359,17 @@ class Site:
         if photo and not os.path.exists(os.path.join(ROOT, "assets", photo)):
             errors.append("company.json: assets/%s が無い" % photo)
         self.validate_lab(errors)
+        # 回と道具の要素の札（Lab の要素の key）。付けるかどうかはまなか側が決める（無ければ札は出ない）
+        el_keys = set(e.get("key") for e in self.lab.get("elements", []))
+        for p_ in self.programs:
+            for e in p_.get("episodes", []):
+                for k in e.get("elements", []):
+                    if k not in el_keys:
+                        errors.append("programs.json %s の回 %s: lab.json に無い要素: %r" % (p_["slug"], e.get("key"), k))
+        for prod in self.device["products"]:
+            for k in prod.get("elements", []):
+                if k not in el_keys:
+                    errors.append("device.json %s: lab.json に無い要素: %r" % (prod.get("name"), k))
         if errors:
             raise SystemExit("データに問題があります:\n  " + "\n  ".join(errors))
 
@@ -495,9 +512,6 @@ class Site:
     def product_url(self, prod):
         return "do/device/%s/%s/" % (self.shop_of(prod)["slug"], prod["id"])
 
-    def item_path(self, item):
-        return "MA Channel/%s/%s" % (KIND[item["kind"]], item["id"])
-
     def item_date(self, item):
         """コンテンツの日付。無ければ、その回（programs.json の episodes）の日付を引き継ぐ。"""
         if item.get("date"):
@@ -516,7 +530,7 @@ class Site:
     def episodes(self, p):
         """番組の回ごとに、その回のコンテンツをまとめる。回を決めていないコンテンツは 1 件で 1 回とする。"""
         out = []
-        mine = [c for c in self.contents if c["program"] == p["slug"] and not c.get("related")]
+        mine = [c for c in self.contents if c["program"] == p["slug"] and not c.get("related") and not c.get("prologue")]
         for e in p.get("episodes", []):
             items = sorted((c for c in mine if c.get("episode") == e["key"]),
                            key=lambda c: (KIND_ORDER[c["kind"]], id_key(c)))
@@ -556,42 +570,66 @@ class Site:
         """回を決めていないコンテンツは、1 件で 1 回として扱う。"""
         return {"key": c["id"], "title": c["title"], "caption": c.get("caption", ""), "text": "", "date": c.get("date", "")}
 
+    def numbered(self, p):
+        """番組の回に番号を付けたもの（#1 から。並びは programs.json の順で、回を決めていないコンテンツはその後）。"""
+        return [(i + 1, e, items) for i, (e, items) in enumerate(self.episodes(p))]
+
+    def number_of(self, p, e):
+        for n, e2, _ in self.numbered(p):
+            if e2["key"] == e["key"]:
+                return n
+        return 0
+
+    def prologue(self, p):
+        """番組の第 0 回（企画背景）。回ではなく番組に属する読み物（contents.json の prologue: true）。"""
+        return [c for c in self.contents if c["program"] == p["slug"] and c.get("prologue")]
+
+    def episode_url(self, p, e):
+        return "channel/%s/%s/" % (p["slug"], e["key"])
+
+    def ep_name(self, e):
+        """カードで使う短い呼び名（題の後ろの括弧書きを外す。例「仁科 正史 (Pro Snowboarder/Artist)」→「仁科 正史」）。"""
+        return re.sub(r"\s*[(（][^()（）]*[)）]\s*$", "", e["title"]).strip() or e["title"]
+
+    def ep_label(self, n, e):
+        return "#%d %s" % (n, self.ep_name(e))
+
+    def is_published(self, items):
+        return any(c.get("status") == "published" for c in items)
+
+    def view_label(self, c):
+        """見方の呼び名（動画・随想記事・編集後記・音声）。"""
+        return c["badge"] if c["kind"] == "mag" and c.get("badge") else VIEW[c["kind"]]
+
+    def view_note(self, c):
+        """見方の一言（site.json の views。「いつを、誰の目で」の対にそろえる）。"""
+        return self.site.get("views", {}).get(self.view_label(c), "")
+
     def content(self, cid):
         for c in self.contents:
             if c["id"] == cid:
                 return c
         raise SystemExit("contents.json に無い番号: %s" % cid)
 
-    def mag_excerpt(self, c):
-        """Magazine の抜き出し。記事があれば本文の冒頭から作る（記事といつも合う）。無ければ excerpt。"""
-        if c.get("article"):
-            with open(os.path.join(SRC, c["article"]), encoding="utf-8") as f:
-                text = article_text(f.read())
-            if text:
-                return text
-        return c.get("excerpt") or c.get("caption") or ""
-
-    def episode_status(self, items):
-        if any(c.get("status") == "published" for c in items):
-            return "published"
-        if any(c.get("status") == "editing" for c in items):
-            return "editing"
-        return "planned"
-
     def collect_news(self):
+        """新着は回の単位。回ごとにいちばん新しい日付で 1 行にし、あとから足したものは「10/08 編集後記を追加」と添える。"""
         news = []
         for p in self.programs:
-            for e, items in self.episodes(p):
-                if not e.get("date") or not items or self.episode_status(items) != "published":
+            for n, e, items in self.numbered(p):
+                by_date = {}
+                for c in items:
+                    if c.get("status") == "published" and self.item_date(c):
+                        by_date.setdefault(self.item_date(c), []).append(c)
+                if not by_date:
                     continue
-                lead = items[0]
-                news.append({"date": e["date"], "path": self.item_path(lead),
-                             "title": "「%s / %s」 %s" % (p["en"], p["ja"], self.ep_title(e, items)),
-                             "url": "channel/%s/#ep-%s" % (p["slug"], e["key"]), "text": flat(self.ep_lines(e, items))})
-        for n in self.site.get("news", []):
-            news.append({"date": n["date"], "path": n.get("path", "MA"), "title": n["title"], "url": n.get("url", ""),
-                         "text": n.get("text", "")})
-        return sorted(news, key=lambda n: n["date"], reverse=True)
+                last = max(by_date)
+                added = ""
+                if last != min(by_date):
+                    added = "%s %sを追加" % (short_date(last)[3:], "・".join(self.view_label(c) for c in by_date[last]))
+                news.append({"date": last, "program": p, "episode": e, "n": n, "items": items, "added": added})
+        for x in self.site.get("news", []):
+            news.append({"date": x["date"], "title": x["title"], "url": x.get("url", ""), "text": x.get("text", "")})
+        return sorted(news, key=lambda x: x["date"], reverse=True)
 
     def is_new(self, date):
         return bool(date) and date in self.new_dates
@@ -615,8 +653,11 @@ class Site:
         return '<%s class="frame-label"%s>%s</%s>' % (el, (' data-m="%s"' % m) if m else "", esc(text), el)
 
     def gate_head(self, g, el="h1"):
-        return ('<div class="gate-head">\n    <%s class="gh-title" data-m="gh" data-mt><span class="gh-no">Gate %s:</span> <strong>%s</strong></%s>\n'
-                '    <p class="gh-sub" data-m="gs" data-mt>%s</p>\n  </div>' % (el, esc(g["no"]), esc(g["en"]), el, esc(g["ja"])))
+        """門のページの見出し: 名前（Lab など）といまの言葉の 2 段。平易な説明は見出しの下の導入文に置く。"""
+        state = (' <span class="status">%s</span>' % esc(g["state"])) if g.get("state") else ""
+        plain = ('\n    <p class="gh-plain">%s</p>' % esc(g["plain"])) if g.get("plain") else ""
+        return ('<div class="gate-head">\n    <%s class="gh-title" data-m="gh" data-mt><strong>%s</strong>%s</%s>\n'
+                '    <p class="gh-sub" data-m="gs" data-mt>%s</p>%s\n  </div>' % (el, esc(g["name"]), state, el, esc(g["ja"]), plain))
 
     def new_badge(self):
         return '<span class="new">&lt;NEW&gt;</span>'
@@ -654,28 +695,24 @@ class Site:
         return '<img class="%s" src="%s" width="496" height="512" alt="" loading="lazy" decoding="async"%s>' % (
             cls, self.href(cur, "assets/logo.png"), (' data-m="%s"' % m) if m else "")
 
-    def arrow(self, href, label, cls="", m=None):
-        return '<a class="%s" href="%s" aria-label="%s"%s><span aria-hidden="true">↓</span></a>' % (
-            " ".join(x for x in ("arrow-btn", cls) if x), href, esc(label), (' data-m="%s"' % m) if m else "")
-
     def header(self, cur):
         h = lambda t: self.href(cur, t)
         tabs = []
-        for key in ("lab", "channel", "do"):
-            g = self.gate(key)
-            active = cur.startswith(g["url"])
-            tabs.append('<a class="gate-tab gt-%s%s" href="%s"%s><span class="gt-no" data-m="tl-%s" data-mt>Gate %s:</span>'
+        for g in self.site["gates"]:
+            active = cur.startswith(g["url"].split("/")[0] + "/")
+            # 名札（小）: 上の小さな字に短い一言、白札に名前。いまいる門は黒の塗り（青は押せる印に取っておく）
+            tabs.append('<a class="gate-tab gt-%s%s" href="%s"%s><span class="gt-no" data-m="tl-%s" data-mt>%s</span>'
                         '<span class="gt-box" data-m="tb-%s"><span data-m="tt-%s" data-mt>%s</span></span></a>'
-                        % (key, " is-active" if active else "", h(g["url"]), ' aria-current="page"' if active else "",
-                           key, esc(g["no"]), key, key, esc(g["en"])))
-        # サイト名の段はスクロールで流れ、Gate の札の段は上端まで来たら貼り付く（css の .gate-bar）。メニューのボタンは右上に残す
+                        % (g["key"], " is-active" if active else "", h(g["url"]), ' aria-current="page"' if active else "",
+                           g["key"], esc(g["short"]), g["key"], g["key"], esc(g["name"])))
+        # サイト名の段はスクロールで流れ、名札の段は上端まで来たら貼り付く（css の .gate-bar）。メニューのボタンは右上に残す
         return """<header class="site-header">
   <a class="site-title" href="{home}" data-m="title" data-mt>{name}</a>
   <button class="menu-btn" type="button" aria-controls="site-menu" aria-expanded="false" aria-label="メニューを開く" data-m="ham">
     <span></span><span></span><span></span>
   </button>
 </header>
-<nav class="gate-bar" aria-label="Gate">
+<nav class="gate-bar" aria-label="主な行き先">
   <div class="gate-tabs">
     {tabs}
   </div>
@@ -684,28 +721,28 @@ class Site:
 {menu}""".format(home=h(""), name=esc(self.site["name"]), tabs="\n    ".join(tabs), menu=self.menu(cur))
 
     def menu(self, cur):
+        """全体の地図。門は名前と短い一言の 2 段、その下に番組や扉。準備中は灰色で押せない形。"""
         h = lambda t: self.href(cur, t)
         cols = []
         for g in self.site["gates"]:
-            head = '<span class="gh-no">Gate %s:</span> <strong>%s</strong>' % (esc(g["no"]), esc(g["en"]))
-            head = ('<a class="mg-head" href="%s">%s</a>' % (h(g["url"]), head)) if g["ready"] else (
-                '<a class="mg-head is-dim" href="%s">%s</a>' % (h(g["url"]), head))
+            state = (' <span class="status">%s</span>' % esc(g["state"])) if g.get("state") else ""
+            head = '<a class="mg-head" href="%s"><span class="mg-short">%s</span><strong>%s</strong></a>%s' % (
+                h(g["url"]), esc(g["short"]), esc(g["name"]), state)
             rows = []
             if g["key"] == "channel":
                 for p in self.programs:
-                    rows.append('<li><a href="%s"><span class="en">%s</span> / %s</a></li>'
-                                % (h("channel/%s/" % p["slug"]), esc(p["en"]), esc(p["ja"])))
-            elif g["key"] in ("lab", "do"):
+                    soon = "" if any(self.is_published(items) for _, _, items in self.numbered(p)) else self.status_badge("planned")
+                    rows.append('<li><a href="%s">%s</a>%s</li>' % (h("channel/%s/" % p["slug"]), esc(p["ja"]), soon))
+            else:
                 for d in g["doors"]:
-                    if d["ready"]:
-                        rows.append('<li><a href="%s"><span class="en">%s</span></a></li>' % (h(d["url"]), esc(d["en"])))
-                    else:
-                        rows.append('<li class="is-dim"><span class="en">%s</span></li>' % esc(d["en"]))
+                    if d["ready"] and d.get("url"):
+                        rows.append('<li><a href="%s">%s</a></li>' % (h(d["url"]), esc(d["en"])))
+                    elif not d["ready"]:
+                        rows.append('<li class="is-dim">%s%s</li>' % (esc(d["en"]), self.status_badge("planned")))
             ul = ('\n        <ul class="mg-list">\n          %s\n        </ul>' % "\n          ".join(rows)) if rows else ""
-            cols.append("""      <div class="menu-gate mg-{key}{dim}">
-        {head}
-        <p class="mg-sub">/ {ja}</p>{ul}
-      </div>""".format(key=esc(g["key"]), dim="" if g["ready"] else " is-dim", head=head, ja=esc(g["ja"]), ul=ul))
+            cols.append("""      <div class="menu-gate mg-{key}">
+        {head}{ul}
+      </div>""".format(key=esc(g["key"]), head=head, ul=ul))
         return """<div class="menu-overlay" id="site-menu" aria-hidden="true">
   <div class="bar">
     <a class="site-title" href="{home}">{name}</a>
@@ -716,7 +753,7 @@ class Site:
     <div class="menu-gates">
 {cols}
     </div>
-    <div class="menu-links"><a href="{contact}">Contact us</a><a href="{company}">Company</a></div>
+    <div class="menu-links"><a href="{contact}">Contact</a><a href="{company}">Company</a></div>
   </nav>
   {figure}
 </div>
@@ -726,17 +763,18 @@ class Site:
     def footer(self, cur):
         h = lambda t: self.href(cur, t)
         f = self.site["follow"]
-        podcast = '<a href="%s" target="_blank" rel="noopener">Podcast</a>' % esc(f["podcast"]) if f.get("podcast") else "<b>Podcast</b>"
+        # 外のサイトは行き先のサービス名と ↗ で呼ぶ（音声は扉の名前 Radio・Podcast ではなく、行き先の SoundCloud）
+        links = [(f.get("youtube"), "YouTube"), (f.get("podcast"), "SoundCloud"), (f.get("note"), "note")]
+        follow = " ".join('<a href="%s" target="_blank" rel="noopener">%s <span aria-hidden="true">↗</span></a>' % (esc(u), n) for u, n in links if u)
         return """<footer class="site-footer">
-  <p class="fc-1"><span class="fc-name" data-m="f1" data-mt>{name}</span> <span class="fc-follow" data-m="f2" data-mt>Follow us on <a href="{yt}" target="_blank" rel="noopener">YouTube</a> , {podcast} and <a href="{note}" target="_blank" rel="noopener">note</a>.</span></p>
+  <p class="fc-1"><span class="fc-name" data-m="f1" data-mt>{name}</span> <span class="fc-follow" data-m="f2" data-mt>{follow}</span></p>
   <p class="fc-2" data-m="f3" data-mt>©2026, Manaka Ltd.{beta}</p>
   <button class="theme-toggle" type="button" aria-label="表示の色を切り替える" data-m="toggle">
     <span class="tt-knob"></span><span class="tt-label">Dark</span><span class="tt-icon" aria-hidden="true">☾</span>
   </button>
-  <p class="footer-links" data-m="flinks"><a href="{contact}">Contact us</a><a href="{company}">Company</a></p>
+  <p class="footer-links" data-m="flinks"><a href="{contact}">Contact</a><a href="{company}">Company</a></p>
 </footer>
-""".format(name=esc(self.site["name"]), yt=esc(f["youtube"]), podcast=podcast,
-           note=esc(f["note"]), beta=("　" + esc(self.site["beta_note"])) if self.site.get("noindex") else "",
+""".format(name=esc(self.site["name"]), follow=follow, beta=("　" + esc(self.site["beta_note"])) if self.site.get("noindex") else "",
            company=h("company/"), contact=h("contact/"))
 
     def page(self, cur, title, body, main_class="page", description=None):
@@ -805,134 +843,190 @@ class Site:
 </html>
 """.format(mark=MARK, to=esc(to), name=esc(self.site["name"]), label=esc(label))
 
-    def entry_meta(self, date, path, status="published", el="p", m=None):
+    def date_meta(self, date, el="p", m=None):
+        """日付の行（<NEW> と日付だけ。管理番号は画面に出さない）。"""
         parts = []
         if self.is_new(date):
             parts.append(self.new_badge())
         if date:
             parts.append('<span class="em-date">%s</span>' % esc(short_date(date)))
-        parts.append('<span class="em-path">%s</span>' % esc(path))
         mm = (' data-m="%s" data-mt' % m) if m else ""
-        return '<%s class="entry-meta"%s>%s%s</%s>' % (el, mm, " ".join(parts), self.status_badge(status), el)
+        return '<%s class="entry-meta"%s>%s</%s>' % (el, mm, " ".join(parts), el) if parts else ""
 
-    # ---------- コンテンツの部品 ----------
+    # ---------- 部品（見直し案の 10 個。カードは 1 枚に行き先 1 つ。中に別のリンクを入れない） ----------
 
     def tv_media(self, item):
         if item.get("youtube") and item.get("status") == "published":
-            return ('<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/%s" title="MA Channel #%s %s" '
+            return ('<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/%s" title="%s（YouTube）" '
                     'loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; '
                     'picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>'
-                    % (esc(item["youtube"]), esc(item["id"]), esc(item["title"])))
-        return '<div class="video video-ph"><span class="play" aria-hidden="true"></span><span class="ph-label">%s</span></div>' % (
-            STATUS.get(item.get("status"), "") or "準備中")
+                    % (esc(item["youtube"]), esc(item.get("yt_title") or item["title"])))
+        return '<div class="video video-ph"><span class="play" aria-hidden="true"></span><span class="ph-label">準備中</span></div>'
 
-    def door_block(self, cur, kind, items, level="h2", here=None):
-        """回を開いたときの Door（デザインの注記「なければ排除」に合わせ、公開済みのものだけを出す）。"""
-        pf = [x for x in self.site["platforms"] if x["key"] == kind][0]
-        out = ['<%s class="door-head">Door: %s <strong>MA Channel / %s</strong></%s>' % (level, esc(pf["door"]), esc(pf["en"]), level)]
-        if kind == "radio" and pf.get("blurb"):
-            out.append('<p class="door-blurb">%s</p>' % brs(pf["blurb"]))
-        for c in items:
-            if kind == "tv":
-                out.append(self.tv_media(c))
-            elif kind == "mag":
-                text = esc(self.mag_excerpt(c))
-                if c.get("article"):
-                    # 4 行で切り、4 行目の右に「…… ○○を読む」を置く（css の .door-text.is-clamped。リンクは本文より先に書く）
-                    # 本文が 3 行に満たない短い記事では、リンクが 4 行目に残って間が空く（今の記事はどれも長い）
-                    if c["id"] == here:
-                        more = '<span class="more">… <span class="read-here">この記事</span></span>'
-                    else:
-                        more = '<span class="more">… <a class="read-link" href="%s">%sを読む</a></span>' % (
-                            self.href(cur, self.item_url(c)), esc(c.get("badge") or "記事"))
-                    out.append('<p class="door-text is-clamped">%s%s</p>' % (more, text))
-                else:
-                    out.append('<p class="door-text">%s</p>' % text)
-            else:
-                out.append('<div class="audio-ph"><span class="ph-label">SoundCloud</span></div>')
-        return '<section class="door door-%s">\n        %s\n      </section>' % (kind, "\n        ".join(out))
+    def card(self, href, rows, cls, id_=None, soon=False):
+        """カードの外枠。href があれば枠ごと押せて右下に →、無ければ（準備中）灰色の破線で押せない。"""
+        idattr = (' id="%s"' % id_) if id_ else ""
+        inner = "\n          ".join(r for r in rows if r)
+        if href and not soon:
+            return ('      <li class="card %s"%s>\n        <a class="card-link" href="%s">\n          %s\n          '
+                    '<span class="card-go" aria-hidden="true">→</span>\n        </a>\n      </li>' % (cls, idattr, href, inner))
+        return '      <li class="card %s is-soon"%s>\n        <div class="card-body">\n          %s\n        </div>\n      </li>' % (cls, idattr, inner)
 
-    def entry(self, cur, p, e, items, n, opened=False, id_prefix="ep-", here=None):
-        """番組の回。公開済みのコンテンツがあれば ↓ で開き、TV・Magazine・Radio の Door が並ぶ。
-        題と一言は YouTube に合わせる（ep_title・ep_lines）。opened=True で開いた状態で出す（記事の後ろ）。"""
-        status = self.episode_status(items)
-        lead = items[0] if items else None
-        meta = self.entry_meta(e.get("date", "") if status == "published" else "",
-                               self.item_path(lead) if lead else "MA Channel", status, el="span", m="em%d" % n)
-        text = self.ep_lines(e, items)
-        place = next((c.get("place") for c in items if c.get("place")), "")
-        if place:
-            text.append("Place: " + place)
-        text_html = ('<span class="entry-text" data-m="ex%d" data-mt>%s</span>' % (n, "<br>".join(esc(x) for x in text))) if text else ""
-        if e.get("excerpt"):
-            # まだ載せていない記事は、本文の冒頭を 4 行だけ見せる（読むリンクは無い）
-            text_html += '<span class="entry-excerpt">%s</span>' % esc(e["excerpt"])
-        badge = ('<span class="badge">%s</span> ' % esc(e["badge"])) if e.get("badge") else ""
-        title = '<span class="entry-title" data-m="et%d" data-mt>%s%s</span>' % (n, badge, esc(bracket(self.ep_title(e, items))))
+    def cards(self, items, cls=""):
+        return '<ul class="cards%s">\n%s\n    </ul>' % ((" " + cls) if cls else "", "\n".join(items)) if items else ""
+
+    def program_card(self, cur, p):
+        """番組カード: 和題・副題・回の数・最新の回。"""
+        eps = self.numbered(p)
+        pub = [(n, e) for n, e, items in eps if self.is_published(items)]
+        if pub:
+            n, e = pub[-1]
+            meta = "回 %d 本　最新 %s" % (len(pub), self.ep_label(n, e))
+        else:
+            meta = "回はまだ無い"
+        return self.card(self.href(cur, "channel/%s/" % p["slug"]), [
+            '<span class="card-title">%s</span>' % esc(p["ja"]),
+            '<span class="card-note">%s</span>' % esc(p.get("sub", "")) if p.get("sub") else "",
+            '<span class="card-meta">%s%s</span>' % (esc(meta), "" if pub else self.status_badge("planned")),
+        ], "card-program")
+
+    def episode_card(self, cur, p, n, e, items, show_program=False, added="", id_=None):
+        """回カード: 番組名（ほかの番組と並ぶとき）・#回 人・一言・日付・この回にある見方・あとから足したもの。"""
         pub = [c for c in items if c.get("status") == "published"]
-        if not pub:
-            return """    <div class="entry is-planned" id="{pre}{key}">
-      {meta}
-      {title}
-      {text}
-    </div>""".format(pre=id_prefix, key=esc(e["key"]), meta=meta, title=title, text=text_html)
-        kinds = []
-        for k in ("tv", "mag", "radio"):
-            ks = [c for c in pub if c["kind"] == k]
-            if ks:
-                kinds.append(self.door_block(cur, k, ks, here=here))
-        return """    <details class="entry" id="{pre}{key}"{open}>
-      <summary>
-        {meta}
-        {title}
-        {text}<span class="fold-btn" aria-hidden="true"></span>
-      </summary>
-      <div class="entry-body">
-      {body}
-        <p class="fold-end"><button class="entry-close" type="button" aria-label="閉じる"></button></p>
-      </div>
-    </details>""".format(pre=id_prefix, key=esc(e["key"]), open=" open" if opened else "", meta=meta, title=title,
-                         text=text_html, body="\n      ".join(kinds))
+        date = max((self.item_date(c) for c in pub if self.item_date(c)), default="")
+        first = min((self.item_date(c) for c in pub if self.item_date(c)), default="")
+        note = e.get("caption") or (self.ep_lines(e, items)[:1] or [""])[0]
+        views = "・".join(dict.fromkeys(self.view_label(c) for c in sorted(pub, key=lambda c: KIND_ORDER[c["kind"]])))
+        meta = " ".join(x for x in (self.new_badge() if self.is_new(date) else "", esc(short_date(first)), esc(views)) if x)
+        rows = [
+            '<span class="card-kicker">%s</span>' % esc(p["ja"]) if show_program else "",
+            '<span class="card-title">%s</span>' % esc(self.ep_label(n, e)),
+            '<span class="card-note">%s</span>' % esc(note) if note else "",
+            ('<span class="card-meta">%s</span>' % meta) if pub else '<span class="card-meta">%s</span>' % self.status_badge("planned").strip(),
+            '<span class="card-update">%s</span>' % esc(added) if added else "",
+        ]
+        return self.card(self.href(cur, self.episode_url(p, e)) if pub else None, rows, "card-episode", id_=id_, soon=not pub)
+
+    def prologue_card(self, cur, c):
+        """第 0 回（企画背景）のカード。記事が公開されていれば記事へ。"""
+        pub = c.get("status") == "published" and c.get("article")
+        rows = ['<span class="card-title">#0 %s</span>' % esc(self.view_label(c)),
+                '<span class="card-note">%s</span>' % esc(c["title"]),
+                '<span class="card-meta">%s</span>' % (esc(self.view_note(c)) if pub else self.status_badge(c.get("status")).strip())]
+        return self.card(self.href(cur, self.item_url(c)) if pub else None, rows, "card-episode card-prologue", soon=not pub)
+
+    def view_card(self, cur, c, p, e):
+        """見方カード: 種類・一言（いつを、誰の目で）・書き手。動画は回のページで再生、記事は記事へ。"""
+        pub = c.get("status") == "published"
+        if c["kind"] == "tv":
+            href, note = self.href(cur, self.episode_url(p, e)), "回のページで再生"
+        elif c.get("article"):
+            href, note = self.href(cur, self.item_url(c)), self.view_note(c)
+        else:
+            href, note = None, self.view_note(c)
+        rows = ['<span class="card-title">%s</span>' % esc(self.view_label(c)),
+                '<span class="card-note">%s</span>' % esc(note) if note else "",
+                '<span class="card-meta">Words %s</span>' % esc(c["words"]) if c.get("words") and pub else "",
+                '<span class="card-meta">%s</span>' % self.status_badge(c.get("status")).strip() if not pub else ""]
+        return self.card(href if pub else None, rows, "card-view", soon=not pub or not href)
+
+    def product_card(self, cur, prod):
+        """道具カード（一覧）。枠ごと押せる。「詳細」のボタンは置かない。"""
+        shop = self.shop_of(prod)
+        v = prod["variants"][0]
+        return """      <li class="dev-card" data-shop="{slug}" data-text="{text}">
+        <a class="dc-link" href="{url}">
+          <span class="dc-img"><img src="{img}" width="720" height="720" loading="lazy" decoding="async" alt=""></span>
+          <span class="dc-shop">{shop}</span>
+          <span class="dc-name">{name}</span>
+          <span class="price">{price}{tax}</span>
+          <span class="card-go" aria-hidden="true">→</span>
+        </a>
+      </li>""".format(slug=esc(shop["slug"]), text=esc(" ".join([prod["name"], prod["shop"], prod["category"], prod["copy"]] + [x["color"] for x in prod["variants"]])),
+                       url=self.href(cur, self.product_url(prod)), img=esc(self.href(cur, "assets/device/" + v["image"])), name=esc(prod["name"]),
+                       shop=esc(shop["name"]), price=esc(self.price_label(prod)), tax=self.tax_label())
+
+    def next_steps(self, cur, back, nxt=None):
+        """次の一歩: 戻る先と次の 2 つだけ。次が準備中なら押せない形で知らせる。"""
+        out = ['<a class="ns-back" href="%s"><span aria-hidden="true">←</span> %s</a>' % (self.href(cur, back[0]), esc(back[1]))]
+        if nxt and nxt[0]:
+            out.append('<a class="ns-next" href="%s">%s <span aria-hidden="true">→</span></a>' % (self.href(cur, nxt[0]), esc(nxt[1])))
+        elif nxt:
+            out.append('<span class="ns-next is-soon">%s</span>' % esc(nxt[1]))
+        return '<nav class="next-steps" aria-label="次へ">%s</nav>' % "".join(out)
+
+    def next_episode(self, p, n):
+        """同じ番組の次の回（公開済み）。無ければ、次の回が準備中かどうか。"""
+        later = [(m, e, items) for m, e, items in self.numbered(p) if m > n]
+        for m, e, items in later:
+            if self.is_published(items):
+                return (self.episode_url(p, e), "次の回 %s" % self.ep_label(m, e))
+        return (None, "次の回は準備中") if later else None
+
+    def element_chips(self, cur, keys, label):
+        """要素の札（Lab の要素の欄へ）。まだ付けていなければ出さない（付けるかはまなか側が決める）。"""
+        return self.lab_chips(cur, keys, label) if keys else ""
+
+    def section(self, title, body, cls=""):
+        return '<section class="sec%s">\n    %s\n    %s\n  </section>' % ((" " + cls) if cls else "", self.tag(title, "t"), body) if body else ""
 
     # ---------- 各ページ ----------
+
+    def latest_episode(self):
+        """いちばん新しく公開した回（Home の「最新の回を観る」の行き先）。"""
+        for x in self.news:
+            if x.get("episode"):
+                return x
+        return None
+
+    def news_rows(self, cur, limit):
+        """新着の並び。回は回カード（番組名つき）、回でないお知らせは題と一言だけ。"""
+        rows = []
+        for x in self.news[:limit]:
+            if x.get("episode"):
+                rows.append(self.episode_card(cur, x["program"], x["n"], x["episode"], x["items"], show_program=True, added=x["added"]))
+            else:
+                link = self.href(cur, x["url"]) if x.get("url") else None
+                rows.append(self.card(link, ['<span class="card-meta">%s</span>' % esc(short_date(x["date"])),
+                                             '<span class="card-title">%s</span>' % esc(x["title"]),
+                                             '<span class="card-note">%s</span>' % esc(x["text"]) if x.get("text") else ""], "card-news"))
+        return self.cards(rows)
 
     def build_home(self):
         cur = "index.html"
         h = lambda t: self.href(cur, t)
         q = self.site["quote"]
+        # 引用は掲載が決まるまで欄ごと出さない（空いたままの欄は画面 1 枚分の空白になる）
+        quote = ""
         if q.get("lines"):
-            quote = "\n".join('    <p%s>%s</p>' % (' data-m="q1" data-mt' if i == 0 else "", esc(l)) for i, l in enumerate(q["lines"]))
-        else:
-            quote = '    <p class="pending-note" data-m="q1" data-mt>%s</p>' % esc(q["pending"])
+            quote = """
+  <section class="quote col" id="quote" aria-label="引用">
+{lines}
+    <p class="quote-credit" data-m="credit" data-mt>(-{credit})</p>
+  </section>
+""".format(lines="\n".join('    <p>%s</p>' % esc(l) for l in q["lines"]), credit=esc(q["credit"]))
+        latest = self.latest_episode()
+        start = ('<a class="btn-primary" href="%s">最新の回を観る <span aria-hidden="true">→</span></a>' % h(self.episode_url(latest["program"], latest["episode"]))) if latest else ""
         gates = []
         for i, g in enumerate(self.site["gates"]):
-            head = '<span class="gh-no">Gate %s:</span> <strong>%s</strong> <span class="gh-ja">/ %s</span>' % (
-                esc(g["no"]), esc(g["en"]), esc(g["ja"]))
-            head = ('<a href="%s">%s</a>' % (h(g["url"]), head)) if g["ready"] else head
-            doors = []
-            for d in g["doors"]:
-                label = "Door %s: %s" % (esc(d["no"]), esc(d["en"]))
-                if d["ready"] and d.get("url"):
-                    doors.append('<li><a href="%s">%s</a></li>' % (h(d["url"]), label))
-                elif d["ready"]:
-                    doors.append('<li>%s</li>' % label)
-                else:
-                    doors.append('<li class="is-dim">%s</li>' % label)
-            gates.append("""      <li class="toc-gate{dim}">
-        <p class="toc-head" data-m="g{i}" data-mt>{head}</p>{doors}
-      </li>""".format(dim="" if g["ready"] else " is-dim", head=head, i=i,
-                      doors=('\n        <ul class="toc-doors" data-m="d%d" data-mt>\n          %s\n        </ul>' % (i, "\n          ".join(doors))) if doors else ""))
-        news = []
-        for i, n in enumerate(self.news[:3], 1):
-            title = esc(n["title"])
-            if n.get("url"):
-                title = '<a href="%s">%s</a>' % (h(n["url"]), title)
-            # MA Channel の Latest News と同じく、題の下に一言を出す（長いときは 3 行で切る）
-            news.append("""      <li class="news-item" data-m="ni{i}">
-        {meta}
-        <p class="news-title" data-m="nt{i}" data-mt>{title}</p>{text}
-      </li>""".format(i=i, meta=self.entry_meta(n["date"], n["path"], m="nm%d" % i), title=title,
-                      text=('\n        <p class="news-text" data-m="nx%d" data-mt>%s</p>' % (i, esc(n["text"]))) if n.get("text") else ""))
+            state = (' <span class="status">%s</span>' % esc(g["state"])) if g.get("state") else ""
+            head = '<a href="%s"><strong>%s</strong></a> <span class="gh-ja">%s</span>%s' % (h(g["url"]), esc(g["name"]), esc(g["ja"]), state)
+            subs = []
+            if g["key"] == "channel":
+                for p in self.programs:
+                    soon = not any(self.is_published(items) for _, _, items in self.numbered(p))
+                    subs.append('<li><a href="%s">%s</a>%s</li>' % (h("channel/%s/" % p["slug"]), esc(p["ja"]), self.status_badge("planned") if soon else ""))
+            else:
+                for d in g["doors"]:
+                    if d["ready"] and d.get("url"):
+                        subs.append('<li><a href="%s">%s</a></li>' % (h(d["url"]), esc(d["en"])))
+                    elif not d["ready"]:
+                        subs.append('<li class="is-dim">%s%s</li>' % (esc(d["en"]), self.status_badge("planned")))
+            gates.append("""      <li class="toc-gate">
+        <p class="toc-head" data-m="g{i}" data-mt>{head}</p>
+        <p class="toc-plain">{plain}</p>{subs}
+      </li>""".format(i=i, head=head, plain=esc(g.get("plain", "")),
+                      subs=('\n        <ul class="toc-doors" data-m="d%d" data-mt>\n          %s\n        </ul>' % (i, "\n          ".join(subs))) if subs else ""))
         body = """
   <h1 class="visually-hidden">{name}</h1>
 
@@ -943,20 +1037,16 @@ class Site:
       <p class="hero-text" data-m="htext" data-mt>人が平場に立ちました。</p>
       {figure}
     </div>
-    {arrow1}
   </section>
 
-  <section class="quote col" id="quote" aria-label="引用">
-{quote}
-    <p class="quote-credit" data-m="credit" data-mt>(-{credit})</p>
+  <section class="home-start col" aria-label="このサイトについて">
+    <p class="home-lead">{desc}</p>
+    {start}
     {hiraba}
-    {arrow2}
   </section>
-
+{quote}
   <section class="toc col" id="toc">
     {toc_tag}
-    <p class="formula" data-m="formula"><span class="fm-left" data-m="fml" data-mt>We create of Your MA <span class="fm-eq">=</span></span><span class="fm-frac"><span class="fm-num" data-m="fmn" data-mt>Lab × Ch × Do</span><span class="fm-bar" aria-hidden="true"></span><span class="fm-den" data-m="fmd" data-mt>Notion</span></span></p>
-    {frame}
     <ol class="toc-gates">
 {gates}
     </ol>
@@ -965,24 +1055,21 @@ class Site:
   <section class="news col" id="news">
     {news_tag}
     {device}
-    <ol class="news-list">
-{news}
-    </ol>
+    {news}
   </section>
   <div class="home-end">{homelogo}</div>
 """.format(homelogo=self.logo(cur, "home-logo", m="flogo"), name=esc(self.site["name"]), visitors=esc(str(self.site.get("visitors", 1))),
-           figure=self.illust(cur, "figure", "hero-figure", m="figure"), arrow1=self.arrow("#quote", "引用へ進む", "arrow-1", m="arrow1"),
-           quote=quote, credit=esc(q["credit"]), hiraba=self.illust(cur, "hiraba", "hiraba-illust", m="hiraba"),
-           arrow2=self.arrow("#toc", "目次へ進む", "arrow-2", m="arrow2"), toc_tag=self.tag("Table of Contents", "b", m="toctag"),
-           frame=self.frame("間を巡る 4 つの門と 8 つの扉", m="frame"), gates="\n".join(gates),
+           figure=self.illust(cur, "figure", "hero-figure", m="figure"), desc=esc(self.site["description"]), start=start,
+           hiraba=self.illust(cur, "hiraba", "hiraba-illust", m="hiraba"), quote=quote,
+           toc_tag=self.tag("間を巡る 4 つの門", "b", m="toctag"), gates="\n".join(gates),
            news_tag=self.tag("News", "t", m="newstag"), device=self.illust(cur, "device", "device-illust", m="device"),
-           news="\n".join(news))
+           news=self.news_rows(cur, 3))
         self.page(cur, None, body, main_class="page home-page")
 
     def fold_chapter(self, no, title, paras, i):
-        """章の開閉（最初は見出しだけ。↓ で全文、末尾の ↑ で見出しだけに戻す）。"""
+        """章の開閉（最初は見出しだけ）。章の題そのものが開閉のボタンで、右の ＋ が開く・− が閉じる。本文の最後の − でも閉じる。"""
         return """    <section class="fold chapter is-folded" id="ch{no}">
-      <h2 class="fold-head"><span data-m="ch{i}" data-mt>第 {no} 章 : 「{title}」</span><button class="fold-toggle" type="button" aria-expanded="false" aria-controls="ch{no}-body" aria-label="第 {no} 章を開く・閉じる"></button></h2>
+      <h2 class="fold-head"><button class="fold-toggle" type="button" aria-expanded="false" aria-controls="ch{no}-body"><span class="ft-title" data-m="ch{i}" data-mt>第 {no} 章 : 「{title}」</span><span class="ft-sign" aria-hidden="true"></span></button></h2>
       <div class="fold-body prose" id="ch{no}-body">
 {paras}
         <p class="fold-end"><button class="fold-close" type="button" aria-controls="ch{no}-body" aria-label="第 {no} 章を閉じる"></button></p>
@@ -1007,7 +1094,7 @@ class Site:
         flow = []
         for i, st in enumerate(steps["flow"]):
             flow.append("""        <li class="flow-step fs-{i}">
-          <div class="flow-box"><span>Gate {gate}:</span><span><strong>{en}</strong> <span class="flow-ja">({ja})</span></span><span>“{verb}”</span></div>
+          <div class="flow-box"><span><strong>{en}</strong> <span class="flow-ja">({ja})</span></span><span>“{verb}”</span></div>
           <ul class="flow-doors">{doors}</ul>
         </li>""".format(i=i, gate=esc(st["gate"]), en=esc(st["en"]), ja=esc(st["ja"]), verb=esc(st["verb"]),
                         doors="".join("<li>%s</li>" % esc(d) for d in st["doors"])))
@@ -1036,6 +1123,7 @@ class Site:
     <section class="notion-part steps" id="steps">
       {steps_label}
       <p class="part-text" data-m="stept" data-mt>{steps_lines}</p>
+      <p class="formula" data-m="formula"><span class="fm-left" data-m="fml" data-mt>We create of Your MA <span class="fm-eq">=</span></span><span class="fm-frac"><span class="fm-num" data-m="fmn" data-mt>Lab × Ch × Do</span><span class="fm-bar" aria-hidden="true"></span><span class="fm-den" data-m="fmd" data-mt>Notion</span></span></p>
       <figure class="flow" aria-label="間を定める、広める、感化する" data-m="flow">
         <div class="flow-root">間｜MA<br>暮らしへの<br>インストール</div>
         <ol class="flow-steps">
@@ -1050,9 +1138,9 @@ class Site:
            core_lines=brs(core["lines"]), dense=self.href(cur, "assets/figures/dots-dense.svg"), sparse=self.href(cur, "assets/figures/dots-sparse.svg"), cap0=esc(cap[0]), cap1=esc(cap[1]), cap2=esc(cap[2]),
            steps_label=self.frame(steps["label"], m="stepl"), steps_lines=brs(steps["lines"]),
            flow="\n".join(flow), book=self.illust(cur, "book", "book-illust", m="book"))
-        self.page(cur, "MA Notion", body)
+        self.page(cur, "Notion", body)
 
-    # ---------- Gate 1: MA Lab（試作） ----------
+    # ---------- Lab（試作） ----------
 
     def chapter_text(self, no):
         """マニフェストの章の本文を一つの文字列に（引用の一節がそこにあるかを確かめる用）。"""
@@ -1106,7 +1194,7 @@ class Site:
             for k in r["elements"]:
                 ex, ey = pos[k]
                 out.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="var(--fg)" stroke-opacity="0.35" stroke-width="1"/>' % (x, y, ex, ey))
-        out.append('<text x="%g" y="%g" text-anchor="middle" dominant-baseline="central" fill="var(--accent)" font-size="88" font-weight="700">間</text>' % (cx, cy + 4))
+        out.append('<text x="%g" y="%g" text-anchor="middle" dominant-baseline="central" fill="var(--fg)" font-size="88" font-weight="700">間</text>' % (cx, cy + 4))
         for i, e in enumerate(els):
             x, y = pos[e["key"]]
             w = max(len(e["name"]) * 26 + 28, 76)
@@ -1145,10 +1233,11 @@ class Site:
 
     def lab_head(self, cur, door):
         """扉のページの見出し（Gate の見出しと同じ組みで、上にパンくず）。"""
-        return ('<div class="gate-head">\n    <p class="crumb"><a href="%s">Gate 1: MA Lab</a></p>\n'
-                '    <h1 class="gh-title"><span class="gh-no">Door %s:</span> <strong>%s</strong></h1>\n'
-                '    <p class="gh-sub">/ %s</p>\n  </div>\n    <p class="lab-lead">%s</p>'
-                % (self.href(cur, "lab/"), esc(door["no"]), esc(door["en"]), esc(door["ja"]), esc(door["role"])))
+        g = self.gate("lab")
+        return ('<div class="gate-head">\n    <p class="crumb"><a href="%s">%s</a></p>\n'
+                '    <h1 class="gh-title"><strong>%s</strong></h1>\n'
+                '    <p class="gh-sub">%s</p>\n  </div>\n    <p class="lab-lead">%s</p>'
+                % (self.href(cur, "lab/"), esc(g["name"]), esc(door["en"]), esc(door["ja"]), esc(door["role"])))
 
     def build_lab(self):
         lab = self.lab
@@ -1191,8 +1280,8 @@ class Site:
             key = d["url"].rstrip("/").split("/")[-1]
             info = lab["doors"][key]
             doors.append("""      <li>
-        <a class="ld-head" href="{url}"><span class="gh-no">Door {no}:</span> <strong>{en}</strong></a>
-        <span class="ld-ja">/ {ja}</span>
+        <a class="ld-head" href="{url}"><strong>{en}</strong></a>
+        <span class="ld-ja">{ja}</span>
         <span class="ld-role">{role}</span>
         <span class="ld-count">{unit} {n}</span>
       </li>""".format(url=self.href(cur, d["url"]), no=esc(d["no"]), en=esc(d["en"]), ja=esc(info["ja"]),
@@ -1224,9 +1313,9 @@ class Site:
            el_label=self.frame("間の要素（%d・Lab の見立て）" % len(lab["elements"])), cards="\n".join(cards),
            rule=self.frame(lab["rule"]["label"]), rules="\n".join("      <li>%s</li>" % esc(x) for x in lab["rule"]["lines"]),
            doors="\n".join(doors), version=esc(lab["version"]))
-        self.page(cur, "MA Lab", body)
+        self.page(cur, "Lab", body)
 
-        # Door 1-1: Dictionary Space
+        # Dictionary（言葉）
         cur = "lab/dictionary/index.html"
         by_term = {}
         for r in lab["references"]:
@@ -1264,9 +1353,9 @@ class Site:
     </ol>
   </div>
 """.format(head=self.lab_head(cur, self.lab_door("dictionary")), rows="\n".join(rows))
-        self.page(cur, "Dictionary Space | MA Lab", body)
+        self.page(cur, "Dictionary | Lab", body)
 
-        # Door 1-2: Reference Space
+        # Reference（資料）
         cur = "lab/reference/index.html"
         labels = {"form": "形", "elements": "要素"}
         pills = lambda key, items: ('<div class="ref-filters" data-filter="%s" role="group" aria-label="%sで絞り込む">\n      <p class="rf-label">%s</p>\n      <div class="pills"><div class="pill-row">'
@@ -1308,9 +1397,9 @@ class Site:
            f_elements=pills("elements", [(e["key"], e["name"]) for e in lab["elements"]]),
            f_form=pills("form", [(f, f) for f in lab["forms"]]),
            n=len(lab["references"]), rows="\n".join(rows))
-        self.page(cur, "Reference Space | MA Lab", body)
+        self.page(cur, "Reference | Lab", body)
 
-        # Door 1-3: Research Space
+        # Research（検証）
         cur = "lab/research/index.html"
         rows = []
         for rs in lab["research"]:
@@ -1331,70 +1420,40 @@ class Site:
     <p class="pending-note">テーマはまだ決まっていない。ここでは、マニフェストから取れる問いを候補として置いている。</p>
   </div>
 """.format(head=self.lab_head(cur, self.lab_door("research")), rows="\n".join(rows))
-        self.page(cur, "Research Space | MA Lab", body)
+        self.page(cur, "Research | Lab", body)
 
     def build_channel(self):
         cur = "channel/index.html"
-        h = lambda t: self.href(cur, t)
         g = self.gate("channel")
         intro = "\n".join("      <p%s>%s</p>" % (' data-m="in1" data-mt' if i == 0 else "", brs(para))
                           for i, para in enumerate(self.site["channel"]["intro"]))
-        menu = "\n".join("""      <li data-m="pm{i}" data-mt><a href="{url}"><span class="pl-en"><span class="en">{en}</span></span> <span class="pl-ja">/ {ja}</span></a> <span class="sub">- {sub} -</span></li>""".format(
-            i=i, url=h("channel/%s/" % p["slug"]), en=esc(p["en"]), ja=esc(p["ja"]), sub=esc(p["sub"])) for i, p in enumerate(self.programs))
-        latest = []
-        for di, pf in enumerate(self.site["platforms"]):
-            # 公開済みを先に、その中は日付の新しい順・番号の大きい順。各 Door 3 件まで
-            items = sorted((c for c in self.contents if c["kind"] == pf["key"] and not c.get("related")),
-                           key=self.latest_key)[:3]
-            rows = []
-            for j, c in enumerate(items):
-                p = self.program(c["program"])
-                ep = c.get("episode") or c["id"]
-                yt = c if (c.get("status") == "published" and c.get("yt_title")) else {}
-                title = '<a href="%s">「%s / %s」 %s</a>' % (h("channel/%s/#ep-%s" % (p["slug"], ep)), esc(p["en"]), esc(p["ja"]),
-                                                          esc(yt.get("yt_title") or c["title"]))
-                text = flat((yt.get("yt_lead") or "").split("\n")) or c.get("caption") or c.get("excerpt") or ""
-                mk = "l%d%d" % (di, j)
-                rows.append("""        <li class="news-item">
-          {meta}
-          <p class="news-title" data-m="{mk}t" data-mt>{title}</p>{text}
-        </li>""".format(meta=self.entry_meta(self.item_date(c) if c.get("status") == "published" else "",
-                                           self.item_path(c), c.get("status"), m=mk + "m"), title=title, mk=mk,
-                        text=('\n          <p class="news-text" data-m="%sx" data-mt>%s</p>' % (mk, esc(text))) if text else ""))
-            latest.append("""    <section class="door" id="{key}">
-      <h3 class="door-head" data-m="dh{di}" data-mt>Door: {door} <strong>MA Channel / {en}</strong></h3>
-      <ol class="news-list">
-{rows}
-      </ol>
-    </section>""".format(key=pf["key"], door=esc(pf["door"]), en=esc(pf["en"]), di=di,
-                         rows="\n".join(rows) or '        <li class="pending-note">準備中です。</li>'))
+        # 番組を先に（スマホの 1 画面目で番組が見える）。紹介文はその後。新着は媒体ごとでなく回の単位
         body = """
   <div class="content">
     {head}
+
+    <section class="sec channel-menu">
+      {logo}
+      {menu_tag}
+    {programs}
+    </section>
 
     <div class="intro prose">
 {intro}
     </div>
 
-    <section class="channel-menu">
-      {logo}
-      {menu_tag}
-      <ul class="program-list">
-{menu}
-      </ul>
-    </section>
-
-    <section class="latest">
-      {latest_tag}
-{latest}
+    <section class="sec latest">
+      {news_tag}
+    {news}
     </section>
 
     {illust}
   </div>
 """.format(head=self.gate_head(g), intro=intro, logo=self.logo(cur, "logo-mark lm-channel", m="lmc"),
-           menu_tag=self.tag("MA Channel Menu", "a", m="cmtag"), menu=menu, latest_tag=self.tag("Latest News", "t", m="lntag"),
-           latest="\n".join(latest), illust=self.illust(cur, "distribution", "distribution-illust", m="dist"))
-        self.page(cur, "MA Channel", body, main_class="page channel-page")
+           menu_tag=self.tag("番組", "a", m="cmtag"), programs=self.cards([self.program_card(cur, p) for p in self.programs], "cards-program"),
+           news_tag=self.tag("News", "t", m="lntag"), news=self.news_rows(cur, 6),
+           illust=self.illust(cur, "distribution", "distribution-illust", m="dist"))
+        self.page(cur, "Channel", body, main_class="page channel-page")
 
     def build_programs(self):
         for p in self.programs:
@@ -1402,32 +1461,17 @@ class Site:
             lead = "\n".join("        <p%s>%s</p>" % (' data-m="ld1" data-mt' if i == 0 else "", brs(para))
                              for i, para in enumerate(p.get("lead", []))) or \
                 '        <p class="pending-note">番組の紹介文は準備中です。</p>'
-            eps = self.episodes(p)
-            entries = "\n\n".join(self.entry(cur, p, e, items, i + 1) for i, (e, items) in enumerate(eps))
-            # 関連コンテンツ＝この番組で related にしたもの＋programs.json の related に番号を並べたもの（ほかの番組の回も入れられる）
-            # 並びは、この番組の関連（contents.json の順）→ programs.json の related に書いた順（デザインの注記で 2-2-3 の後ろに TV）
-            related = [c for c in self.contents if c["program"] == p["slug"] and c.get("related")]
-            related += [self.content(cid) for cid in p.get("related", [])]
-            rel = ""
-            if related:
-                rel_items = []
-                for k, c in enumerate(related):
-                    e = dict(self.solo_episode(c), date=self.item_date(c), badge=c.get("badge", ""),
-                             excerpt=c.get("excerpt", "") if c.get("status") != "published" else "")
-                    rel_items.append(self.entry(cur, self.program(c["program"]), e, [c], 100 + k, id_prefix="rel-"))
-                rel = """
-    <section class="related">
-      <h2 class="related-head" data-m="relh"><span data-mt>関連コンテンツ：</span>{logo}</h2>
-      <div class="entries">
-{items}
-      </div>
-    </section>
-""".format(logo=self.logo(cur, "logo-mark lm-related"), items="\n".join(rel_items))
+            # 回の一覧: 第 0 回（企画背景）→ #1 から。回はカードで、押すと回のページへ（その場では開かない）
+            rows = [self.prologue_card(cur, c) for c in self.prologue(p)]
+            rows += [self.episode_card(cur, p, n, e, items, id_="ep-%s" % e["key"]) for n, e, items in self.numbered(p)]
+            entries = self.cards(rows, "cards-episode") or '    <p class="pending-note">準備中です。</p>'
             body = """
   <div class="program-top">
     <div class="content">
       <div class="program-head">
-        <h1 class="ph-title" data-m="ph" data-mt><span class="en">{en}</span> <span class="ja">/ {ja}</span></h1>
+        <p class="crumb"><a href="{channel}">{gname}</a></p>
+        <h1 class="ph-title" data-m="ph" data-mt><span class="ja">{ja}</span></h1>
+        <p class="ph-en">{en}</p>
         <p class="ph-sub" data-m="ps" data-mt>- {sub} -</p>
       </div>
       <div class="program-lead prose">
@@ -1436,24 +1480,68 @@ class Site:
     </div>
     {illust}
     {logo}
-    {arrow}
   </div>
 
   <div class="content">
-    <div class="entries" id="entries">
-{entries}
-    </div>
-{rel}
+    <section class="sec entries" id="entries">
+      {ep_tag}
+    {entries}
+    </section>
   </div>
   <div class="program-end">{logo_end}{illust_end}</div>
-""".format(en=esc(p["en"]), ja=esc(p["ja"]), sub=esc(p["sub"]), lead=lead,
+""".format(en=esc(p["en"]), ja=esc(p["ja"]), sub=esc(p["sub"]), lead=lead, channel=self.href(cur, "channel/"), gname=esc(self.gate("channel")["name"]),
            illust=self.illust(cur, p["illust"], "program-illust" + (" pc-only" if p.get("illust_sp") == "end" else ""), m="pill") if p.get("illust") else "",
            logo=self.logo(cur, "logo-mark lm-program", m="lmp") if p.get("logo") == "top" else "",
            logo_end=self.logo(cur, "logo-mark lm-end", m="lme") if p.get("logo") == "end" else "",
            illust_end=self.illust(cur, p["illust"], "program-illust-end sp-only", m="pille") if p.get("illust_sp") == "end" else "",
-           arrow=self.arrow("#entries", "コンテンツへ進む", "arrow-p", m="parrow"), entries=entries or '    <p class="pending-note">準備中です。</p>',
-           rel=rel)
-            self.page(cur, "%s / %s" % (p["en"], p["ja"]), body, main_class="page program-page pg-%s" % p["slug"])
+           ep_tag=self.tag("回", "t"), entries=entries)
+            self.page(cur, p["ja"], body, main_class="page program-page pg-%s" % p["slug"])
+
+    def build_episodes(self):
+        """回のページ: 動画が主役。その下に読む・聴く（見方カード）、出てくる道具、映っている間、次の一歩。
+        見出しは YouTube の題に揃える（10/20 の戻し）。公開済みのコンテンツが 1 つも無い回はページを作らない。"""
+        for p in self.programs:
+            for n, e, items in self.numbered(p):
+                if not self.is_published(items):
+                    continue
+                cur = self.episode_url(p, e) + "index.html"
+                pub = [c for c in items if c.get("status") == "published"]
+                lines_ = self.ep_lines(e, items)
+                place = next((c.get("place") for c in items if c.get("place")), "")
+                videos = "\n    ".join(self.tv_media(c) for c in pub if c["kind"] == "tv")
+                views = [self.view_card(cur, c, p, e) for c in items if c["kind"] != "tv"]
+                prods = []
+                for c in items:
+                    for pid in c.get("device", []):
+                        prod = [x for x in self.device["products"] if str(x["id"]) == str(pid)]
+                        if prod and prod[0] not in prods:
+                            prods.append(prod[0])
+                date = min((self.item_date(c) for c in pub if self.item_date(c)), default="")
+                body = """
+  <div class="content episode">
+    <div class="episode-head">
+      <p class="crumb"><a href="{channel}">{gname}</a> › <a href="{prog}">{pja}</a></p>
+      <p class="ep-no">{label}</p>
+      <h1 class="ep-title">{title}</h1>
+      {meta}
+    </div>
+    {videos}
+    <div class="ep-about">
+      <p class="ep-lines">{lines}</p>{place}
+    </div>
+  {views}
+  {prods}
+  {els}
+    {steps}
+  </div>
+""".format(channel=self.href(cur, "channel/"), gname=esc(self.gate("channel")["name"]), prog=self.href(cur, "channel/%s/" % p["slug"]),
+           pja=esc(p["ja"]), label=esc(self.ep_label(n, e)), title=esc(self.ep_title(e, items)), meta=self.date_meta(date),
+           lines="<br>".join(esc(x) for x in lines_), place=('\n      <p class="ep-place">Place: %s</p>' % esc(place)) if place else "",
+           videos=videos, views=self.section("読む・聴く", self.cards(views, "cards-view")),
+           prods=self.section("出てくる道具", ('<ul class="dev-grid">\n%s\n    </ul>' % "\n".join(self.product_card(cur, x) for x in prods)) if prods else ""),
+           els=self.section("映っている間", self.element_chips(cur, e.get("elements", []), "要素")),
+           steps=self.next_steps(cur, ("channel/%s/" % p["slug"], "番組へ戻る"), self.next_episode(p, n)))
+                self.page(cur, "%s %s" % (p["ja"], self.ep_label(n, e)), body, main_class="page episode-page")
 
     def build_articles(self):
         for item in self.contents:
@@ -1468,69 +1556,58 @@ class Site:
             # 日付と <NEW> は回の日付から作る（断片に日付を書くと、決まりとずれたまま残るため）
             if ARTICLE_META not in frag:
                 raise SystemExit("src/%s: 日付を入れる目印 %s がありません（article-head の中に置く）" % (item["article"], ARTICLE_META))
-            frag = frag.replace(ARTICLE_META, self.entry_meta(self.item_date(item), self.item_path(item), item.get("status"), m="am"))
-            # 見出しの塊（article-head）までを上の段に、残りを本文の段に分ける。矢印は上の段の右下に置く
+            frag = frag.replace(ARTICLE_META, self.date_meta(self.item_date(item), m="am"))
+            # 原稿の題の頭の管理番号（2.2.1 など）は画面に出さない（原稿は取り込みの道具がそのまま写すので、ここで外す）
+            frag = re.sub(r'(<h1 class="article-title">)\s*\d+(?:\.\d+)+(?:&ensp;|&nbsp;|\s)+', r"\1", frag)
             head, rest = split_after_block(frag, '<div class="article-head">', item["article"])
             first = re.match(r"\s*<(h2|div)\b([^>]*)>", rest, flags=re.I)
             if not (first and {"h2": "article-answer", "div": "article-body"}[first.group(1).lower()] in class_list(first.group(2))):
-                raise SystemExit("src/%s: article-head の次は <h2 class=\"article-answer\"> か <div class=\"article-body\"> にする（右の矢印と重ならない余白がそこに付く）" % item["article"])
+                raise SystemExit("src/%s: article-head の次は <h2 class=\"article-answer\"> か <div class=\"article-body\"> にする" % item["article"])
             # 冒頭の写真は、参考（tei-ku.com）と同じく、ゆっくり拡大しながら次の写真へ溶け替える（動きは js/main.js）
-            # 2 枚目からは data-src に置き、切り替えが動くとき（js/main.js がページを開いた時点で）に読む。
-            # 動きを減らす設定や JS 無しでは 1 枚目だけを出し、残りは読まない（src は 1px の透明な画像）
             slides = "\n".join('      <img class="hs-img%s" src="%s"%s alt="" decoding="async">' % (
                 " is-on" if i == 0 else "", esc(h("assets/" + name)) if i == 0 else BLANK_GIF,
                 "" if i == 0 else ' data-src="%s"' % esc(h("assets/" + name)))
                 for i, name in enumerate(item.get("hero", [])))
             hero = ('    <div class="article-hero" data-m="ahero" aria-hidden="true">\n%s\n    </div>\n' % slides) if slides else ""
-            # 記事の終わりは、対象の人物の写真を画面いっぱいに出す（デザインの注記）
-            # portrait_focus: 画面いっぱいに切り抜くとき、写真のどこを中心に残すか（例 "68% 50%"）
             focus = (' style="object-position: %s"' % item["portrait_focus"]) if item.get("portrait_focus") else ""
             portrait = ('  <figure class="article-portrait" data-m="aport"><img src="%s" alt="%s" loading="lazy" decoding="async"%s></figure>\n' % (
                 esc(h("assets/" + item["portrait"])), esc(item["portrait_alt"]), focus)) if item.get("portrait") else ""
-            # 記事の後ろ（人物の写真の前）に、この記事が入っている回の枠を開いた状態で置く（同じ回の TV・ほかの記事へ進める）
-            ep_p, ep_e, ep_items = self.find_episode(item)
-            episode = self.entry(cur, ep_p, ep_e, ep_items, 200, opened=True, here=item["id"])
+            if item.get("prologue"):
+                ep_p = self.program(item["program"])
+                where = '<a href="%s">%s</a> #0' % (h("channel/%s/" % ep_p["slug"]), esc(ep_p["ja"]))
+                others, steps = "", self.next_steps(cur, ("channel/%s/" % ep_p["slug"], "番組へ戻る"))
+            else:
+                ep_p, ep_e, ep_items = self.find_episode(item)
+                n = self.number_of(ep_p, ep_e)
+                where = '<a href="%s">%s %s</a>' % (h(self.episode_url(ep_p, ep_e)), esc(ep_p["ja"]), esc(self.ep_label(n, ep_e)))
+                # 記事の後ろ（人物の写真の前。戻しの指示）に、同じ回のほかの形（今の記事を除く）と次の一歩
+                others = self.section("同じ回を、ほかの形で", self.cards(
+                    [self.view_card(cur, c, ep_p, ep_e) for c in ep_items if c["id"] != item["id"] and c.get("status") == "published"], "cards-view"), "article-episode")
+                steps = self.next_steps(cur, (self.episode_url(ep_p, ep_e), "回のページへ"), self.next_episode(ep_p, n))
             body = """
   <div class="article-top">
 {hero}  <div class="content article">
+    <p class="article-ep">{where}</p>
 {head}
   </div>
-  {arrow}
   </div>
   <div class="content article" id="article-start">
 {rest}
   </div>
-  <section class="content article-episode" aria-label="この回のコンテンツ">
-{episode}
-  </section>
+  <div class="content">
+  {others}
+    {steps}
+  </div>
 {portrait}  <div class="home-end article-end">{logo}</div>
-""".format(hero=hero, head=head.rstrip("\n"), rest=rest.strip("\n"), episode=episode, portrait=portrait,
-           arrow=self.arrow("#article-start", "本文へ進む", "arrow-a", m="aarrow"),
+""".format(hero=hero, where=where, head=head.rstrip("\n"), rest=rest.strip("\n"), others=others, steps=steps, portrait=portrait,
            logo=self.logo(cur, "home-logo", m="lma"))
             self.page(cur, "%s %s" % (item.get("badge", ""), item["title"]), body, main_class="page article-page")
             for old in item.get("redirect_from", []):
-                self.redirect(old, self.item_url(item), "#%s %s" % (item["id"], item["title"]))
+                self.redirect(old, self.item_url(item), item["title"])
 
     def build_do(self):
-        cur = "do/index.html"
-        h = lambda t: self.href(cur, t)
-        g = self.gate("do")
-        rows = []
-        for d in g["doors"]:
-            label = "Door %s: %s" % (esc(d["no"]), esc(d["en"]))
-            if d["ready"]:
-                rows.append('      <li><a href="%s">%s</a></li>' % (h(d["url"]), label))
-            else:
-                rows.append('      <li class="is-dim">%s <span class="status">準備中</span></li>' % label)
-        body = """
-  <div class="content">
-    {head}
-    <ul class="door-list">
-{rows}
-    </ul>
-  </div>
-""".format(head=self.gate_head(g), rows="\n".join(rows))
-        self.page(cur, "MA Do", body)
+        # 開いている扉が Device だけの間は、Do を押したら道具の一覧へ直接行く（do/ は一覧へ送る）
+        self.redirect("do/index.html", self.gate("do")["url"], self.gate("do")["name"])
         self.build_device()
         for prod in self.device["products"]:
             self.build_product(prod)
@@ -1550,49 +1627,47 @@ class Site:
         label = self.site.get("price", {}).get("label", "")
         return ' <span class="tax">%s</span>' % esc(label) if label else ""
 
-    def build_device(self):
-        cur = "do/device/index.html"
-        h = lambda t: self.href(cur, t)
+    def device_search(self, action=None):
+        """検索欄とお店の絞り込み。道具が DEVICE_SEARCH_MIN に満たない間は出さない。"""
+        if len(self.device["products"]) < DEVICE_SEARCH_MIN:
+            return ""
         counts = {}
         for prod in self.device["products"]:
             counts[self.shop_of(prod)["slug"]] = counts.get(self.shop_of(prod)["slug"], 0) + 1
         pills = ['<button class="pill is-active" type="button" data-shop="">ALL</button>']
-        for s in self.site["shops"]:
+        for s_ in self.site["shops"]:
             pills.append('<button class="pill%s" type="button" data-shop="%s">%s</button>' % (
-                "" if counts.get(s["slug"]) else " is-empty", esc(s["slug"]), esc(s["name"])))
-        cards = []
-        for prod in self.device["products"]:
-            shop = self.shop_of(prod)
-            v = prod["variants"][0]
-            url = h(self.product_url(prod))
-            cards.append("""      <li class="dev-card" data-shop="{slug}" data-text="{text}">
-        <a class="dc-img" href="{url}"><img src="{img}" width="720" height="720" loading="lazy" decoding="async" alt="{name}"></a>
-        <p class="dc-shop">{shop}</p>
-        <p class="dc-name">{name}</p>
-        <p class="price">{price}{tax}</p>
-        <a class="dc-btn" href="{url}">詳細</a>
-      </li>""".format(slug=esc(shop["slug"]), text=esc(" ".join([prod["name"], prod["shop"], prod["category"], prod["copy"]] + [v["color"] for v in prod["variants"]])),
-                      url=url, img=esc(h("assets/device/" + v["image"])), name=esc(prod["name"]), shop=esc(shop["name"]),
-                      price=esc(self.price_label(prod)), tax=self.tax_label()))
+                "" if counts.get(s_["slug"]) else " is-empty", esc(s_["slug"]), esc(s_["name"])))
+        form = """    <form class="dev-search" role="search" action="{action}"{method} data-m="dsearch">
+      <label class="visually-hidden" for="dev-q">道具を探す</label>
+      <input id="dev-q"{name} type="search" placeholder="道具を探す" autocomplete="off">
+      <button type="submit" aria-label="探す"><span class="search-icon" aria-hidden="true"></span></button>
+    </form>""".format(action=action or "#", method=' method="get"' if action else "", name=' name="q"' if action else "")
+        if action:
+            return form
+        return form + """
+    <div class="pills" role="group" aria-label="お店で絞り込む" data-m="dpills">
+      <div class="pill-row">{p1}</div>
+      <div class="pill-row">{p2}</div>
+    </div>""".format(p1="".join(pills[:(len(pills) + 1) // 2]), p2="".join(pills[(len(pills) + 1) // 2:]))
+
+    def build_device(self):
+        cur = "do/device/index.html"
+        g = self.gate("do")
+        soon = [d for d in g["doors"] if not d["ready"]]
+        soon_html = "".join('\n    <p class="door-soon">%s%s</p>' % (esc(d["en"]), self.status_badge("planned")) for d in soon)
         body = """
   <div class="content wide">
-    <h1 class="visually-hidden">Device Room</h1>
-    <form class="dev-search" role="search" action="#" data-m="dsearch">
-      <label class="visually-hidden" for="dev-q">MA Do / Device を検索</label>
-      <input id="dev-q" type="search" placeholder="MA Do / Device を検索" autocomplete="off">
-      <button type="submit" aria-label="検索"><span class="search-icon" aria-hidden="true"></span></button>
-    </form>
-    <div class="pills" role="group" aria-label="お店で絞り込む" data-m="dpills">
-      <div class="pill-row">{pills1}</div>
-      <div class="pill-row">{pills2}</div>
-    </div>
+    {head}{soon}
+    {search}
     <ul class="dev-grid" data-m="dgrid">
 {cards}
     </ul>
-    <p class="pending-note dev-empty" role="status" hidden>該当する商品は、まだ載せていません（順に追加します）。</p>
+    <p class="pending-note dev-empty" role="status" hidden>該当する道具は、まだ載せていません（順に追加します）。</p>
   </div>
-""".format(pills1="".join(pills[:(len(pills) + 1) // 2]), pills2="".join(pills[(len(pills) + 1) // 2:]), cards="\n".join(cards))
-        self.page(cur, "Device Room", body, main_class="page device-page")
+""".format(head=self.gate_head(g), soon=soon_html, search=self.device_search(),
+           cards="\n".join(self.product_card(cur, prod) for prod in self.device["products"]))
+        self.page(cur, "Device | Do", body, main_class="page device-page")
 
     def build_product(self, prod):
         cur = self.product_url(prod) + "index.html"
@@ -1613,29 +1688,26 @@ class Site:
           <p>{body}</p>
         </figcaption>
       </figure>""".format(img=esc(h("assets/device/" + f["image"])), ttl=lines(f["title"]), body=lines(f["body"])) for f in prod["features"])
-        # 商品の情緒（映像・記事・音声）: contents.json の device にこの商品の ID を書いたコンテンツを、回の枠で並べる（無ければ出さない）
+        # 出てくる回: contents.json の device にこの商品の ID を書いたコンテンツの回を、回カードで並べる（無ければ出さない）
         media, seen = [], set()
         for c in self.contents:
-            if str(prod["id"]) not in [str(x) for x in c.get("device", [])]:
+            if str(prod["id"]) not in [str(x) for x in c.get("device", [])] or c.get("prologue"):
                 continue
             ep_p, ep_e, ep_items = self.find_episode(c)
             if (ep_p["slug"], ep_e["key"]) in seen:
                 continue
             seen.add((ep_p["slug"], ep_e["key"]))
-            media.append(self.entry(cur, ep_p, ep_e, ep_items, 300 + len(media), id_prefix="dv-"))
-        media_html = ('\n      <div class="entries product-media">\n%s\n      </div>' % "\n".join(media)) if media else ""
+            media.append(self.episode_card(cur, ep_p, self.number_of(ep_p, ep_e), ep_e, ep_items, show_program=True))
+        media_html = ("\n    " + self.section("出てくる回", self.cards(media), "product-media")) if media else ""
+        media_html += ("\n    " + self.section("置いている間", self.element_chips(cur, prod.get("elements", []), "要素"))) if prod.get("elements") else ""
         # 写真は横に並べてスクロールで送る（スマホは指で送り「1/N」を出す。PC は下の小さな写真で選ぶ）
         slides = "\n".join('          <li><img src="%s" width="720" height="720"%s decoding="async" alt="%s（%s）"></li>' % (
             esc(h("assets/device/" + v["image"])), "" if i == 0 else ' loading="lazy"', esc(prod["name"]), esc(v["color"]))
             for i, v in enumerate(prod["variants"]))
         body = """
   <div class="content wide">
-    <form class="dev-search" role="search" action="{dev}" method="get" data-m="dsearch">
-      <label class="visually-hidden" for="dev-q">MA Do / Device を検索</label>
-      <input id="dev-q" name="q" type="search" placeholder="MA Do / Device を検索" autocomplete="off">
-      <button type="submit" aria-label="検索"><span class="search-icon" aria-hidden="true"></span></button>
-    </form>
-    <p class="crumb" data-m="pcrumb" data-mt><a href="{home}">Home</a> › <a href="{do}">MA Do</a> › <a href="{dev}">Device</a> › {shop} › {name}</p>
+{search}
+    <p class="crumb" data-m="pcrumb" data-mt><a href="{home}">Home</a> › <a href="{dev}">{dname}</a> › {shop} › {name}</p>
     <div class="product-top">
       <div class="gallery" data-m="pgal">
         <ul class="gallery-track" tabindex="0" aria-label="{name} の写真（横に送る）">
@@ -1652,7 +1724,7 @@ class Site:
         <h1 class="pi-name" data-m="pname" data-mt>{name}</h1>
         <p class="pi-label" data-m="plabel" data-mt>販売価格：</p>
         <p class="price price-lg" data-m="pprice" data-mt>{price}{note}</p>
-        <a class="buy-btn" href="{ec}" target="_blank" rel="noopener" data-m="pbuy" data-mt>ウェブサイトへ移動</a>
+        <a class="buy-btn" href="{ec}" target="_blank" rel="noopener" data-m="pbuy" data-mt>{shop}で買う <span aria-hidden="true">↗</span></a>
       </div>
       <div class="product-colors">
         <h2 class="pi-colors-head" data-m="pchead" data-mt>color: {colornames}</h2>
@@ -1665,14 +1737,14 @@ class Site:
     <section class="product-desc">
       <h2 class="line-head" data-m="pdesc" data-mt>商品説明</h2>
       <p class="pd-copy">{copy}</p>
-      <div class="prose"><p>{body}</p></div>{media}
-    </section>
+      <div class="prose"><p>{body}</p></div>
+    </section>{media}
 
     <section class="features" aria-label="特徴">
 {feats}
     </section>
   </div>
-""".format(home=h(""), do=h("do/"), dev=h("do/device/"), shop=esc(shop["name"]), name=esc(prod["name"]),
+""".format(home=h(""), dev=h("do/device/"), dname=esc(self.gate("do")["name"]), search=self.device_search(h("do/device/")), shop=esc(shop["name"]), name=esc(prod["name"]),
            slides=slides, count=len(prod["variants"]), thumbs=thumbs, price=esc(self.price_label(prod)),
            note=self.tax_label(), ec=esc(prod["ec_url"]),
            colornames=esc(" / ".join(v["color"] for v in prod["variants"])), colors=colors, copy=esc(prod["copy"]),
@@ -1754,18 +1826,18 @@ class Site:
         body = """
   <div class="content">
     <div class="simple-head">
-      <h1 class="sh-en">Contact us</h1>
+      <h1 class="sh-en">Contact</h1>
       <p class="sh-ja">お問い合わせ</p>
     </div>
 {groups}
   </div>
 """.format(groups="\n\n".join(groups))
-        self.page(cur, "Contact us", body, main_class="page contact-page")
+        self.page(cur, "Contact", body, main_class="page contact-page")
 
     def build_redirects(self):
-        for old, target, label in (("about.html", "notion/", "MA Notion"),
-                                   ("ma-channel.html", "channel/", "MA Channel"),
-                                   ("edge-riders.html", "channel/", "MA Channel"),
+        for old, target, label in (("about.html", "notion/", "Notion"),
+                                   ("ma-channel.html", "channel/", "Channel"),
+                                   ("edge-riders.html", "channel/", "Channel"),
                                    ("beyond-the-vanishing-point.html", "channel/beyond-the-vanishingpoint/", "死を、教えてくれ。"),
                                    # 8 月版の取材後記は、今は #2-2-3（掲載予定）の旧版にあたるので、番組のページへ送る
                                    ("article-2-2-1-postscript.html", "channel/beyond-the-vanishingpoint/", "死を、教えてくれ。")):
@@ -1782,6 +1854,7 @@ class Site:
         self.build_lab()
         self.build_channel()
         self.build_programs()
+        self.build_episodes()
         self.build_articles()
         self.build_do()
         self.build_company()

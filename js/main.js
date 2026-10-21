@@ -25,8 +25,7 @@
     try { id = decodeURIComponent(location.hash.slice(1)); } catch (e) { return; }
     if (!id) return;
     var el = document.getElementById(id);
-    if (el && el.tagName === "DETAILS") el.open = true;
-    // 章（Notion・Company）も、#ch3 のように来たら開く（Lab の引用から戻れるように）
+    // 章（Notion・Company）は、#ch3 のように来たら開く（Lab の引用から戻れるように）
     if (el && el.classList.contains("fold") && el.classList.contains("is-folded")) {
       var t = el.querySelector(".fold-toggle");
       if (t) t.click();
@@ -88,33 +87,17 @@
       btn.addEventListener("click", function () {
         var opening = f.classList.contains("is-folded");
         set(opening);
-        if (opening) {
-          // 開くと ↓ は消える（デザイン）ので、読み始める本文へフォーカスを移す
-          body.setAttribute("tabindex", "-1");
-          body.focus({ preventScroll: true });
-        } else {
-          f.scrollIntoView({ block: "start" });
-        }
+        // 開いても章の題（ボタン）は残り、右の印が − になる。フォーカスは題に置いたまま（もう一度押せば閉じる）
+        if (!opening) f.scrollIntoView({ block: "start" });
       });
     });
 
-    // 章の本文の最後の ↑ は、章を閉じて見出しへ戻る
+    // 章の本文の最後の − は、章を閉じて見出しへ戻る
     document.querySelectorAll(".fold-close").forEach(function (b) {
       b.addEventListener("click", function () {
         var f = b.closest(".fold");
         var t = f && f.querySelector(".fold-toggle");
         if (t) { t.click(); t.focus({ preventScroll: true }); }
-      });
-    });
-    // 回の本文の最後の ↑ は、回を閉じる
-    document.querySelectorAll(".entry-close").forEach(function (b) {
-      b.addEventListener("click", function () {
-        var d = b.closest("details");
-        if (!d) return;
-        d.open = false;
-        d.scrollIntoView({ block: "start" });
-        var sm = d.querySelector("summary");
-        if (sm) sm.focus({ preventScroll: true });
       });
     });
 
@@ -144,7 +127,7 @@
       hero.classList.add("is-playing");
     });
 
-    // ---------- 番組の回 ----------
+    // ---------- #ch3 で章を開いて来る ----------
     openFromHash();
     window.addEventListener("hashchange", openFromHash);
 

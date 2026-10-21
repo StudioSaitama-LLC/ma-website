@@ -14,20 +14,16 @@
     "podcast": "https://soundcloud.com/ma-jpn",
     "note": "https://note.com/manaka_notepr"
   },
-  "news": [
-    {
-      "date": "2026-07-28",
-      "path": "MA",
-      "title": "サイトの更新を、AI エージェントと。",
-      "text": "Slack で話しかけると記事がサイトに反映される、新しい編集の運用を準備しています。"
-    }
-  ],
+  "news": [],
   "gates": [
     {
       "key": "notion",
       "no": "0",
       "en": "MA Notion",
+      "name": "Notion",
+      "short": "考え方",
       "ja": "間、当事者化への提案",
+      "plain": "間とは何か、なぜいま要るのかを書いたマニフェストを読む。",
       "url": "notion/",
       "ready": true,
       "doors": []
@@ -36,51 +32,58 @@
       "key": "lab",
       "no": "1",
       "en": "MA Lab",
+      "name": "Lab",
+      "short": "研究室",
       "ja": "間、定義化への試み",
+      "plain": "マニフェストの言葉と、間が映る資料・調べものから、間とは何かを確かめる。",
       "url": "lab/",
       "ready": true,
       "doors": [
         {
           "no": "1-1",
-          "en": "Dictionary Space",
+          "en": "Dictionary",
           "url": "lab/dictionary/",
           "ready": true
         },
         {
           "no": "1-2",
-          "en": "Reference Space",
+          "en": "Reference",
           "url": "lab/reference/",
           "ready": true
         },
         {
           "no": "1-3",
-          "en": "Research Space",
+          "en": "Research",
           "url": "lab/research/",
           "ready": true
         }
-      ]
+      ],
+      "state": "試作"
     },
     {
       "key": "channel",
       "no": "2",
       "en": "MA Channel",
+      "name": "Channel",
+      "short": "番組",
       "ja": "間、流通化への多手",
+      "plain": "間を巡る番組を、動画・読み物・音声で届ける。",
       "url": "channel/",
       "ready": true,
       "doors": [
         {
           "no": "2-1",
-          "en": "TV Station",
+          "en": "TV",
           "ready": true
         },
         {
           "no": "2-2",
-          "en": "Magazine Station",
+          "en": "Magazine",
           "ready": true
         },
         {
           "no": "2-3",
-          "en": "Radio Station",
+          "en": "Radio",
           "ready": true
         }
       ]
@@ -89,18 +92,21 @@
       "key": "do",
       "no": "3",
       "en": "MA Do",
+      "name": "Do",
+      "short": "道具",
       "ja": "間、個人化への導線",
-      "url": "do/",
+      "plain": "暮らしに間を置く道具を知り、買える場所へ行く。",
+      "url": "do/device/",
       "ready": true,
       "doors": [
         {
           "no": "3-1",
-          "en": "Tips Room",
+          "en": "Tips",
           "ready": false
         },
         {
           "no": "3-2",
-          "en": "Device Room",
+          "en": "Device",
           "url": "do/device/",
           "ready": true
         }
@@ -133,7 +139,7 @@
       "flow": [
         {
           "gate": "1",
-          "en": "MA Lab",
+          "en": "Lab",
           "ja": "間の定義化",
           "verb": "定める",
           "doors": [
@@ -144,18 +150,18 @@
         },
         {
           "gate": "2",
-          "en": "MA Channel",
+          "en": "Channel",
           "ja": "間の流通化",
           "verb": "広める",
           "doors": [
-            "Tv",
+            "TV",
             "Magazine",
             "Radio"
           ]
         },
         {
           "gate": "3",
-          "en": "MA Do",
+          "en": "Do",
           "ja": "間の個人化",
           "verb": "感化する",
           "doors": [
@@ -208,6 +214,11 @@
       ]
     }
   ],
+  "views": {
+    "随想記事": "撮影の日を、聞き手の目で",
+    "編集後記": "撮影までを、作り手の目で",
+    "企画背景": "番組を始めたわけ"
+  },
   "shops": [
     {
       "slug": "manaka-store",
