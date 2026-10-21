@@ -1,9 +1,9 @@
 /* 間｜MA — ページ共通の動き
    - 色の切り替え（青地 / 灰地）。ページを読む前に <head> の小さなスクリプトが前回の選択を戻している
    - メニュー（全画面）の開閉
-   - 章の開閉（最初は一部だけ見せ、矢印で全部 ↔ 一部）
+   - 章の開閉（最初は見出しだけ。章の題を押すと開き、右の印が ＋ → −）
    - 記事の冒頭の写真の切り替え
-   - 番組の回（details）は、#ep-… で来たときに開く
+   - 旧版の番組ページの回の住所（#ep-…）で来たら、その回のページへ送る
    - 商品の写真の送り
    - Device Room の検索とお店の絞り込み（商品ページの検索からは ?q= で来る）
    - Lab の Reference Space の絞り込み（要素・形。#e-… で来たらその要素で絞る） */
@@ -25,6 +25,11 @@
     try { id = decodeURIComponent(location.hash.slice(1)); } catch (e) { return; }
     if (!id) return;
     var el = document.getElementById(id);
+    // 旧版の番組ページでは回をその場で開いていた（#ep-<回>）。いまは回ごとのページがあるので、そこへ送る
+    if (el && /^ep-/.test(id)) {
+      var link = el.querySelector("a.card-link");
+      if (link) { location.replace(link.href); return; }
+    }
     // 章（Notion・Company）は、#ch3 のように来たら開く（Lab の引用から戻れるように）
     if (el && el.classList.contains("fold") && el.classList.contains("is-folded")) {
       var t = el.querySelector(".fold-toggle");

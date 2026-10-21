@@ -139,7 +139,8 @@ strong, b { font-weight: 700; }
 /* 手描きの絵（SVG）。線の色は文字の色に合わせる */
 .illust { display: block; height: auto; color: var(--fg); overflow: visible; }
 html.light .logo-mark, html.light .home-logo { filter: brightness(0.55); }
-html:not(.js) .menu-btn, html:not(.js) .fold-toggle { display: none; }
+/* JS 無しでは章は全文を出す。章の題（ボタン）は残し、開閉の印だけ隠す */
+html:not(.js) .menu-btn, html:not(.js) .ft-sign { display: none; }
 
 /* 360px 未満の小さい画面は、ページ全体を 375px の組みのまま縮める（絵や図の位置はスマホ 375px のデザインに合わせているため） */
 @media (max-width: 359.98px) {
@@ -1207,8 +1208,8 @@ html:not(.js) .ref-filters { display: none; }
 .card-kicker, .card-meta, .card-update { font-size: var(--small); line-height: 20px; }
 .card-kicker { opacity: 0.85; }
 .card-note { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
-.card-update::before { content: "＋ "; }
-.card.is-soon .card-body { border: 1px dashed var(--muted); color: var(--muted); }
+/* 準備中は破線で押せない形。字は地の色に寄せて薄くする（読める濃さは残す: 青地で約 5:1、灰地で約 4.4:1） */
+.card.is-soon .card-body { border: 1px dashed var(--fg); color: var(--fg); opacity: 0.62; }
 .card.is-soon .status { margin-left: 0; }
 .cards-program .card-title { font-size: var(--head); line-height: 1.4; }
 .cards-program .card-note { -webkit-line-clamp: 3; line-clamp: 3; }
@@ -1322,3 +1323,10 @@ html:not(.js) .ref-filters { display: none; }
 /* 並んだカードは高さをそろえる（PC の 3 列・2 列） */
 .cards > .card { display: flex; }
 .cards > .card > .card-link, .cards > .card > .card-body { flex: 1; align-content: start; }
+
+/* スマホの番組の冒頭の段: 絵の下端が収まる高さ（dev-process の絵は 500px から・crosstalk は 476〜615px） */
+.pg-ma-development-process .program-top { height: auto; min-height: 625px; }
+.pg-ma-crosstalk .program-top { height: auto; min-height: 640px; }
+@media (min-width: 1200px) { .pg-ma-development-process .program-top, .pg-ma-crosstalk .program-top { min-height: 900px; } }
+/* 商品ページの「出てくる回」は見出しの白札で区切るので、旧版の線と余白は使わない */
+.sec.product-media { padding-top: 0; border-top: 0; }

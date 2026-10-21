@@ -275,6 +275,12 @@ class Site:
                 errors.append("contents.json #%s: yt_title・yt_lead は youtube があって公開（published）の項目だけ（tools/import_youtube.py が書く）" % cid)
             if "device" in c and not (isinstance(c["device"], list) and all(isinstance(x, (str, int)) for x in c["device"])):
                 errors.append("contents.json #%s: device は商品 ID の並び（[\"2\"] など）" % cid)
+            if c.get("related"):
+                errors.append("contents.json #%s: related（旧版の関連コンテンツ）は改訂版では出さない。回なら episode、番組の第 0 回なら prologue にする" % cid)
+            if c.get("article") and not c.get("episode") and not c.get("prologue"):
+                errors.append("contents.json #%s: 記事（article）は回（episode）か第 0 回（prologue）に入れる（回を決めていないと回のページと記事の住所が重なる）" % cid)
+            if c.get("prologue") and c.get("kind") != "mag":
+                errors.append("contents.json #%s: prologue（番組の第 0 回）は読み物（mag）だけ" % cid)
             if c.get("prologue") and (c.get("episode") or c.get("related")):
                 errors.append("contents.json #%s: prologue（番組の第 0 回）は回にも関連にも入れない（episode・related を外す）" % cid)
             if c.get("kind") == "mag" and c.get("badge") and c.get("status") == "published" and c["badge"] not in self.site.get("views", {}):
@@ -329,6 +335,27 @@ class Site:
             for pid in c.get("device", []) if isinstance(c.get("device"), list) else []:
                 if str(pid) not in set(str(x) for x in prod_ids):
                     errors.append("contents.json #%s: device.json に無い商品 ID: %r" % (c.get("id"), pid))
+        for p in self.programs:
+            pro = [c["id"] for c in self.contents if c.get("program") == p["slug"] and c.get("prologue")]
+            if len(pro) > 1:
+                errors.append("programs.json %s: 第 0 回（prologue）が 2 つ以上ある: %s" % (p["slug"], ", ".join(pro)))
+            if p.get("related"):
+                errors.append("programs.json %s: related（旧版の関連コンテンツ）は改訂版では出さない" % p["slug"])
+            for e in p.get("episodes", []):
+                if re.fullmatch(r"\d+-\d+-\d+", e.get("key", "")):
+                    errors.append("programs.json %s: 回の key に番号の形（%s）は使わない（記事の住所と重なる）" % (p["slug"], e["key"]))
+        for g in self.site.get("gates", []):
+            for k in ("name", "short", "ja", "url"):
+                if not isinstance(g.get(k), str) or not g[k].strip():
+                    errors.append("site.json gates %s: %s（文字）が要る" % (g.get("key"), k))
+            for k in ("plain", "state"):
+                if k in g and not isinstance(g[k], str):
+                    errors.append("site.json gates %s: %s は文字" % (g.get("key"), k))
+        if not all(isinstance(v, str) for v in self.site.get("views", {}).values()):
+            errors.append("site.json views: 見方の一言は文字（{\"随想記事\": \"…\"}）")
+        for c in self.contents:
+            if "words" in c and not isinstance(c["words"], str):
+                errors.append("contents.json #%s: words（書き手）は文字" % c.get("id"))
         ids = set(c.get("id") for c in self.contents)
         for p in self.programs:
             rel = p.get("related", [])
@@ -535,7 +562,7 @@ class Site:
             items = sorted((c for c in mine if c.get("episode") == e["key"]),
                            key=lambda c: (KIND_ORDER[c["kind"]], id_key(c)))
             out.append((e, items))
-        for c in mine:
+        for c in sorted(mine, key=id_key):
             if not c.get("episode"):
                 out.append((self.solo_episode(c), [c]))
         return out
@@ -548,8 +575,11 @@ class Site:
         return None
 
     def ep_title(self, e, items):
+        """回の見出し。YouTube の題に揃えるが、頭の管理番号（「MA Channel #2.1.2 」）は画面に出さない
+        （題は import_youtube.py がいつも YouTube から写し直すので、データでなくここで外す）。"""
         tv = self.yt_item(items)
-        return tv["yt_title"] if tv else e["title"]
+        title = tv["yt_title"] if tv else e["title"]
+        return re.sub(r"^\s*MA Channel\s*#\d+(?:\.\d+)+\s*", "", title) or title
 
     def ep_lines(self, e, items):
         """回の一言（行の並び）。YouTube の説明文の冒頭があればそれ、無ければ caption と text。"""
@@ -777,7 +807,13 @@ class Site:
 """.format(name=esc(self.site["name"]), follow=follow, beta=("　" + esc(self.site["beta_note"])) if self.site.get("noindex") else "",
            company=h("company/"), contact=h("contact/"))
 
+    def claim(self, cur):
+        """同じ住所に 2 つのページを書かない（回のページと記事のページが重なったら止める）。"""
+        if cur in self.pages:
+            raise SystemExit("同じ住所に 2 つのページを作ろうとした: %s（回の key と記事の番号、回を決めていない記事を確かめる）" % cur)
+
     def page(self, cur, title, body, main_class="page", description=None):
+        self.claim(cur)
         h = lambda t: self.href(cur, t)
         name = self.site["name"]
         full = name if title is None else "%s | %s" % (title, name)
@@ -825,6 +861,7 @@ class Site:
         self.pages[cur] = doc
 
     def redirect(self, cur, target, label):
+        self.claim(cur)
         to = self.href(cur, target)
         self.pages[cur] = """<!DOCTYPE html>
 {mark}
@@ -860,7 +897,7 @@ class Site:
             return ('<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/%s" title="%s（YouTube）" '
                     'loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; '
                     'picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>'
-                    % (esc(item["youtube"]), esc(item.get("yt_title") or item["title"])))
+                    % (esc(item["youtube"]), esc(re.sub(r"^\s*MA Channel\s*#\d+(?:\.\d+)+\s*", "", item.get("yt_title") or "") or item["title"])))
         return '<div class="video video-ph"><span class="play" aria-hidden="true"></span><span class="ph-label">準備中</span></div>'
 
     def card(self, href, rows, cls, id_=None, soon=False):
@@ -1499,7 +1536,7 @@ class Site:
 
     def build_episodes(self):
         """回のページ: 動画が主役。その下に読む・聴く（見方カード）、出てくる道具、映っている間、次の一歩。
-        見出しは YouTube の題に揃える（10/20 の戻し）。公開済みのコンテンツが 1 つも無い回はページを作らない。"""
+        見出しは YouTube の題に揃える（回の題と一言を YouTube に合わせる決まり）。公開済みのコンテンツが 1 つも無い回はページを作らない。"""
         for p in self.programs:
             for n, e, items in self.numbered(p):
                 if not self.is_published(items):
@@ -1558,7 +1595,7 @@ class Site:
                 raise SystemExit("src/%s: 日付を入れる目印 %s がありません（article-head の中に置く）" % (item["article"], ARTICLE_META))
             frag = frag.replace(ARTICLE_META, self.date_meta(self.item_date(item), m="am"))
             # 原稿の題の頭の管理番号（2.2.1 など）は画面に出さない（原稿は取り込みの道具がそのまま写すので、ここで外す）
-            frag = re.sub(r'(<h1 class="article-title">)\s*\d+(?:\.\d+)+(?:&ensp;|&nbsp;|\s)+', r"\1", frag)
+            frag = re.sub(r'(<h1 class="article-title">)\s*\d+\.\d+\.\d+(?:&ensp;|&nbsp;|\s)+', r"\1", frag)
             head, rest = split_after_block(frag, '<div class="article-head">', item["article"])
             first = re.match(r"\s*<(h2|div)\b([^>]*)>", rest, flags=re.I)
             if not (first and {"h2": "article-answer", "div": "article-body"}[first.group(1).lower()] in class_list(first.group(2))):
@@ -1772,7 +1809,7 @@ class Site:
         def place(x):
             # リンクのある施設は水色のリンク、無いものは本文の色（デザインの注記）
             if x.get("url"):
-                return '<a href="%s" target="_blank" rel="noopener">%s</a>' % (esc(x["url"]), esc(x["name"]))
+                return '<a href="%s" target="_blank" rel="noopener">%s <span aria-hidden="true">↗</span></a>' % (esc(x["url"]), esc(x["name"]))
             return esc(x["name"])
         fac = "\n".join("""        <li><p class="fac-name">{name}</p><ul>{items}</ul></li>""".format(
             name=place(f), items="".join("<li>%s</li>" % place(x) for x in f.get("items", []))) for f in c["facilities"])
