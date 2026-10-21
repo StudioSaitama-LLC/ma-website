@@ -37,6 +37,12 @@
     }
   }
 
+  // 先読み（Speculation Rules）で先に組み立てたページは、表に出た時点で色の表示と #ch… を合わせ直す
+  // （先読みのあとにフッターで色を切り替えてから移ると、古い色のまま出るため。色そのものは head の maTheme が戻す）
+  if (document.prerendering) {
+    document.addEventListener("prerenderingchange", function () { syncToggle(); openFromHash(); }, { once: true });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     syncToggle();
     document.querySelectorAll(".theme-toggle").forEach(function (b) {
