@@ -82,27 +82,31 @@
 
 <main class="page" id="main">
   <div class="content lab-page">
-    <div class="gate-head">
-    <p class="crumb"><a href="../../lab/">Lab</a></p>
-    <h1 class="gh-title"><strong>Reference</strong></h1>
-    <p class="gh-sub">過去の資料庫</p>
+    <div class="gate-head gate-head-sub">
+    <p class="gh-gate"><strong>Lab</strong> <span class="status">試作</span> <span class="gh-gate-ja">間、定義化への試み</span></p>
   </div>
+    <nav class="local-nav" aria-label="Labの中"><ul><li><a href="../../lab/">入口</a></li><li><a href="../../lab/dictionary/">Dictionary</a></li><li><a href="../../lab/reference/" aria-current="page">Reference</a></li><li><a href="../../lab/research/">Research</a></li></ul></nav>
+    <h1 class="gh-title gh-door"><strong>Reference</strong></h1>
+    <p class="gh-sub">過去の資料庫</p>
     <p class="lab-lead">「間」と感じられる、先人たちの遺産。名言・名著・名盤を、マニフェストの一節と結びつけて置く。レコード屋のように掘る。</p>
+    <div class="filter-box" role="group" aria-label="資料を絞り込む">
+      <p class="fb-label">絞り込む</p>
     <div class="ref-filters" data-filter="elements" role="group" aria-label="要素で絞り込む">
       <p class="rf-label">要素</p>
-      <div class="pills"><div class="pill-row"><button class="pill is-active" type="button" data-v="">ALL</button> <button class="pill" type="button" data-v="sukima">隙間</button> <button class="pill" type="button" data-v="seikai-nashi">正解のなさ</button> <button class="pill" type="button" data-v="mawarimichi">回り道</button> <button class="pill" type="button" data-v="shori-shinai">処理しない</button> <button class="pill" type="button" data-v="kokoro">心の動き</button> <button class="pill" type="button" data-v="muda">無駄</button> <button class="pill" type="button" data-v="yukkuri">ゆっくり</button> <button class="pill" type="button" data-v="jimae">自前で掘る</button> <button class="pill" type="button" data-v="kaishaku">解釈の余地</button> <button class="pill" type="button" data-v="kizuki">気づき</button></div></div>
+      <div class="pills"><div class="pill-row"><button class="pill is-active" type="button" data-v="">すべて</button> <button class="pill" type="button" data-v="sukima">隙間</button> <button class="pill" type="button" data-v="seikai-nashi">正解のなさ</button> <button class="pill" type="button" data-v="mawarimichi">回り道</button> <button class="pill" type="button" data-v="shori-shinai">処理しない</button> <button class="pill" type="button" data-v="kokoro">心の動き</button> <button class="pill" type="button" data-v="muda">無駄</button> <button class="pill" type="button" data-v="yukkuri">ゆっくり</button> <button class="pill" type="button" data-v="jimae">自前で掘る</button> <button class="pill" type="button" data-v="kaishaku">解釈の余地</button> <button class="pill" type="button" data-v="kizuki">気づき</button></div></div>
     </div>
     <div class="ref-filters" data-filter="form" role="group" aria-label="形で絞り込む">
       <p class="rf-label">形</p>
-      <div class="pills"><div class="pill-row"><button class="pill is-active" type="button" data-v="">ALL</button> <button class="pill" type="button" data-v="言葉">言葉</button> <button class="pill" type="button" data-v="文章">文章</button> <button class="pill" type="button" data-v="音">音</button> <button class="pill" type="button" data-v="映像">映像</button> <button class="pill" type="button" data-v="写真">写真</button> <button class="pill" type="button" data-v="場">場</button></div></div>
+      <div class="pills"><div class="pill-row"><button class="pill is-active" type="button" data-v="">すべて</button> <button class="pill" type="button" data-v="言葉">言葉</button> <button class="pill" type="button" data-v="文章">文章</button> <button class="pill" type="button" data-v="音">音</button> <button class="pill" type="button" data-v="映像">映像</button> <button class="pill" type="button" data-v="写真">写真</button> <button class="pill" type="button" data-v="場">場</button></div></div>
     </div>
-    <p class="ref-count" aria-live="polite" aria-atomic="true"><span class="rc-now">20</span> 件</p>
+      <p class="ref-count" aria-live="polite" aria-atomic="true"><span class="rc-now">20</span> 件</p>
+    </div>
     <ol class="ref-list">
     <li class="ref" id="r-kojien-kanzuru" data-form="言葉" data-elements="kokoro kizuki">
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">◆</span><span class="badge">言葉</span><span class="ref-field">辞書</span><span class="status">候補</span></p>
         <h2 class="ref-title">「感ずる」の語義<span class="ref-by">『広辞苑』（岩波書店）</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-kokoro">心の動き</a> <a class="chip" href="../../lab/#e-kizuki">気づき</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-kokoro">心の動き</a>・<a class="chip" href="../../lab/#e-kizuki">気づき</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 50"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:50%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -117,7 +121,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">◆</span><span class="badge">言葉</span><span class="ref-field">時代</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">「3 つの密」（密閉・密集・密接）<span class="ref-by">首相官邸・厚生労働省の標語、2020</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-sukima">隙間</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-sukima">隙間</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 0"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:0%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -131,7 +135,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">■</span><span class="badge">文章</span><span class="ref-field">哲学</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">『疲労社会』<span class="ref-by">ビョンチョル・ハン、2010（横山陸 訳、花伝社、2021）</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-sukima">隙間</a> <a class="chip" href="../../lab/#e-yukkuri">ゆっくり</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-sukima">隙間</a>・<a class="chip" href="../../lab/#e-yukkuri">ゆっくり</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 15"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:15%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -145,7 +149,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">■</span><span class="badge">文章</span><span class="ref-field">技術</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">『ネット・バカ』（The Shallows）<span class="ref-by">ニコラス・カー、2010（篠儀直子 訳、青土社）</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-jimae">自前で掘る</a> <a class="chip" href="../../lab/#e-yukkuri">ゆっくり</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-jimae">自前で掘る</a>・<a class="chip" href="../../lab/#e-yukkuri">ゆっくり</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 20"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:20%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -159,7 +163,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">■</span><span class="badge">文章</span><span class="ref-field">哲学</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">『「待つ」ということ』<span class="ref-by">鷲田清一、2006（角川選書）</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-yukkuri">ゆっくり</a> <a class="chip" href="../../lab/#e-mawarimichi">回り道</a> <a class="chip" href="../../lab/#e-seikai-nashi">正解のなさ</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-yukkuri">ゆっくり</a>・<a class="chip" href="../../lab/#e-mawarimichi">回り道</a>・<a class="chip" href="../../lab/#e-seikai-nashi">正解のなさ</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 80"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:80%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -173,7 +177,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">■</span><span class="badge">文章</span><span class="ref-field">哲学</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">『暇と退屈の倫理学』<span class="ref-by">國分功一郎、2011（朝日出版社）</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-muda">無駄</a> <a class="chip" href="../../lab/#e-shori-shinai">処理しない</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-muda">無駄</a>・<a class="chip" href="../../lab/#e-shori-shinai">処理しない</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 70"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:70%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -187,7 +191,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">■</span><span class="badge">文章</span><span class="ref-field">美術</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">『何もしない』（How to Do Nothing）<span class="ref-by">ジェニー・オデル、2019（竹内要江 訳、早川書房、2021）</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-muda">無駄</a> <a class="chip" href="../../lab/#e-shori-shinai">処理しない</a> <a class="chip" href="../../lab/#e-kizuki">気づき</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-muda">無駄</a>・<a class="chip" href="../../lab/#e-shori-shinai">処理しない</a>・<a class="chip" href="../../lab/#e-kizuki">気づき</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 80"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:80%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -201,7 +205,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">■</span><span class="badge">文章</span><span class="ref-field">文学</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">『陰翳礼讃』<span class="ref-by">谷崎潤一郎、1933（初出）</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-sukima">隙間</a> <a class="chip" href="../../lab/#e-kaishaku">解釈の余地</a> <a class="chip" href="../../lab/#e-shori-shinai">処理しない</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-sukima">隙間</a>・<a class="chip" href="../../lab/#e-kaishaku">解釈の余地</a>・<a class="chip" href="../../lab/#e-shori-shinai">処理しない</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 90"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:90%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -215,7 +219,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">●</span><span class="badge">音</span><span class="ref-field">音楽</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">『音、沈黙と測りあえるほどに』<span class="ref-by">武満徹、1971（新潮社）</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-sukima">隙間</a> <a class="chip" href="../../lab/#e-kokoro">心の動き</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-sukima">隙間</a>・<a class="chip" href="../../lab/#e-kokoro">心の動き</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 90"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:90%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -229,7 +233,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">●</span><span class="badge">音</span><span class="ref-field">音楽</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">《4 分 33 秒》<span class="ref-by">ジョン・ケージ、1952</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-sukima">隙間</a> <a class="chip" href="../../lab/#e-seikai-nashi">正解のなさ</a> <a class="chip" href="../../lab/#e-kokoro">心の動き</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-sukima">隙間</a>・<a class="chip" href="../../lab/#e-seikai-nashi">正解のなさ</a>・<a class="chip" href="../../lab/#e-kokoro">心の動き</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 100"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:100%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -243,7 +247,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">◆</span><span class="badge">言葉</span><span class="ref-field">芸能</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">『花鏡』の「せぬ隙」<span class="ref-by">世阿弥、1424 頃</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-sukima">隙間</a> <a class="chip" href="../../lab/#e-kokoro">心の動き</a> <a class="chip" href="../../lab/#e-kaishaku">解釈の余地</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-sukima">隙間</a>・<a class="chip" href="../../lab/#e-kokoro">心の動き</a>・<a class="chip" href="../../lab/#e-kaishaku">解釈の余地</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 100"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:100%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -257,7 +261,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">◆</span><span class="badge">言葉</span><span class="ref-field">文学</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">古池や蛙飛びこむ水の音<span class="ref-by">松尾芭蕉、1686</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-kizuki">気づき</a> <a class="chip" href="../../lab/#e-sukima">隙間</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-kizuki">気づき</a>・<a class="chip" href="../../lab/#e-sukima">隙間</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 100"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:100%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -271,7 +275,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">▶</span><span class="badge">映像</span><span class="ref-field">映画</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">『東京物語』<span class="ref-by">小津安二郎、1953</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-yukkuri">ゆっくり</a> <a class="chip" href="../../lab/#e-mawarimichi">回り道</a> <a class="chip" href="../../lab/#e-sukima">隙間</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-yukkuri">ゆっくり</a>・<a class="chip" href="../../lab/#e-mawarimichi">回り道</a>・<a class="chip" href="../../lab/#e-sukima">隙間</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 80"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:80%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -285,7 +289,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">◉</span><span class="badge">場</span><span class="ref-field">建築</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">展覧会「間 ― 日本の時空間」<span class="ref-by">磯崎新（構成）、パリ装飾美術館、1978</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-seikai-nashi">正解のなさ</a> <a class="chip" href="../../lab/#e-kaishaku">解釈の余地</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-seikai-nashi">正解のなさ</a>・<a class="chip" href="../../lab/#e-kaishaku">解釈の余地</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 80"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:80%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -299,7 +303,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">■</span><span class="badge">文章</span><span class="ref-field">文化</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">『「間」の日本文化』<span class="ref-by">剣持武彦、1992（朝文社）</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-jimae">自前で掘る</a> <a class="chip" href="../../lab/#e-kaishaku">解釈の余地</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-jimae">自前で掘る</a>・<a class="chip" href="../../lab/#e-kaishaku">解釈の余地</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 70"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:70%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -313,7 +317,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">■</span><span class="badge">文章</span><span class="ref-field">心理</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">『間の研究 ― 日本人の美的表現』<span class="ref-by">南博 編、1983（講談社）</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-kokoro">心の動き</a> <a class="chip" href="../../lab/#e-kaishaku">解釈の余地</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-kokoro">心の動き</a>・<a class="chip" href="../../lab/#e-kaishaku">解釈の余地</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 70"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:70%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -327,7 +331,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">■</span><span class="badge">文章</span><span class="ref-field">デザイン</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">『白』<span class="ref-by">原研哉、2008（中央公論新社）</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-sukima">隙間</a> <a class="chip" href="../../lab/#e-kaishaku">解釈の余地</a> <a class="chip" href="../../lab/#e-kizuki">気づき</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-sukima">隙間</a>・<a class="chip" href="../../lab/#e-kaishaku">解釈の余地</a>・<a class="chip" href="../../lab/#e-kizuki">気づき</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 90"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:90%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -341,7 +345,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">▲</span><span class="badge">写真</span><span class="ref-field">写真</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">「海景」<span class="ref-by">杉本博司、1980 年〜</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-shori-shinai">処理しない</a> <a class="chip" href="../../lab/#e-kokoro">心の動き</a> <a class="chip" href="../../lab/#e-sukima">隙間</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-shori-shinai">処理しない</a>・<a class="chip" href="../../lab/#e-kokoro">心の動き</a>・<a class="chip" href="../../lab/#e-sukima">隙間</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 90"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:90%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -355,7 +359,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">◆</span><span class="badge">言葉</span><span class="ref-field">辞書</span><span class="status">確認済み</span></p>
         <h2 class="ref-title">『日本語オノマトペ辞典』（擬音語・擬態語 4500）<span class="ref-by">小野正弘 編、2007（小学館）</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><a class="chip" href="../../lab/#e-kokoro">心の動き</a> <a class="chip" href="../../lab/#e-kaishaku">解釈の余地</a></p>
+        <p class="chips"><span class="chips-label">要素：</span><a class="chip" href="../../lab/#e-kokoro">心の動き</a>・<a class="chip" href="../../lab/#e-kaishaku">解釈の余地</a></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 60"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:60%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">
@@ -369,7 +373,7 @@
       <div class="ref-main">
         <p class="ref-meta"><span class="fg" aria-hidden="true">■</span><span class="badge">文章</span><span class="ref-field">美術</span><span class="status">相談中</span></p>
         <h2 class="ref-title">The Markers of Our Time<span class="ref-by">Ryan Gander</span></h2>
-        <p class="chips"><span class="chips-label">要素</span><span class="chip-none">まだ決めていない</span></p>
+        <p class="chips"><span class="chips-label">要素：</span><span class="chip-none">まだ決めていない</span></p>
         <p class="pole" role="img" aria-label="密 0 〜 間 100 の目盛りで 70"><span class="pole-l" aria-hidden="true">密</span><span class="pole-bar"><span class="pole-dot" style="left:70%"></span></span><span class="pole-r" aria-hidden="true">間</span></p>
       </div>
       <div class="ref-text">

@@ -31,6 +31,7 @@
   --bg: #1414dc;
   --fg: #ffffff;
   --accent: #00ffff;
+  --visited: #ffb3ff;  /* 訪れたリンク（地と約 6.1:1）。昔のハイパーリンクの「訪れたら色が変わる」を借りる */
   --on-accent: #1414dc;
   --muted: #b4b4f0;  /* 準備中・押せないもの。青地で約 4.9:1 */
   --tag-bg: #ffffff;
@@ -63,6 +64,7 @@ html.light {
   --bg: #cccccc;
   --fg: #111111;
   --accent: #0000ff;
+  --visited: #551a8b;  /* 灰地の訪れたリンク（地と約 6.9:1） */
   --on-accent: #ffffff;
   --muted: #555555;  /* 灰地で約 4.6:1 */
   --tag-bg: #ffffff;
@@ -115,8 +117,11 @@ body {
 }
 body.menu-open { overflow: hidden; }
 
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; text-underline-offset: 3px; }
+/* 文の中のリンクは水色＋下線、訪れたら色が変わる（色だけでは本文と見分けられないため。WCAG 1.4.1 / G183）。
+   帯・メニュー・扉の帯・カード・ボタンは位置と形で分かるので、下に並べた決まりで下線を外し、色も変えない */
+a { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:visited { color: var(--visited); }
+a:hover { text-decoration-thickness: 2px; }
 a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
@@ -373,7 +378,7 @@ html.light .theme-toggle { flex-direction: row-reverse; padding: 0 2px 0 8px; }
 .prose p:last-child { margin-bottom: 0; }
 .pending-note { opacity: 0.75; }
 .crumb { font-size: 11px; line-height: 20px; }
-.crumb a { color: var(--fg); }
+.crumb a { color: var(--accent); }
 @media (min-width: 1200px) { .crumb { font-size: 15px; line-height: 24px; } }
 
 /* 白い札の見出し */
@@ -530,7 +535,7 @@ html.light .new { color: #a000a0; animation-name: ma-new-light; }
 @media (min-width: 360px) { .toc-head { white-space: nowrap; } }
 .toc-head .gh-no, .toc-head strong { color: var(--accent); }
 .toc-head .gh-ja { color: var(--fg); }
-.toc-head a { color: inherit; }
+.toc-head a { color: var(--accent); }
 .toc-head a:hover .gh-ja { text-decoration: underline; }
 .toc-gate.is-dim .toc-head, .toc-gate.is-dim .gh-no, .toc-gate.is-dim strong, .toc-gate.is-dim .gh-ja { color: var(--muted); }
 .toc-doors { padding-left: 13.1px; }
@@ -916,7 +921,9 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .pills::-webkit-scrollbar { display: none; }
 .pill-row { display: flex; gap: 6px; width: max-content; }
 .pill { padding: 0 9px; border: 1px solid var(--fg); border-radius: 999px; background: transparent; color: var(--fg); font: inherit; font-size: 13px; line-height: 20px; letter-spacing: 0.05em; white-space: nowrap; cursor: pointer; }
-.pill.is-active { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+/* 絞り込みの札は押せる道具なので、選んでいるものは白く塗って ✓ も付ける（色だけに頼らない） */
+.pill.is-active { border-color: var(--fg); background: var(--fg); color: var(--bg); }
+.pill.is-active::before { content: "✓ "; }
 .pill.is-empty { opacity: 0.6; }
 /* 商品の写真はデザインの寸法（スマホ 150×150 を本文の左へ 20.4px はみ出す・PC 185.4×185.4・間 14.4px） */
 .dev-grid { display: grid; grid-auto-rows: minmax(150px, auto); gap: 15px; margin-top: 31.5px; }
@@ -1067,7 +1074,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 /* ---------- Lab（試作: 辞書・資料庫・検証。デザインに頁は無いので、Notion の章と Device の札の組みを借りる） ---------- */
 
 .lab-page .crumb { margin-bottom: 8px; }
-.lab-page .crumb a { color: var(--fg); }
+.lab-page .crumb a { color: var(--accent); }
 .lab-lead { margin-top: 46.5px; }
 .lab-page .frame-label { margin-top: 46.5px; }
 .lab-rules { margin: var(--lh) 0 0; padding-left: 1.5em; list-style: decimal; }
@@ -1147,9 +1154,8 @@ html:not(.js) .ref-filters { display: none; }
 .el-links a { margin-right: 0.8em; }
 .chips { margin-top: 10px; font-size: var(--small); line-height: 22px; }
 .chips-label { margin-right: 6px; opacity: 0.75; }
-.act, .chip { display: inline-block; margin: 0 6px 4px 0; padding: 0 8px; border: 1px solid var(--fg); border-radius: 999px; }
-.chip { border-color: var(--accent); color: var(--accent); }
-.chip:hover { background: var(--accent); color: var(--on-accent); text-decoration: none; }
+/* 要素は文中のリンクと同じ下線の文字（丸い札は絞り込みだけ） */
+.chip { display: inline; }
 .fg { margin-right: 6px; color: var(--fg); }
 .ref-main .chips { margin-top: 8px; }
 .ref-empty { margin-top: 24px; }
@@ -1237,7 +1243,7 @@ html:not(.js) .ref-filters { display: none; }
 .toc-gates { margin-top: 36px; }
 .toc-gate + .toc-gate { margin-top: 30px; }
 .toc-head { white-space: normal !important; }
-.toc-head a strong { color: var(--accent); }
+.toc-head a strong { color: inherit; }
 .toc-plain { font-size: var(--small); line-height: 22px; opacity: 0.85; }
 .toc-doors { margin-top: 4px; }
 .toc-doors li::before { content: "– "; }
@@ -1332,3 +1338,47 @@ html:not(.js) .ref-filters { display: none; }
 /* 商品ページの「出てくる回」は見出しの白札で区切るので、旧版の線と余白は使わない */
 .sec.product-media { padding-top: 0; border-top: 0; }
 html:not(.js) .fold-toggle { color: var(--fg); pointer-events: none; cursor: default; }
+
+/* ---------- リンクの下線を外すもの（位置と形で分かるもの） ---------- */
+.site-title, .gate-tab, .menu-overlay a, .local-nav a, .card-link, .dc-link, .btn-primary, .buy-btn, .lab-map a, .site-footer a { text-decoration: none; }
+.site-title:visited, .gate-tab:visited, .card-link:visited, .dc-link:visited { color: var(--fg); }
+.menu-overlay a:visited, .local-nav a:visited, .site-footer a:visited { color: var(--accent); }
+.btn-primary:visited, .buy-btn:visited { color: var(--on-accent); }
+.card-link:hover, .dc-link:hover { text-decoration: none; }
+
+/* ---------- 扉の帯（門の中の道案内）: 門の見出しのすぐ下に横 1 段。いまいる所は白の太字＋下線（2 つの印） ---------- */
+.local-nav { margin-top: 18px; border-bottom: 1px solid var(--line); }
+/* スマホでも 1 段に収める（4 つの名前＋いまいる所の太字で 375px 幅に入る字と間） */
+.local-nav ul { display: flex; gap: 4px 14px; flex-wrap: wrap; font-size: 14px; }
+.local-nav li { line-height: 40px; }
+.local-nav a { display: inline-block; color: var(--accent); }
+.local-nav a[aria-current], .local-nav a[aria-current]:visited { color: var(--fg); font-weight: 700; box-shadow: inset 0 -3px 0 var(--fg); }
+.local-nav .is-dim { color: var(--muted); }
+.local-nav .status { margin-left: 6px; }
+@media (min-width: 1200px) { .local-nav { margin-top: 26px; } .local-nav ul { gap: 4px 32px; font-size: inherit; } .local-nav li { line-height: 48px; } }
+/* 扉のページの見出し: 上に門の名前、帯、扉の名前 */
+.gate-head-sub .gh-gate { line-height: var(--lh); }
+.gh-gate-ja { margin-left: 8px; font-size: var(--small); opacity: 0.85; }
+.gh-gate .status { margin-left: 8px; }
+.gh-door { margin-top: 24px; }
+.lab-page .lab-lead { margin-top: 24px; }
+@media (min-width: 1200px) { .gh-door { margin-top: 40px; } }
+
+/* Lab の入口: 部屋のカード → 要素の地図 */
+.lab-rooms { margin-top: 48px; }
+.lab-map-sec .lab-map { margin-top: 26px; }
+@media (min-width: 1200px) { .cards-room { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* 資料庫の絞り込み: 「絞り込む」の枠でまとめる */
+.filter-box { margin-top: 32px; padding: 14px 16px 12px; border: 1px solid var(--line); }
+.fb-label { font-weight: 700; }
+.filter-box .ref-filters { margin-top: 12px; }
+.filter-box .ref-filters + .ref-filters { margin-top: 12px; }
+.filter-box .ref-count { margin-top: 12px; font-size: var(--small); }
+@media (min-width: 1200px) { .filter-box { margin-top: 48px; padding: 20px 24px 16px; } }
+
+/* Channel: 新しい回は 1 枚だけ大きく */
+.channel-latest { margin-top: 48px; }
+.cards-feature .card-title { font-size: var(--head); line-height: 1.4; }
+.cards-feature .card-link { padding-top: 16px; padding-bottom: 16px; border-width: 2px; }
+.channel-latest + .channel-menu { margin-top: 56px; }
