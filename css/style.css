@@ -1425,21 +1425,23 @@ html:not(.js) .filter-box { display: none; }
 /* ---------- 間の地図（流れの図）: 間 → 章 → 要素 → 部屋。帯の太さはつながりの数 ---------- */
 .flowmap { display: block; width: 100%; height: auto; margin-top: 26px; overflow: visible; font-family: inherit; }
 .flowmap .rib { fill: var(--fg); opacity: 0.17; transition: opacity 0.2s ease; }
+html.light .flowmap .rib { opacity: 0.22; }
 .flowmap.is-focus .rib { opacity: 0.05; }
 .flowmap.is-focus .rib.on { opacity: 0.6; }
 .flowmap .node { fill: var(--fg); }
 .flowmap .node.is-empty { fill: none; stroke: var(--muted); stroke-dasharray: 3 3; }
-.flowmap text { font-size: 13px; fill: var(--fg); }
+/* 名前は帯の上に乗るので、地の色の縁取りで帯から浮かせる（帯が濃くなっても読める） */
+.flowmap text { font-size: 14px; fill: var(--fg); paint-order: stroke fill; stroke: var(--bg); stroke-width: 3.5px; stroke-linejoin: round; }
 .flowmap a text { fill: var(--accent); }
 .flowmap a:hover text, .flowmap a:focus-visible text { text-decoration: underline; }
-.flowmap a:focus-visible { outline: none; }
+.flowmap a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .flowmap .t-ma { font-size: 44px; font-weight: 700; fill: var(--fg); }
 .flowmap .t-muted { fill: var(--muted); }
-.flowmap .t-n { font-size: 11px; fill: var(--fg); opacity: 0.7; }
-.flowmap .t-room { font-size: 15px; font-weight: 700; }
-.flowmap .t-head { font-size: 11px; }
+.flowmap .t-n { font-size: 12px; fill: var(--fg); opacity: 0.75; }
+.flowmap .t-room { font-size: 16px; font-weight: 700; }
+.flowmap .t-head { font-size: 12px; }
 .fm-sp text { font-size: 12px; }
 .fm-sp .t-room { font-size: 13px; }
-.fm-sp .t-n { font-size: 10.5px; }
+.fm-sp .t-n { font-size: 11px; }
 @media (min-width: 1200px) { .flowmap { margin-top: 40px; } }
 @media (prefers-reduced-motion: reduce) { .flowmap .rib { transition: none; } }

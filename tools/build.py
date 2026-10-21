@@ -1229,6 +1229,8 @@ class Site:
         ctot = {c["no"]: sum(etot[e["key"]] for e in order if e["ch"] == c["no"]) for c in chapters}
         rtot = [sum(val[k][i] for k in val) for i in range(len(rooms))]
         total = sum(etot.values())
+        if not total:  # どの要素にも何もつながっていなければ、図は出さない
+            return "", "まだ、要素につながる言葉・資料・テーマが無い。"
 
         def stack(items, k, gap, top=0.0, minh=2.0, heads=None):
             """縦に積む。items=[(key, value)]。heads={key: 見出しの高さ}（その前に見出しの空きを取る）。"""
@@ -1252,15 +1254,15 @@ class Site:
         def node(x, y0, y1, w, empty=False):
             return '<rect class="node%s" x="%.1f" y="%.1f" width="%d" height="%.1f"/>' % (" is-empty" if empty else "", x, y0, w, max(y1 - y0, 1))
 
-        def link(href, focus, inner):
-            return '<a href="%s" data-focus="%s">%s</a>' % (href, focus, inner)
+        def link(href, focus, inner, label):
+            return '<a href="%s" data-focus="%s" aria-label="%s">%s</a>' % (href, focus, esc(label), inner)
 
         room_href = [h("lab/%s/" % r) for r, _, _, _ in rooms]
         ch_title = {c["no"]: c["title"] for c in chapters}
         # ---------- PC（間 → 章 → 要素 → 部屋） ----------
         W, H, w = 990, 540, 10
         xA, xB, xC, xD = 58, 250, 560, 860
-        k = (H - 9 * 12) / total
+        k = (H - (len(order) - 1) * 12) / total  # 要素の列（いちばん隙間が多い列）が高さ H にちょうど収まる
         def centered(items, gap, minh=2.0):
             _, end = stack(items, k, gap, 0, minh)
             return stack(items, k, gap, (H - end) / 2, minh)[0]
@@ -1303,19 +1305,20 @@ class Site:
             y = mid(nB[c["no"]])
             text = '<text x="%d" y="%.1f" dominant-baseline="central">第 %d 章「%s」</text>' % (xB + w + 8, y, c["no"], esc(c["title"]))
             if ctot[c["no"]]:
-                labels.append(link(h("notion/#ch%d" % c["no"]), "ch:%d" % c["no"], text))
+                labels.append(link(h("notion/#ch%d" % c["no"]), "ch:%d" % c["no"], text, "第 %d 章「%s」（つながり %d）" % (c["no"], c["title"], ctot[c["no"]])))
             else:
                 labels.append('<text class="t-muted" x="%d" y="%.1f" dominant-baseline="central">第 %d 章「%s」（要素なし）</text>' % (xB + w + 8, y, c["no"], esc(c["title"])))
         for e in order:
             y = mid(nC[e["key"]])
             labels.append(link("#e-%s" % e["key"], "el:%s" % e["key"],
                                '<text x="%d" y="%.1f" dominant-baseline="central">%s<tspan class="t-n" dx="6">%d</tspan></text>'
-                               % (xC + w + 8, y, esc(e["name"]), etot[e["key"]])))
+                               % (xC + w + 8, y, esc(e["name"]), etot[e["key"]]), "%s（つながり %d）" % (e["name"], etot[e["key"]])))
         for i, (r, en, unit, items) in enumerate(rooms):
             y = mid(nD[i])
             labels.append(link(room_href[i], "room:%s" % r,
                                '<text x="%d" y="%.1f" dominant-baseline="central"><tspan class="t-room">%s</tspan>'
-                               '<tspan class="t-n" x="%d" dy="20">%d %s</tspan></text>' % (xD + w + 10, y - 8, en, xD + w + 10, len(items), unit)))
+                               '<tspan class="t-n" x="%d" dy="20">%d %s</tspan></text>' % (xD + w + 10, y - 8, en, xD + w + 10, len(items), unit),
+                               "%s（%d %s・つながり %d）" % (en, len(items), unit, rtot[i])))
         pc = ('<svg class="flowmap pc-only" viewBox="0 0 %d %d" role="group" aria-label="間の地図。間からマニフェストの章、%d の要素を経て、Dictionary・Reference・Research へ。帯の太さはつながりの数">'
               '<title>間の地図</title>%s%s%s</svg>' % (W, H, len(order), "".join(ribs), "".join(nodes), "".join(labels)))
         # ---------- スマホ（要素 → 部屋。章はまとまりの見出し） ----------
@@ -1347,23 +1350,27 @@ class Site:
         for e in order:
             if e["key"] in heads:
                 labels2.append(link(h("notion/#ch%d" % e["ch"]), "ch:%d" % e["ch"],
-                                    '<text class="t-head" x="0" y="%.1f">第 %d 章「%s」</text>' % (nE[e["key"]][0] - 12, e["ch"], esc(ch_title[e["ch"]]))))
+                                    '<text class="t-head" x="0" y="%.1f">第 %d 章「%s」</text>' % (nE[e["key"]][0] - 12, e["ch"], esc(ch_title[e["ch"]])),
+                                    "第 %d 章「%s」（つながり %d）" % (e["ch"], ch_title[e["ch"]], ctot[e["ch"]])))
             labels2.append(link("#e-%s" % e["key"], "el:%s" % e["key"],
-                                '<text x="%d" y="%.1f" text-anchor="end" dominant-baseline="central">%s</text>' % (xE - 6, mid(nE[e["key"]]), esc(e["name"]))))
+                                '<text x="%d" y="%.1f" text-anchor="end" dominant-baseline="central">%s</text>' % (xE - 6, mid(nE[e["key"]]), esc(e["name"])),
+                                "%s（つながり %d）" % (e["name"], etot[e["key"]])))
         for i, (r, en, unit, items) in enumerate(rooms):
             y = mid(nR[i])
             labels2.append(link(room_href[i], "room:%s" % r,
                                 '<text x="%d" y="%.1f" dominant-baseline="central"><tspan class="t-room">%s</tspan>'
-                                '<tspan class="t-n" x="%d" dy="16">%d %s</tspan></text>' % (xR + w2 + 6, y - 7, en, xR + w2 + 6, len(items), unit)))
+                                '<tspan class="t-n" x="%d" dy="16">%d %s</tspan></text>' % (xR + w2 + 6, y - 7, en, xR + w2 + 6, len(items), unit),
+                                "%s（%d %s・つながり %d）" % (en, len(items), unit, rtot[i])))
         sp = ('<svg class="flowmap fm-sp sp-only" viewBox="0 0 %d %.0f" role="group" aria-label="間の地図。%d の要素から Dictionary・Reference・Research へ。帯の太さはつながりの数">'
               '<title>間の地図</title>%s%s%s</svg>' % (W2, H2, len(order), "".join(ribs2), "".join(nodes2), "".join(labels2)))
         empty_ch = [c for c in chapters if not ctot[c["no"]]]
         note = "帯の太さは、その要素が映っている言葉・資料・テーマの数（つながりは全部で %d）。名前を押すと、要素は下の欄へ、章は Notion へ、部屋はその部屋へ。" % total
         if empty_ch:
             note += "".join("第 %d 章「%s」からは、まだ要素を取り出していない。" % (c["no"], esc(c["title"])) for c in empty_ch)
-        unmapped = sum(1 for r in lab["references"] if not r.get("elements"))
+        unmapped = [(en, sum(1 for x in items if not x.get("elements"))) for _, en, _, items in rooms]
+        unmapped = [(en, n) for en, n in unmapped if n]
         if unmapped:
-            note += "要素を決めていない資料 %d 件は、地図に入れていない。" % unmapped
+            note += "要素を決めていないもの（%s）は、地図に入れていない。" % "・".join("%s %d 件" % (en, n) for en, n in unmapped)
         return sp + "\n    " + pc, note
 
     def lab_quote(self, cur, item):
