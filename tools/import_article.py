@@ -16,7 +16,7 @@
 - 書くもの:
   --article を付けたとき: 記事の断片（src/articles/）と、contents.json の caption（記事のタイトル）・date（原稿の日付）・
   hero（冒頭の写真）・portrait（終わりの写真）。写真の名前は --photo で原稿の名前 → assets/ の名前に読み替える。
-  --meta-only のとき: contents.json の title（記事のタイトル）と excerpt（本文の冒頭 400 字）。
+  --meta-only のとき: contents.json の title（記事のタイトル）と excerpt（本文の冒頭 230 字＝PC の 4 行ぶん）。
 - 原稿の文は手を入れずに写す（誤字らしき所も原稿のまま）。
 """
 import argparse
@@ -25,59 +25,101 @@ import json
 import os
 import re
 import sys
+import stat
+import tempfile
 import urllib.parse
+from html.parser import HTMLParser
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CONTENTS = os.path.join(ROOT, "src", "contents.json")
-RED = re.compile(r"color:#(?:ee0000|ff0000|c00000|e00000)", re.I)
+BOLD = re.compile(r"font-weight\s*:\s*(?:[6-9]00|bold)", re.I)
 PHOTO = re.compile(r"^[(（]\s*写真\s*[:：]\s*(.+?)\s*[)）]$")
 DATE = re.compile(r"^(\d{4})/(\d{2})/(\d{2})\s+MA\s+Magazine/(\d+-\d+-\d+)$")
+
+
+class _Reader(HTMLParser):
+    """本文の HTML を、行（文字・太字か・赤字か・リンク）の並びにする。class の無い文字も、リンクの中の文字も拾う。"""
+
+    BLOCKS = {"p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "div", "tr"}
+
+    def __init__(self, cls):
+        super().__init__(convert_charrefs=True)
+        self.cls, self.styles, self.href = cls, [], None
+        self.rows, self.segs, self.links = [], [], []
+
+    def _style(self, attrs):
+        a = dict(attrs)
+        return ";".join(self.cls.get(x, "") for x in (a.get("class") or "").split()) + ";" + (a.get("style") or "")
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "br":
+            self.newline()
+        elif tag == "span":
+            self.styles.append(self._style(attrs))
+        elif tag == "a":
+            href = dict(attrs).get("href") or ""
+            # Google ドキュメントは外へのリンクを https://www.google.com/url?q=… で包むので、元の URL に戻す
+            q = re.match(r"https?://www\.google\.com/url\?q=([^&]+)", href)
+            self.href = urllib.parse.unquote(q.group(1)) if q else href
+            if self.href:
+                self.links.append(self.href)
+
+    def handle_startendtag(self, tag, attrs):
+        if tag == "br":
+            self.newline()
+
+    def handle_endtag(self, tag):
+        if tag == "span" and self.styles:
+            self.styles.pop()
+        elif tag == "a":
+            self.href = None
+        elif tag in self.BLOCKS:
+            self.newline()
+
+    def handle_data(self, data):
+        style = ";".join(self.styles)
+        self.segs.append((data, bool(BOLD.search(style)), is_red(style)))
+
+    def newline(self):
+        text = "".join(t for t, _, _ in self.segs)
+        visible = [(b, r) for t, b, r in self.segs if t.strip()]
+        # 太字・赤字は、行の文字がすべてそうなときだけ（一部だけ太字の本文を見出しにしない・一部だけ赤字の本文を落とさない）
+        self.rows.append({"text": text.replace("\u00a0", " ").rstrip(),
+                          "bold": bool(visible) and all(b for b, _ in visible),
+                          "red": bool(visible) and all(r for _, r in visible),
+                          "partly_red": any(r for _, r in visible) and not all(r for _, r in visible),
+                          "links": list(self.links)})
+        self.segs, self.links = [], []
+
+
+def is_red(style):
+    """色の指定が赤か（赤が強く、緑と青が弱い）。"""
+    for m in re.finditer(r"(?<![-\w])color\s*:\s*#([0-9a-f]{6}|[0-9a-f]{3})\b", style, re.I):
+        h = m.group(1)
+        if len(h) == 3:
+            h = "".join(c * 2 for c in h)
+        r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+        if r >= 0xA0 and g <= 0x60 and b <= 0x60:
+            return True
+    return False
 
 
 def lines_of(path):
     """Google ドキュメントの HTML 書き出しを、行（文字・太字か・赤字か・リンク）の並びにする。"""
     t = open(path, encoding="utf-8").read()
     css = re.search(r"<style[^>]*>(.*?)</style>", t, re.S)
-    cls = {m.group(1): m.group(2) for m in re.finditer(r"\.(c\d+)\{([^}]*)\}", css.group(1) if css else "")}
+    cls = {m.group(1): m.group(2) for m in re.finditer(r"\.([A-Za-z_][\w-]*)\{([^}]*)\}", css.group(1) if css else "")}
     body = re.search(r"<body[^>]*>(.*)</body>", t, re.S)
-    body = re.sub(r"</(p|h\d|li)>", "\n", body.group(1) if body else t)
-    rows, cur = [], {"text": "", "bold": False, "red": False, "links": []}
-
-    def newline():
-        rows.append(cur.copy())
-        cur.update(text="", bold=False, red=False, links=[])
-
-    for m in re.finditer(r'<span class="([^"]*)"[^>]*>(.*?)</span>|<a [^>]*href="([^"]*)"[^>]*>|(\n)', body, re.S):
-        if m.group(4):
-            newline()
-            continue
-        if m.group(3):
-            href = html.unescape(m.group(3))
-            # Google ドキュメントは外へのリンクを https://www.google.com/url?q=… で包むので、元の URL に戻す
-            q = re.match(r"https?://www\.google\.com/url\?q=([^&]+)", href)
-            cur["links"].append(urllib.parse.unquote(q.group(1)) if q else href)
-            continue
-        style = ";".join(cls.get(x, "") for x in m.group(1).split())
-        bold, red = "700" in style, bool(RED.search(style))
-        parts = re.split(r"<br\s*/?>", m.group(2))
-        for i, part in enumerate(parts):
-            if i:
-                newline()
-            text = html.unescape(re.sub(r"<[^>]+>", "", part))
-            if text.strip():
-                cur["bold"] = cur["bold"] or bold
-                cur["red"] = cur["red"] or red
-            cur["text"] += text
-    newline()
-    for r in rows:
-        r["text"] = r["text"].replace(" ", " ").rstrip()
-    return rows
+    rd = _Reader(cls)
+    rd.feed(body.group(1) if body else t)
+    rd.close()
+    rd.newline()
+    return rd.rows
 
 
 def parse(rows):
     """ひな形の決まりに沿って、頭（種類・日付・副題・Place など）・記事のタイトル・本文の塊に分ける。"""
     i, n = 0, len(rows)
-    skip = lambda: [r for r in rows[i:] if r["text"].strip()]  # noqa: E731
     doc = {"hero": None, "badge": "", "date": "", "number": "", "subtitle": "", "cred": [], "title": "", "blocks": [], "portrait": None}
     while i < n and not rows[i]["text"].strip():
         i += 1
@@ -103,10 +145,14 @@ def parse(rows):
             doc["badge"] = h
         elif not doc["subtitle"]:
             doc["subtitle"] = h
+    if not doc["date"]:
+        raise SystemExit("原稿の頭に「YYYY/MM/DD MA Magazine/2-2-N」の行が読めない（全角の / などで崩れていないか）: %r" % head)
     i += 1
     while i < n and not rows[i]["text"].strip():
         i += 1
     doc["title"] = rows[i]["text"].strip() if i < n else ""
+    if not doc["title"]:
+        raise SystemExit("「(記事タイトル:)」の次の行に記事のタイトルが無い")
     i += 1
     # 本文: 空行で塊に分ける。太字の行は見出し、写真の行は写真（直後の赤字「写真キャプション」から空行までが説明）
     block = []
@@ -149,6 +195,9 @@ def parse(rows):
             continue
         elif r["red"]:
             pass  # ひな形の指示（ページには出さない）
+        elif r.get("partly_red"):
+            print("注意: 一部だけ赤字の行（ひな形の指示か本文か確かめる）: %s" % t[:60], file=sys.stderr)
+            block.append(t)
         elif r["bold"]:
             flush()
             doc["blocks"].append(("h", t))
@@ -161,7 +210,7 @@ def parse(rows):
     return doc
 
 
-def excerpt(doc, limit=400):
+def excerpt(doc, limit=230):
     out = ""
     for kind, v in doc["blocks"]:
         if kind == "p":
@@ -176,7 +225,7 @@ def excerpt(doc, limit=400):
 
 def fragment(doc, src_name, photos, alts, sizes):
     e = lambda s: html.escape(s, quote=True)  # noqa: E731
-    out = ["<!-- 元: 原稿「%s」（tools/import_article.py で作成。直すときは原稿を直して作り直す。画像の @/ はサイトの最上位を指す） -->" % e(src_name),
+    out = ["<!-- 元: #%s の原稿（Word）。tools/import_article.py で作成。直すときは原稿を直して作り直す。画像の @/ はサイトの最上位を指す -->" % e(src_name),
            '    <div class="article-head">']
     if doc["badge"]:
         out.append('      <span class="badge">%s</span>' % e(doc["badge"]))
@@ -222,6 +271,21 @@ def fragment(doc, src_name, photos, alts, sizes):
             out.append("    </figure>")
     close()
     return "\n".join(out) + "\n"
+
+
+def write_atomic(path, text):
+    """同じフォルダの一時ファイルに書いてから置き換える（元の権限を保つ）。"""
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), prefix=".import-", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+        if os.path.exists(path):
+            os.chmod(tmp, stat.S_IMODE(os.stat(path).st_mode))
+        os.replace(tmp, path)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+        raise
 
 
 def image_size(path):
@@ -270,12 +334,16 @@ def main():
         photos = dict(x.split("=", 1) for x in a.photo)
         alts = dict(x.split("=", 1) for x in a.alt)
         sizes = {n: image_size(os.path.join(ROOT, "assets", n)) for n in photos.values()}
-        text = fragment(doc, os.path.basename(a.source), photos, alts, sizes)
+        missing = [x for x in [doc["hero"], doc["portrait"]] + [v["name"] for k, v in doc["blocks"] if k == "photo"] if x and x not in photos]
+        if missing:
+            raise SystemExit("--photo に原稿の写真の読み替えが無い（何も書いていない）: " + "、".join(missing))
+        text = fragment(doc, a.id, photos, alts, sizes)
         old = open(os.path.join(ROOT, a.article), encoding="utf-8").read() if os.path.exists(os.path.join(ROOT, a.article)) else ""
+        drift = old != text
         if a.check:
-            print(("記事の断片がずれている: " if old != text else "記事の断片は同じ: ") + a.article)
-        elif old != text:
-            open(os.path.join(ROOT, a.article), "w", encoding="utf-8").write(text)
+            print(("記事の断片がずれている: " if drift else "記事の断片は同じ: ") + a.article)
+        elif drift:
+            write_atomic(os.path.join(ROOT, a.article), text)
             print("書いた: " + a.article)
         want["caption"] = doc["title"]
         if doc["date"]:
@@ -290,11 +358,10 @@ def main():
     for k, (x, y) in sorted(changed.items()):
         print("%s #%s %s: %r → %r" % ("ずれている" if a.check else "更新", a.id, k, x, y))
     if a.check:
-        return 1 if changed else 0
+        return 1 if (changed or (not a.meta_only and drift)) else 0
     if changed:
         contents[contents.index(item)] = want
-        with open(CONTENTS, "w", encoding="utf-8") as f:
-            f.write(json.dumps(contents, ensure_ascii=False, indent=2) + "\n")
+        write_atomic(CONTENTS, json.dumps(contents, ensure_ascii=False, indent=2) + "\n")
         print("src/contents.json を書き換えた。python3 tools/build.py で生成し直す")
     return 0
 
