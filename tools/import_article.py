@@ -44,7 +44,7 @@ class _Reader(HTMLParser):
 
     def __init__(self, cls):
         super().__init__(convert_charrefs=True)
-        self.cls, self.styles, self.href = cls, [], None
+        self.cls, self.styles, self.href, self.skip = cls, [], None, 0
         self.rows, self.segs, self.links = [], [], []
 
     def _style(self, attrs):
@@ -52,7 +52,9 @@ class _Reader(HTMLParser):
         return ";".join(self.cls.get(x, "") for x in (a.get("class") or "").split()) + ";" + (a.get("style") or "")
 
     def handle_starttag(self, tag, attrs):
-        if tag == "br":
+        if tag in ("style", "script"):
+            self.skip += 1
+        elif tag == "br":
             self.newline()
         elif tag == "span":
             self.styles.append(self._style(attrs))
@@ -61,7 +63,8 @@ class _Reader(HTMLParser):
             # Google ドキュメントは外へのリンクを https://www.google.com/url?q=… で包むので、元の URL に戻す
             q = re.match(r"https?://www\.google\.com/url\?q=([^&]+)", href)
             self.href = urllib.parse.unquote(q.group(1)) if q else href
-            if self.href:
+            # ページに出すのは http(s) のリンクだけ（Google の内部のしおり・mailto・javascript などは出さない）
+            if re.match(r"https?://", self.href or ""):
                 self.links.append(self.href)
 
     def handle_startendtag(self, tag, attrs):
@@ -69,7 +72,9 @@ class _Reader(HTMLParser):
             self.newline()
 
     def handle_endtag(self, tag):
-        if tag == "span" and self.styles:
+        if tag in ("style", "script"):
+            self.skip = max(0, self.skip - 1)
+        elif tag == "span" and self.styles:
             self.styles.pop()
         elif tag == "a":
             self.href = None
@@ -77,6 +82,8 @@ class _Reader(HTMLParser):
             self.newline()
 
     def handle_data(self, data):
+        if self.skip:
+            return
         style = ";".join(self.styles)
         self.segs.append((data, bool(BOLD.search(style)), is_red(style)))
 
@@ -195,12 +202,14 @@ def parse(rows):
             continue
         elif r["red"]:
             pass  # ひな形の指示（ページには出さない）
+        elif r["bold"]:
+            if r.get("partly_red"):
+                print("注意: 一部だけ赤字の見出し（ひな形の指示か本文か確かめる）: %s" % t[:60], file=sys.stderr)
+            flush()
+            doc["blocks"].append(("h", t))
         elif r.get("partly_red"):
             print("注意: 一部だけ赤字の行（ひな形の指示か本文か確かめる）: %s" % t[:60], file=sys.stderr)
             block.append(t)
-        elif r["bold"]:
-            flush()
-            doc["blocks"].append(("h", t))
         else:
             block.append(r["text"].strip())
         i += 1
@@ -281,6 +290,11 @@ def write_atomic(path, text):
             f.write(text)
         if os.path.exists(path):
             os.chmod(tmp, stat.S_IMODE(os.stat(path).st_mode))
+        else:
+            # mkstemp は 0600 で作るので、新しいファイルはふつうの権限（umask に従う 0666）にする
+            mask = os.umask(0)
+            os.umask(mask)
+            os.chmod(tmp, 0o666 & ~mask)
         os.replace(tmp, path)
     except BaseException:
         if os.path.exists(tmp):
