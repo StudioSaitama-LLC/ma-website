@@ -169,7 +169,9 @@ class Site:
         self.pages = {}
         self.validate()
         self.news = self.collect_news()
-        dates = sorted(set(n["date"] for n in self.news), reverse=True)
+        # <NEW> の候補は News の日付と、公開したコンテンツの日付（原稿の日付が回の日付と違う記事にも付くように）
+        dates = sorted(set(n["date"] for n in self.news) |
+                       set(self.item_date(c) for c in self.contents if c.get("status") == "published" and self.item_date(c)), reverse=True)
         if dates:
             limit = datetime.date.fromisoformat(dates[0]) - datetime.timedelta(days=NEW_DAYS)
             dates = [d for d in dates if datetime.date.fromisoformat(d) >= limit]
