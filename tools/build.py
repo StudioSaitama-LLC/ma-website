@@ -93,44 +93,6 @@ def id_key(item):
     return [int(x) for x in item["id"].split("-")]
 
 
-def lab_spread(angles, gap):
-    """円周上の角度の並びを、順序を保ったまま隣との間隔が gap 以上になるように動かす。
-    いちばん広い隙間で円を切って一列にし、動かす量が小さくなるように単調回帰（PAV）で解く。全部は入らないときは等間隔にする。"""
-    import math
-    n = len(angles)
-    if n == 0:
-        return []
-    full = 2 * math.pi
-    if n * gap > full:
-        gap = full / n
-    idx = sorted(range(n), key=lambda i: angles[i] % full)
-    if n > 1:
-        a = [angles[i] % full for i in idx]
-        gaps = [(a[(k + 1) % n] - a[k]) % full for k in range(n)]
-        cut = gaps.index(max(gaps))  # a[cut] と a[cut+1] の間が最も広い → その次から並べる
-        idx = idx[cut + 1:] + idx[:cut + 1]
-    base = angles[idx[0]]
-    seq = [(angles[i] - base) % full for i in idx]  # base から増える向きに 0 〜 2π
-    y = [v - k * gap for k, v in enumerate(seq)]
-    blocks = []  # [合計, 個数]。前の塊の平均が後ろより大きければ合わせる（PAV）
-    for v in y:
-        blocks.append([v, 1])
-        while len(blocks) > 1 and blocks[-2][0] / blocks[-2][1] > blocks[-1][0] / blocks[-1][1]:
-            last = blocks.pop()
-            blocks[-1][0] += last[0]
-            blocks[-1][1] += last[1]
-    fitted = []
-    for total, count in blocks:
-        fitted += [total / count] * count
-    placed = [fitted[k] + k * gap for k in range(n)]
-    if n > 1 and placed[-1] - placed[0] > full - gap:  # 切った所でぶつかる → 等間隔
-        placed = [placed[0] + k * full / n for k in range(n)]
-    out = [0.0] * n
-    for k, i in enumerate(idx):
-        out[i] = base + placed[k]
-    return out
-
-
 def drop_code(title):
     """YouTube の題の頭の管理番号（「MA Channel #2.1.2 」）を外す（画面に管理番号を出さない）。"""
     return re.sub(r"^\s*MA Channel\s*#\d+(?:\.\d+)+\s*", "", title or "")
@@ -1252,50 +1214,157 @@ class Site:
     def lab_glyph(self, form):
         return '<span class="fg" aria-hidden="true">%s</span>' % esc(LAB_GLYPH.get(form, "■"))
 
-    def lab_map(self, cur):
-        """要素の地図（SVG）。中心に「間」、まわりに要素、外側に資料。資料は映っている要素と線でつながる。
-        元の構想（Dictionary の重力空間 — 中心「間」へ語が引き寄せられ、外周には参考資料が浮遊する）を平面にしたもの。
-        文字は viewBox 600 に対して 24（スマホの全幅 375px で約 15px）。要素を決めていない資料は載せない。"""
-        import math
-        els = self.lab["elements"]
-        refs = [r for r in self.lab["references"] if r.get("elements")]
-        W = 600
-        cx = cy = W / 2
-        n = len(els)
-        ang = {e["key"]: -math.pi / 2 + 2 * math.pi * i / n for i, e in enumerate(els)}
-        r_el = lambda i: 215 if i % 2 else 170  # 札が隣と重ならないよう、交互に内外へ
-        pos = {e["key"]: (cx + r_el(i) * math.cos(ang[e["key"]]), cy + r_el(i) * math.sin(ang[e["key"]])) for i, e in enumerate(els)}
-        # 資料の角度は、映っている要素の向きの平均。正反対で打ち消し合うときは先頭の要素の右 90 度
-        want = []
-        for r in refs:
-            x = sum(math.cos(ang[k]) for k in r["elements"])
-            y = sum(math.sin(ang[k]) for k in r["elements"])
-            want.append(ang[r["elements"][0]] + math.pi / 2 if math.hypot(x, y) < 1e-9 else math.atan2(y, x))
-        angles = lab_spread(want, 2 * math.pi / (len(want) + 6))
-        r_ref = 272
-        out = ['<svg class="lab-map" viewBox="0 0 %d %d" role="group" aria-label="間の要素の地図。中心に間、まわりに %d の要素、外側に %d の資料。資料は映っている要素と線でつながる">'
-               % (W, W, n, len(refs)), '<title>間の要素の地図</title>']
-        out.append('<circle cx="%g" cy="%g" r="%g" fill="none" stroke="var(--fg)" stroke-opacity="0.25" stroke-width="1"/>' % (cx, cy, r_ref))
-        for a, r in zip(angles, refs):
-            x, y = cx + r_ref * math.cos(a), cy + r_ref * math.sin(a)
-            for k in r["elements"]:
-                ex, ey = pos[k]
-                out.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="var(--fg)" stroke-opacity="0.35" stroke-width="1"/>' % (x, y, ex, ey))
-        out.append('<text x="%g" y="%g" text-anchor="middle" dominant-baseline="central" fill="var(--fg)" font-size="88" font-weight="700">間</text>' % (cx, cy + 4))
-        for i, e in enumerate(els):
-            x, y = pos[e["key"]]
-            w = max(len(e["name"]) * 26 + 28, 76)
-            x = min(max(x, w / 2 + 2), W - w / 2 - 2)  # 札が枠からはみ出さないように
-            out.append('<a href="#e-%s"><rect x="%.1f" y="%.1f" width="%d" height="42" rx="21" fill="var(--bg)" stroke="var(--fg)" stroke-width="1.2"/>'
-                       '<text x="%.1f" y="%.1f" text-anchor="middle" dominant-baseline="central" fill="var(--fg)" font-size="24">%s</text></a>'
-                       % (esc(e["key"]), x - w / 2, y - 21, w, x, y + 1, esc(e["name"])))
-        # 点は札より後に描く（札の端に隠れないように）
-        for a, r in zip(angles, refs):
-            x, y = cx + r_ref * math.cos(a), cy + r_ref * math.sin(a)
-            out.append('<a href="%s"><title>%s</title><circle class="hit" cx="%.1f" cy="%.1f" r="20" fill="transparent"/><circle class="dot" cx="%.1f" cy="%.1f" r="7.5" fill="var(--accent)"/></a>'
-                       % (self.href(cur, "lab/reference/#r-%s" % r["id"]), esc(r["title"]), x, y, x, y))
-        out.append('</svg>')
-        return "\n    ".join(out)
+    def lab_flow(self, cur):
+        """要素の地図（流れの図）。間 → マニフェストの章 → 要素 → 部屋（Dictionary・Reference・Research）。
+        帯の太さは、その要素が映っている言葉・資料・テーマの数。PC は 4 列、スマホは 要素 → 部屋 の 2 列（章はまとまりの見出し）。
+        JS 無しでも出る。名前に乗せると、そこにつながる帯だけが濃くなる（js/main.js）。"""
+        lab = self.lab
+        h = lambda t: self.href(cur, t)
+        rooms = [("dictionary", "Dictionary", "語", lab["terms"]), ("reference", "Reference", "点", lab["references"]),
+                 ("research", "Research", "テーマ", lab["research"])]
+        chapters = self.manifesto["chapters"]
+        order = sorted(lab["elements"], key=lambda e: (e["ch"], lab["elements"].index(e)))
+        val = {e["key"]: [sum(1 for x in items if e["key"] in x.get("elements", [])) for _, _, _, items in rooms] for e in order}
+        etot = {k: sum(v) for k, v in val.items()}
+        ctot = {c["no"]: sum(etot[e["key"]] for e in order if e["ch"] == c["no"]) for c in chapters}
+        rtot = [sum(val[k][i] for k in val) for i in range(len(rooms))]
+        total = sum(etot.values())
+
+        def stack(items, k, gap, top=0.0, minh=2.0, heads=None):
+            """縦に積む。items=[(key, value)]。heads={key: 見出しの高さ}（その前に見出しの空きを取る）。"""
+            out, y = {}, top
+            for key, v in items:
+                y += (heads or {}).get(key, 0)
+                hgt = max(v * k, minh)
+                out[key] = [y, y + hgt]
+                y += hgt + gap
+            return out, y - gap
+
+        def ribbon(x0, a0, a1, x1, b0, b1):
+            xm = (x0 + x1) / 2
+            return ("M%.1f %.1fC%.1f %.1f %.1f %.1f %.1f %.1fL%.1f %.1fC%.1f %.1f %.1f %.1f %.1f %.1fZ"
+                    % (x0, a0, xm, a0, xm, b0, x1, b0, x1, b1, xm, b1, xm, a1, x0, a1))
+
+        def rib(d, **data):
+            attrs = "".join(' data-%s="%s"' % (k, esc(str(v))) for k, v in data.items())
+            return '<path class="rib" d="%s"%s/>' % (d, attrs)
+
+        def node(x, y0, y1, w, empty=False):
+            return '<rect class="node%s" x="%.1f" y="%.1f" width="%d" height="%.1f"/>' % (" is-empty" if empty else "", x, y0, w, max(y1 - y0, 1))
+
+        def link(href, focus, inner):
+            return '<a href="%s" data-focus="%s">%s</a>' % (href, focus, inner)
+
+        room_href = [h("lab/%s/" % r) for r, _, _, _ in rooms]
+        ch_title = {c["no"]: c["title"] for c in chapters}
+        # ---------- PC（間 → 章 → 要素 → 部屋） ----------
+        W, H, w = 990, 540, 10
+        xA, xB, xC, xD = 58, 250, 560, 860
+        k = (H - 9 * 12) / total
+        def centered(items, gap, minh=2.0):
+            _, end = stack(items, k, gap, 0, minh)
+            return stack(items, k, gap, (H - end) / 2, minh)[0]
+        nA = centered([("ma", total)], 0)
+        nB = centered([(c["no"], ctot[c["no"]]) for c in chapters], 28)
+        nC = centered([(e["key"], etot[e["key"]]) for e in order], 12)
+        nD = centered([(i, rtot[i]) for i in range(len(rooms))], 34)
+        ribs, labels = [], []
+        ya = nA["ma"][0]
+        for c in chapters:  # 間 → 章
+            v = ctot[c["no"]] * k
+            if v:
+                b0 = nB[c["no"]][0]
+                ribs.append(rib(ribbon(xA + w, ya, ya + v, xB, b0, b0 + v), ch=c["no"]))
+                ya += v
+        cur_b = {c["no"]: nB[c["no"]][0] for c in chapters}
+        cur_c_in = {e["key"]: nC[e["key"]][0] for e in order}
+        for e in order:  # 章 → 要素
+            v = etot[e["key"]] * k
+            b0 = cur_b[e["ch"]]
+            c0 = cur_c_in[e["key"]]
+            ribs.append(rib(ribbon(xB + w, b0, b0 + v, xC, c0, c0 + v), ch=e["ch"], el=e["key"]))
+            cur_b[e["ch"]] += v
+        cur_d = {i: nD[i][0] for i in range(len(rooms))}
+        for e in order:  # 要素 → 部屋
+            c0 = nC[e["key"]][0]
+            for i in range(len(rooms)):
+                v = val[e["key"]][i] * k
+                if not v:
+                    continue
+                d0 = cur_d[i]
+                ribs.append(rib(ribbon(xC + w, c0, c0 + v, xD, d0, d0 + v), ch=e["ch"], el=e["key"], room=rooms[i][0]))
+                c0 += v
+                cur_d[i] += v
+        nodes = [node(xA, *nA["ma"], w)] + [node(xB, *nB[c["no"]], w, empty=not ctot[c["no"]]) for c in chapters] + \
+                [node(xC, *nC[e["key"]], w) for e in order] + [node(xD, *nD[i], w) for i in range(len(rooms))]
+        mid = lambda r: (r[0] + r[1]) / 2
+        labels.append('<text class="t-fg t-ma" x="%d" y="%.1f" text-anchor="end" dominant-baseline="central">間</text>' % (xA - 12, mid(nA["ma"])))
+        for c in chapters:
+            y = mid(nB[c["no"]])
+            text = '<text x="%d" y="%.1f" dominant-baseline="central">第 %d 章「%s」</text>' % (xB + w + 8, y, c["no"], esc(c["title"]))
+            if ctot[c["no"]]:
+                labels.append(link(h("notion/#ch%d" % c["no"]), "ch:%d" % c["no"], text))
+            else:
+                labels.append('<text class="t-muted" x="%d" y="%.1f" dominant-baseline="central">第 %d 章「%s」（要素なし）</text>' % (xB + w + 8, y, c["no"], esc(c["title"])))
+        for e in order:
+            y = mid(nC[e["key"]])
+            labels.append(link("#e-%s" % e["key"], "el:%s" % e["key"],
+                               '<text x="%d" y="%.1f" dominant-baseline="central">%s<tspan class="t-n" dx="6">%d</tspan></text>'
+                               % (xC + w + 8, y, esc(e["name"]), etot[e["key"]])))
+        for i, (r, en, unit, items) in enumerate(rooms):
+            y = mid(nD[i])
+            labels.append(link(room_href[i], "room:%s" % r,
+                               '<text x="%d" y="%.1f" dominant-baseline="central"><tspan class="t-room">%s</tspan>'
+                               '<tspan class="t-n" x="%d" dy="20">%d %s</tspan></text>' % (xD + w + 10, y - 8, en, xD + w + 10, len(items), unit)))
+        pc = ('<svg class="flowmap pc-only" viewBox="0 0 %d %d" role="group" aria-label="間の地図。間からマニフェストの章、%d の要素を経て、Dictionary・Reference・Research へ。帯の太さはつながりの数">'
+              '<title>間の地図</title>%s%s%s</svg>' % (W, H, len(order), "".join(ribs), "".join(nodes), "".join(labels)))
+        # ---------- スマホ（要素 → 部屋。章はまとまりの見出し） ----------
+        W2, w2 = 285, 8
+        xE, xR = 86, 198
+        k2 = 4.6
+        heads, first = {}, set()
+        for e in order:
+            if e["ch"] not in first:
+                first.add(e["ch"])
+                heads[e["key"]] = 30
+        nE, endE = stack([(e["key"], etot[e["key"]]) for e in order], k2, 7, 0, 2, heads)
+        H2 = endE + 6
+        _, endR = stack([(i, rtot[i]) for i in range(len(rooms))], k2, 30, 0)
+        nR = stack([(i, rtot[i]) for i in range(len(rooms))], k2, 30, (H2 - endR) / 2 + 12)[0]
+        ribs2, labels2 = [], []
+        cur_r = {i: nR[i][0] for i in range(len(rooms))}
+        for e in order:
+            c0 = nE[e["key"]][0]
+            for i in range(len(rooms)):
+                v = val[e["key"]][i] * k2
+                if not v:
+                    continue
+                d0 = cur_r[i]
+                ribs2.append(rib(ribbon(xE + w2, c0, c0 + v, xR, d0, d0 + v), ch=e["ch"], el=e["key"], room=rooms[i][0]))
+                c0 += v
+                cur_r[i] += v
+        nodes2 = [node(xE, *nE[e["key"]], w2) for e in order] + [node(xR, *nR[i], w2) for i in range(len(rooms))]
+        for e in order:
+            if e["key"] in heads:
+                labels2.append(link(h("notion/#ch%d" % e["ch"]), "ch:%d" % e["ch"],
+                                    '<text class="t-head" x="0" y="%.1f">第 %d 章「%s」</text>' % (nE[e["key"]][0] - 12, e["ch"], esc(ch_title[e["ch"]]))))
+            labels2.append(link("#e-%s" % e["key"], "el:%s" % e["key"],
+                                '<text x="%d" y="%.1f" text-anchor="end" dominant-baseline="central">%s</text>' % (xE - 6, mid(nE[e["key"]]), esc(e["name"]))))
+        for i, (r, en, unit, items) in enumerate(rooms):
+            y = mid(nR[i])
+            labels2.append(link(room_href[i], "room:%s" % r,
+                                '<text x="%d" y="%.1f" dominant-baseline="central"><tspan class="t-room">%s</tspan>'
+                                '<tspan class="t-n" x="%d" dy="16">%d %s</tspan></text>' % (xR + w2 + 6, y - 7, en, xR + w2 + 6, len(items), unit)))
+        sp = ('<svg class="flowmap fm-sp sp-only" viewBox="0 0 %d %.0f" role="group" aria-label="間の地図。%d の要素から Dictionary・Reference・Research へ。帯の太さはつながりの数">'
+              '<title>間の地図</title>%s%s%s</svg>' % (W2, H2, len(order), "".join(ribs2), "".join(nodes2), "".join(labels2)))
+        empty_ch = [c for c in chapters if not ctot[c["no"]]]
+        note = "帯の太さは、その要素が映っている言葉・資料・テーマの数（つながりは全部で %d）。名前を押すと、要素は下の欄へ、章は Notion へ、部屋はその部屋へ。" % total
+        if empty_ch:
+            note += "".join("第 %d 章「%s」からは、まだ要素を取り出していない。" % (c["no"], esc(c["title"])) for c in empty_ch)
+        unmapped = sum(1 for r in lab["references"] if not r.get("elements"))
+        if unmapped:
+            note += "要素を決めていない資料 %d 件は、地図に入れていない。" % unmapped
+        return sp + "\n    " + pc, note
 
     def lab_quote(self, cur, item):
         """マニフェストの一節と、その章へのリンク（Notion の章は #chN で開く）。"""
@@ -1380,6 +1449,7 @@ class Site:
                 '<span class="card-title">%s</span>' % esc(d["en"]),
                 '<span class="card-note">%s</span>' % esc(info["ja"]),
                 '<span class="card-meta">%s %d</span>' % (units[key], counts[key])], "card-room"))
+        flow = self.lab_flow(cur)
         body = """
   <div class="content lab-page">
     {head}
@@ -1394,7 +1464,7 @@ class Site:
     <section class="sec lab-map-sec">
       {map_tag}
     {map}
-    <p class="map-note">要素の札を押すと下の欄へ、資料の点を押すとその資料へ。{unmapped}</p>
+    <p class="map-note">{map_note}</p>
     </section>
     {el_label}
     <p class="el-legend">密は詰まった側、間は余白の側。※ と「当てはまる行い」は、本文に無い Lab の見立て。</p>
@@ -1408,8 +1478,7 @@ class Site:
     <p class="pending-note">{version}</p>
   </div>
 """.format(head=self.gate_head(g), nav=self.local_nav(cur, g, g["url"]), intro="\n".join("      <p>%s</p>" % esc(x) for x in lab["intro"]),
-           rooms_tag=self.tag("部屋", "t"), rooms=self.cards(rooms, "cards-room"), map_tag=self.tag("要素の地図", "t"), map=self.lab_map(cur),
-           unmapped=("要素を決めていない %d 件は、地図に載せていない。" % sum(1 for r in lab["references"] if not r.get("elements"))) if any(not r.get("elements") for r in lab["references"]) else "",
+           rooms_tag=self.tag("部屋", "t"), rooms=self.cards(rooms, "cards-room"), map_tag=self.tag("間の地図", "t"), map=flow[0], map_note=flow[1],
            el_label=self.frame("間の要素（%d・Lab の見立て）" % len(lab["elements"])), cards="\n".join(cards),
            rule=self.frame(lab["rule"]["label"]), rules="\n".join("      <li>%s</li>" % esc(x) for x in lab["rule"]["lines"]),
            version=esc(lab["version"]))

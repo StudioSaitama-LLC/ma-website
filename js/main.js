@@ -225,6 +225,26 @@
       pills.forEach(function (p) { if (wanted && p.dataset.shop === wanted) p.click(); });
     }
 
+    // ---------- 間の地図: 名前に乗せた（キーボードで選んだ）ら、そこにつながる帯だけを濃くする ----------
+    document.querySelectorAll(".flowmap").forEach(function (svg) {
+      var ribs = svg.querySelectorAll(".rib");
+      var off = function () {
+        svg.classList.remove("is-focus");
+        ribs.forEach(function (r) { r.classList.remove("on"); });
+      };
+      svg.querySelectorAll("[data-focus]").forEach(function (a) {
+        var kv = a.getAttribute("data-focus").split(":");
+        var on = function () {
+          svg.classList.add("is-focus");
+          ribs.forEach(function (r) { r.classList.toggle("on", r.getAttribute("data-" + kv[0]) === kv[1]); });
+        };
+        a.addEventListener("mouseenter", on);
+        a.addEventListener("focus", on);
+        a.addEventListener("mouseleave", off);
+        a.addEventListener("blur", off);
+      });
+    });
+
     // ---------- Lab / Reference Space ----------
     // 札（形・用語）はそれぞれ一つ選べる。両方に当たる資料だけ残す。JS 無しでは全部見える
     var refs = document.querySelectorAll(".ref-list .ref");
