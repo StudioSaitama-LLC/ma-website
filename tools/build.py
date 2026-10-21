@@ -1262,7 +1262,8 @@ class Site:
         # ---------- PC（間 → 章 → 要素 → 部屋） ----------
         W, H, w = 990, 540, 10
         xA, xB, xC, xD = 58, 250, 560, 860
-        k = (H - (len(order) - 1) * 12) / total  # 要素の列（いちばん隙間が多い列）が高さ H にちょうど収まる
+        # いちばん隙間を取る列が高さ H にちょうど収まる太さ（要素・章・部屋のどの列も H の中に入る）
+        k = (H - max((len(order) - 1) * 12, (len(chapters) - 1) * 28, (len(rooms) - 1) * 34)) / total
         def centered(items, gap, minh=2.0):
             _, end = stack(items, k, gap, 0, minh)
             return stack(items, k, gap, (H - end) / 2, minh)[0]
@@ -1331,9 +1332,9 @@ class Site:
                 first.add(e["ch"])
                 heads[e["key"]] = 30
         nE, endE = stack([(e["key"], etot[e["key"]]) for e in order], k2, 7, 0, 2, heads)
-        H2 = endE + 6
         _, endR = stack([(i, rtot[i]) for i in range(len(rooms))], k2, 30, 0)
-        nR = stack([(i, rtot[i]) for i in range(len(rooms))], k2, 30, (H2 - endR) / 2 + 12)[0]
+        H2 = max(endE, endR + 12) + 6  # 要素の列と部屋の列の高い方に合わせる
+        nR = stack([(i, rtot[i]) for i in range(len(rooms))], k2, 30, (H2 - endR) / 2 + 6)[0]
         ribs2, labels2 = [], []
         cur_r = {i: nR[i][0] for i in range(len(rooms))}
         for e in order:

@@ -1426,6 +1426,8 @@ html:not(.js) .filter-box { display: none; }
 .flowmap { display: block; width: 100%; height: auto; margin-top: 26px; overflow: visible; font-family: inherit; }
 .flowmap .rib { fill: var(--fg); opacity: 0.17; transition: opacity 0.2s ease; }
 html.light .flowmap .rib { opacity: 0.22; }
+html.light .flowmap.is-focus .rib { opacity: 0.05; }
+html.light .flowmap.is-focus .rib.on { opacity: 0.6; }
 .flowmap.is-focus .rib { opacity: 0.05; }
 .flowmap.is-focus .rib.on { opacity: 0.6; }
 .flowmap .node { fill: var(--fg); }
