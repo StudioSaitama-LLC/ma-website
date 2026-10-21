@@ -1,19 +1,23 @@
 <!DOCTYPE html>
+<!-- このファイルは tools/build.py が src/ から生成しています。直接編集せず src/ を直して再生成してください。 -->
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Indies Lifestyle Media 間｜MA</title>
+<meta name="robots" content="noindex, nofollow">
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("ma-theme")==="light")document.documentElement.classList.add("light")}catch(e){}(function(){try{if(!matchMedia("(max-width:359.98px)").matches)return;var d=document.documentElement,z=document.createElement("div");z.style.cssText="position:absolute;visibility:hidden;width:0;height:100vh;zoom:.5";d.appendChild(z);var h=z.getBoundingClientRect().height;z.remove();if(h>0&&h<innerHeight*.75)d.classList.add("zoom-vh")}catch(e){}})()</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;500&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
-<meta name="description" content="合理化の極致にある現代社会に、"間" という新しい文化を届けるインディーズ・ライフスタイルメディア。">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<meta name="description" content="合理化の極致にある現代社会に、&quot;間&quot; という新しい文化を届けるインディーズ・ライフスタイルメディア。">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Indies Lifestyle Media 間｜MA">
 <meta property="og:title" content="Indies Lifestyle Media 間｜MA">
-<meta property="og:description" content="合理化の極致にある現代社会に、"間" という新しい文化を届けるインディーズ・ライフスタイルメディア。">
+<meta property="og:description" content="合理化の極致にある現代社会に、&quot;間&quot; という新しい文化を届けるインディーズ・ライフスタイルメディア。">
 <meta property="og:image" content="assets/apple-touch-icon.png">
 <meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#1414dc">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
@@ -22,140 +26,138 @@
 <body>
 
 <header class="site-header">
-  <div class="header-inner">
-    <a class="site-title" href="index.html">Indies Lifestyle Media 間｜MA</a>
-    <div class="header-right">
-      <nav class="global-nav">
-        <a class="nav-item" href="index.html#ma-lab">1 MA Lab</a>
-        <a class="nav-item" href="ma-channel.html">2 MA Channel</a>
-        <a class="nav-item" href="index.html#ma-do">3 MA Do</a>
-      </nav>
-      <button class="menu-btn" aria-label="メニューを開く">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </div>
+  <a class="site-title" href="./" data-m="title" data-mt>Indies Lifestyle Media 間｜MA</a>
+  <button class="menu-btn" type="button" aria-controls="site-menu" aria-expanded="false" aria-label="メニューを開く" data-m="ham">
+    <span></span><span></span><span></span>
+  </button>
 </header>
+<nav class="gate-bar" aria-label="Gate">
+  <div class="gate-tabs">
+    <a class="gate-tab gt-lab" href="lab/"><span class="gt-no" data-m="tl-lab" data-mt>Gate 1:</span><span class="gt-box" data-m="tb-lab"><span data-m="tt-lab" data-mt>MA Lab</span></span></a>
+    <a class="gate-tab gt-channel" href="channel/"><span class="gt-no" data-m="tl-channel" data-mt>Gate 2:</span><span class="gt-box" data-m="tb-channel"><span data-m="tt-channel" data-mt>MA Channel</span></span></a>
+    <a class="gate-tab gt-do" href="do/"><span class="gt-no" data-m="tl-do" data-mt>Gate 3:</span><span class="gt-box" data-m="tb-do"><span data-m="tt-do" data-mt>MA Do</span></span></a>
+  </div>
+</nav>
 
-<div class="menu-overlay">
-  <nav>
-    <a href="index.html">HOME</a>
-    <a class="dim" href="index.html#ma-lab">1&ensp;MA Lab / 間の定義化</a>
-    <span class="menu-child dim">1.1&ensp;Dictionary / 感覚と感情の往復</span>
-    <span class="menu-child dim">1.2&ensp;Reference Room / 間の資料庫</span>
-    <span class="menu-child dim">1.3&ensp;Research / 間の行動的実証</span>
-    <a href="ma-channel.html">2&ensp;MA Channel / 間の流通化</a>
-    <a class="menu-child" href="edge-riders.html">2.1&ensp;Edge Riders / 密を往く者たち</a>
-    <a class="menu-child" href="beyond-the-vanishing-point.html">2.2&ensp;Beyond the Vanishing point / 死を、教えてくれ。</a>
-    <span class="menu-child dim">2.3&ensp;Traces in the Silence / 不在の風景</span>
-    <a class="dim" href="index.html#ma-do">3&ensp;MA Do / 間の個人化</a>
-    <a href="about.html">About MA / 間とは何か？</a>
-    <a href="#">Contact us</a>
-    <a href="#">Company</a>
+<div class="menu-overlay" id="site-menu" aria-hidden="true">
+  <div class="bar">
+    <a class="site-title" href="./">Indies Lifestyle Media 間｜MA</a>
+    <button class="menu-close" type="button" aria-label="メニューを閉じる"><span></span><span></span></button>
+  </div>
+  <nav class="menu-inner" aria-label="サイトの案内">
+    <a class="menu-home" href="./">Home</a>
+    <div class="menu-gates">
+      <div class="menu-gate mg-notion">
+        <a class="mg-head" href="notion/"><span class="gh-no">Gate 0:</span> <strong>MA Notion</strong></a>
+        <p class="mg-sub">/ 間、当事者化への提案</p>
+      </div>
+      <div class="menu-gate mg-lab is-dim">
+        <a class="mg-head is-dim" href="lab/"><span class="gh-no">Gate 1:</span> <strong>MA Lab</strong></a>
+        <p class="mg-sub">/ 間、定義化への試み</p>
+      </div>
+      <div class="menu-gate mg-channel">
+        <a class="mg-head" href="channel/"><span class="gh-no">Gate 2:</span> <strong>MA Channel</strong></a>
+        <p class="mg-sub">/ 間、流通化への多手</p>
+        <ul class="mg-list">
+          <li><a href="channel/ma-development-process/"><span class="en">MA Development Process</span> / 間を、喰う</a></li>
+          <li><a href="channel/beyond-the-vanishingpoint/"><span class="en">Beyond the Vanishing point</span> / 死を、教えてくれ。</a></li>
+          <li><a href="channel/ma-crosstalk/"><span class="en">MA Crosstalk</span> / 異能の表現者たち</a></li>
+        </ul>
+      </div>
+      <div class="menu-gate mg-do">
+        <a class="mg-head" href="do/"><span class="gh-no">Gate 3:</span> <strong>MA Do</strong></a>
+        <p class="mg-sub">/ 間、個人化への導線</p>
+        <ul class="mg-list">
+          <li class="is-dim"><span class="en">Tips Room</span></li>
+          <li><a href="do/device/"><span class="en">Device Room</span></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="menu-links"><a href="contact/">Contact us</a><a href="company/">Company</a></div>
   </nav>
+  <svg class="illust menu-figure" viewBox="0 0 332 1263" aria-hidden="true" focusable="false"><use href="assets/illust/figure.svg#art"/></svg>
 </div>
 
-<main class="page home-page">
-
+<main class="page home-page" id="main">
   <h1 class="visually-hidden">Indies Lifestyle Media 間｜MA</h1>
 
-  <!-- トラフィックカウンター -->
-  <div class="traffic">
-    <span class="label">現在、</span>
-    <span class="digits" data-count="2">000000</span>
-    <span class="label">人が平場に立ちました。</span>
-  </div>
-
-  <div class="content">
-
-    <div class="poem">
-      <p>偶然、必然問わない。私は暮らしの中で身近な何かを端緒にふと、立ち止まれる。</p>
-      <p>瞬間に巡り会っている。そんな平凡な一瞬を、見過ごす、切り取れない。</p>
-      <p>かくいう私もその一人。流される日々に身を置く。なすがまま、それが安泰。</p>
-      <p>自分事ってなんだろ？忘れ物を忘れる感覚。</p>
-      <p>あれ、何も残っていない。迷いがうずく今日この頃。私は私すら、捉えられない。</p>
-      <p>間。</p>
-      <p>早歩きをちゃんと緩める。目の前を正視した。いつ以来だろう？</p>
-      <p>選択肢が判断を心待ちに。私は足の裏に力を込めた。</p>
-      <p class="sign">- 宮嶋 孝尚 -</p>
+  <section class="hero" id="top">
+    <div class="hero-block">
+      <p class="hero-now" data-m="now" data-mt>現在、</p>
+      <p class="hero-count" data-m="count"><span class="hc-line" data-m="hcline"></span><span class="hc-num" data-m="hcnum">1</span></p>
+      <p class="hero-text" data-m="htext" data-mt>人が平場に立ちました。</p>
+      <svg class="illust hero-figure" viewBox="0 0 332 1263" aria-hidden="true" focusable="false" data-m="figure"><use href="assets/illust/figure.svg#art"/></svg>
     </div>
+    <a class="arrow-btn arrow-1" href="#quote" aria-label="引用へ進む" data-m="arrow1"><span aria-hidden="true">↓</span></a>
+  </section>
 
-    <div class="logo-mark" style="transform: rotate(-6deg);">
-      <img src="assets/logo.png" width="496" height="512" alt="間｜MA ロゴマーク">
-    </div>
+  <section class="quote col" id="quote" aria-label="引用">
+    <p class="pending-note" data-m="q1" data-mt>ここに Ryan Gander『The Markers of Our Time』からの引用が入ります（掲載の可否を確かめてから載せます）。</p>
+    <p class="quote-credit" data-m="credit" data-mt>(-Ryan Gander: The Markers of Our Time)</p>
+    <svg class="illust hiraba-illust" viewBox="0 0 910 714" aria-hidden="true" focusable="false" data-m="hiraba"><use href="assets/illust/hiraba.svg#art"/></svg>
+    <a class="arrow-btn arrow-2" href="#toc" aria-label="目次へ進む" data-m="arrow2"><span aria-hidden="true">↓</span></a>
+  </section>
 
-    <h2 class="contents-head">CONTENTS</h2>
-
-    <ol class="toc">
-
-      <li class="lv1"><a href="about.html">About MA / 間とは何か？</a></li>
-
-      <li class="lv1 dim" id="ma-lab">1&ensp;MA Lab / 間の定義化</li>
-
-      <li class="lv2 dim">1.1&ensp;Dictionary / 感覚と感情の往復</li>
-      <li class="lv3 dim">1.1.1&ensp;“感覚” 平場で浮遊する感情</li>
-      <li class="lv3 dim">1.1.2&ensp;“論理” オノマトペマップ</li>
-
-      <li class="lv2 dim" style="margin-top:34px">1.2&ensp;Reference Room / 間の資料庫</li>
-      <li class="lv3 dim">1.2.1&ensp;言葉</li>
-      <li class="lv3 dim">1.2.2&ensp;写真</li>
-      <li class="lv3 dim">1.2.3&ensp;映像</li>
-      <li class="lv3 dim">1.2.4&ensp;文章</li>
-
-      <li class="lv2 dim" style="margin-top:34px">1.3&ensp;Research / 間の行動的実証</li>
-      <li class="lv3 dim">1.3.1&ensp;装置購入者の声</li>
-      <li class="lv3 dim">1.3.2&ensp;仮説検証ログ</li>
-      <li class="lv3 dim">1.3.3&ensp;間 do Flow</li>
-
-      <li class="lv1"><a href="ma-channel.html">2&ensp;MA Channel / 間の流通化</a></li>
-
-      <li class="lv2"><a href="edge-riders.html">2.1&ensp;Edge Riders / 密を往く者たち</a> <span class="new">&lt;NEW&gt;</span></li>
-      <li class="sub">- 合理化の先で、何を叫ぶのか -</li>
-      <li class="lv2"><a href="beyond-the-vanishing-point.html">2.2&ensp;Beyond the Vanishing point / 死を、教えてくれ。</a> <span class="new" style="animation-delay:-3s">&lt;NEW&gt;</span></li>
-      <li class="sub">- その先に、生の手触りは残るのか -</li>
-      <li class="lv2 dim">2.3&ensp;Traces in the Silence / 不在の風景</li>
-      <li class="sub">- 失うのは何か、空白が語る物語 -</li>
-
-      <li class="lv1 dim" id="ma-do">3&ensp;MA Do / 間の個人化</li>
-
-      <li class="lv2 dim">3.1&ensp;Inori / 祈りの道具</li>
-      <li class="sub">- 何もしない時間を持つ -</li>
-      <li class="lv2 dim">3.2&ensp;Kaori / 香り事業</li>
-      <li class="sub">- Join the orbit of your life -</li>
-      <li class="lv2 dim">3.3&ensp;Sosai / 葬祭事業</li>
-      <li class="sub">- じぶんたちの歩み方で -</li>
-      <li class="lv2 dim">3.4&ensp;Boseki / 墓石事業</li>
-      <li class="sub">- すぐそばにいる気がする -</li>
-
+  <section class="toc col" id="toc">
+    <h2 class="tag tag-b" data-m="toctag"><span data-m="toctag-t" data-mt>Table of Contents</span></h2>
+    <p class="formula" data-m="formula"><span class="fm-left" data-m="fml" data-mt>We create of Your MA <span class="fm-eq">=</span></span><span class="fm-frac"><span class="fm-num" data-m="fmn" data-mt>Lab × Ch × Do</span><span class="fm-bar" aria-hidden="true"></span><span class="fm-den" data-m="fmd" data-mt>Notion</span></span></p>
+    <h2 class="frame-label" data-m="frame">間を巡る 4 つの門と 8 つの扉</h2>
+    <ol class="toc-gates">
+      <li class="toc-gate">
+        <p class="toc-head" data-m="g0" data-mt><a href="notion/"><span class="gh-no">Gate 0:</span> <strong>MA Notion</strong> <span class="gh-ja">/ 間、当事者化への提案</span></a></p>
+      </li>
+      <li class="toc-gate is-dim">
+        <p class="toc-head" data-m="g1" data-mt><span class="gh-no">Gate 1:</span> <strong>MA Lab</strong> <span class="gh-ja">/ 間、定義化への試み</span></p>
+        <ul class="toc-doors" data-m="d1" data-mt>
+          <li class="is-dim">Door 1-1: Dictionary Space</li>
+          <li class="is-dim">Door 1-2: Reference Space</li>
+          <li class="is-dim">Door 1-3: Research Space</li>
+        </ul>
+      </li>
+      <li class="toc-gate">
+        <p class="toc-head" data-m="g2" data-mt><a href="channel/"><span class="gh-no">Gate 2:</span> <strong>MA Channel</strong> <span class="gh-ja">/ 間、流通化への多手</span></a></p>
+        <ul class="toc-doors" data-m="d2" data-mt>
+          <li>Door 2-1: TV Station</li>
+          <li>Door 2-2: Magazine Station</li>
+          <li>Door 2-3: Radio Station</li>
+        </ul>
+      </li>
+      <li class="toc-gate">
+        <p class="toc-head" data-m="g3" data-mt><a href="do/"><span class="gh-no">Gate 3:</span> <strong>MA Do</strong> <span class="gh-ja">/ 間、個人化への導線</span></a></p>
+        <ul class="toc-doors" data-m="d3" data-mt>
+          <li class="is-dim">Door 3-1: Tips Room</li>
+          <li><a href="do/device/">Door 3-2: Device Room</a></li>
+        </ul>
+      </li>
     </ol>
+  </section>
 
-    <h2 class="contents-head">NEWS</h2>
-
-    <ol class="toc">
-
-      <li class="lv2">2026.07.28&ensp;サイトの更新を、AIエージェントと。 <span class="new">&lt;NEW&gt;</span></li>
-      <li class="sub">- Slack で話しかけると記事がサイトに反映される、新しい編集の運用を準備しています -</li>
-
+  <section class="news col" id="news">
+    <h2 class="tag tag-t" data-m="newstag"><span data-m="newstag-t" data-mt>News</span></h2>
+    <svg class="illust device-illust" viewBox="0 0 644 834" aria-hidden="true" focusable="false" data-m="device"><use href="assets/illust/device.svg#art"/></svg>
+    <ol class="news-list">
+      <li class="news-item" data-m="ni1">
+        <p class="entry-meta" data-m="nm1" data-mt><span class="new">&lt;NEW&gt;</span> <span class="em-date">26/09/30</span> <span class="em-path">MA Channel/TV/2-1-3</span></p>
+        <p class="news-title" data-m="nt1" data-mt><a href="channel/beyond-the-vanishingpoint/#ep-nishina">「Beyond the Vanishing point / 死を、教えてくれ。」 「死を、教えてくれ。」4000mのアンデス山脈で死のキワに立った、 Pro Snowboarder/Artist 仁科正史の独自の死生観。「死とは、悦びだ」</a></p>
+        <p class="news-text" data-m="nx1" data-mt>死のキワに3度立ち、自然と対峙してきた仁科正史。彼がたどり着いた平場は、「死は恐怖ではなく、重力からの解放であり生まれ変わりの悦び」という境地だった。命をかける瞬間が消え、死が遠ざかったと語る仁科。そんな現代において、なぜ私たちは生きづらさを抱えるのか？を考察する。 16年間死の周辺にいた まなか宮嶋 が、問いをぶつけ、彷徨い、自分らしく生き切るため、正解の無い旅に出る。</p>
+      </li>
+      <li class="news-item" data-m="ni2">
+        <p class="entry-meta" data-m="nm2" data-mt><span class="em-date">26/07/28</span> <span class="em-path">MA</span></p>
+        <p class="news-title" data-m="nt2" data-mt>サイトの更新を、AI エージェントと。</p>
+        <p class="news-text" data-m="nx2" data-mt>Slack で話しかけると記事がサイトに反映される、新しい編集の運用を準備しています。</p>
+      </li>
     </ol>
-
-  </div>
+  </section>
+  <div class="home-end"><img class="home-logo" src="assets/logo.png" width="496" height="512" alt="" loading="lazy" decoding="async" data-m="flogo"></div>
 </main>
 
 <footer class="site-footer">
-  <div class="footer-inner">
-    <div class="footer-left">
-      <div class="f-title">Indies Lifestyle Media 間｜MA</div>
-      <div>Follow us on <a href="https://www.youtube.com/" target="_blank" rel="noopener">YouTube</a> , <a href="#">Podcast</a> and <a href="https://note.com/" target="_blank" rel="noopener">note</a>.</div>
-      <div class="copyright">©2026, Manaka Ltd.</div>
-    </div>
-    <button class="theme-toggle" aria-label="明るさを切り替える">
-      <span class="t-label">Light ☀</span><span class="knob"></span>
-    </button>
-    <div class="footer-links">
-      <a href="#">Company</a>
-      <a href="#">Contact us</a>
-    </div>
-  </div>
+  <p class="fc-1"><span class="fc-name" data-m="f1" data-mt>Indies Lifestyle Media 間｜MA</span> <span class="fc-follow" data-m="f2" data-mt>Follow us on <a href="https://www.youtube.com/@ma_jpn_com" target="_blank" rel="noopener">YouTube</a> , <a href="https://soundcloud.com/ma-jpn" target="_blank" rel="noopener">Podcast</a> and <a href="https://note.com/manaka_notepr" target="_blank" rel="noopener">note</a>.</span></p>
+  <p class="fc-2" data-m="f3" data-mt>©2026, Manaka Ltd.　β版（関係者確認用）</p>
+  <button class="theme-toggle" type="button" aria-label="表示の色を切り替える" data-m="toggle">
+    <span class="tt-knob"></span><span class="tt-label">Dark</span><span class="tt-icon" aria-hidden="true">☾</span>
+  </button>
+  <p class="footer-links" data-m="flinks"><a href="contact/">Contact us</a><a href="company/">Company</a></p>
 </footer>
 
 <script src="js/main.js"></script>
