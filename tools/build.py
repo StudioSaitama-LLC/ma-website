@@ -126,6 +126,11 @@ def lab_spread(angles, gap):
     return out
 
 
+def drop_code(title):
+    """YouTube の題の頭の管理番号（「MA Channel #2.1.2 」）を外す（画面に管理番号を出さない）。"""
+    return re.sub(r"^\s*MA Channel\s*#\d+(?:\.\d+)+\s*", "", title or "")
+
+
 def bracket(title):
     """題を「」で囲む。題に「」があるとき（YouTube の題など）は、入れ子が読みにくいので『』で囲む。"""
     if "「" in title or "」" in title:
@@ -239,11 +244,13 @@ class Site:
             if p.get("illust_sp") == "end" and not p.get("illust"):
                 errors.append("programs.json %s: illust_sp を \"end\" にするなら illust（絵の名前）も書く" % p["slug"])
             for e in p.get("episodes", []):
+                if not isinstance(e.get("title"), str) or not e["title"].strip():
+                    errors.append("programs.json %s: 回の title（文字）が要る: %r" % (p["slug"], e.get("key")))
                 if not re.fullmatch(SLUG, e.get("key", "")):
                     errors.append("programs.json %s: 回の key は英小文字・数字・ハイフンだけ: %r" % (p["slug"], e.get("key")))
-                if e["key"] in episodes:
+                if e.get("key") in episodes:
                     errors.append("programs.json: 回の key が重複: %s" % e["key"])
-                episodes[e["key"]] = p["slug"]
+                episodes[e.get("key")] = p["slug"]
                 if e.get("date") and bad_date(e["date"]):
                     errors.append("programs.json %s: date は YYYY-MM-DD: %r" % (e["key"], e["date"]))
         seen = set()
@@ -351,7 +358,7 @@ class Site:
             for k in ("plain", "state"):
                 if k in g and not isinstance(g[k], str):
                     errors.append("site.json gates %s: %s は文字" % (g.get("key"), k))
-        if not all(isinstance(v, str) for v in self.site.get("views", {}).values()):
+        if not isinstance(self.site.get("views", {}), dict) or not all(isinstance(v, str) for v in self.site.get("views", {}).values()):
             errors.append("site.json views: 見方の一言は文字（{\"随想記事\": \"…\"}）")
         for c in self.contents:
             if "words" in c and not isinstance(c["words"], str):
@@ -380,6 +387,8 @@ class Site:
                 elif x.get("url") and not (isinstance(x["url"], str) and re.fullmatch(r"https?://[^\s\"<>]+", x["url"])):
                     errors.append("company.json facilities %s: url は http(s):// で始める: %r" % (x["name"], x["url"]))
         for n in self.site.get("news", []):
+            if not isinstance(n.get("title"), str) or not n["title"].strip():
+                errors.append("site.json news: title（文字）が要る: %r" % (n,))
             if bad_date(n.get("date")):
                 errors.append("site.json news %r: date は実在する YYYY-MM-DD: %r" % (n.get("title"), n.get("date")))
         photo = self.company.get("photo", {}).get("src")
@@ -579,7 +588,7 @@ class Site:
         （題は import_youtube.py がいつも YouTube から写し直すので、データでなくここで外す）。"""
         tv = self.yt_item(items)
         title = tv["yt_title"] if tv else e["title"]
-        return re.sub(r"^\s*MA Channel\s*#\d+(?:\.\d+)+\s*", "", title) or title
+        return drop_code(title) or title
 
     def ep_lines(self, e, items):
         """回の一言（行の並び）。YouTube の説明文の冒頭があればそれ、無ければ caption と text。"""
@@ -897,7 +906,7 @@ class Site:
             return ('<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/%s" title="%s（YouTube）" '
                     'loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; '
                     'picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>'
-                    % (esc(item["youtube"]), esc(re.sub(r"^\s*MA Channel\s*#\d+(?:\.\d+)+\s*", "", item.get("yt_title") or "") or item["title"])))
+                    % (esc(item["youtube"]), esc(drop_code(item.get("yt_title")) or item["title"])))
         return '<div class="video video-ph"><span class="play" aria-hidden="true"></span><span class="ph-label">準備中</span></div>'
 
     def card(self, href, rows, cls, id_=None, soon=False):

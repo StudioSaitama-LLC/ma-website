@@ -32,7 +32,7 @@
   --fg: #ffffff;
   --accent: #00ffff;
   --on-accent: #1414dc;
-  --muted: #8c8c8c;
+  --muted: #b4b4f0;  /* 準備中・押せないもの。青地で約 4.9:1 */
   --tag-bg: #ffffff;
   --tag-fg: #1414dc;
   --line: #ffffff;
@@ -64,7 +64,7 @@ html.light {
   --fg: #111111;
   --accent: #0000ff;
   --on-accent: #ffffff;
-  --muted: #8f8f8f;
+  --muted: #555555;  /* 灰地で約 4.6:1 */
   --tag-bg: #ffffff;
   --tag-fg: #111111;
   --line: #111111;
@@ -139,7 +139,7 @@ strong, b { font-weight: 700; }
 /* 手描きの絵（SVG）。線の色は文字の色に合わせる */
 .illust { display: block; height: auto; color: var(--fg); overflow: visible; }
 html.light .logo-mark, html.light .home-logo { filter: brightness(0.55); }
-/* JS 無しでは章は全文を出す。章の題（ボタン）は残し、開閉の印だけ隠す */
+/* JS 無しでは章は全文を出す。章の題（ボタン）は残し、開閉の印だけ隠す（押しても動かないので押せる色にしない） */
 html:not(.js) .menu-btn, html:not(.js) .ft-sign { display: none; }
 
 /* 360px 未満の小さい画面は、ページ全体を 375px の組みのまま縮める（絵や図の位置はスマホ 375px のデザインに合わせているため） */
@@ -1208,8 +1208,9 @@ html:not(.js) .ref-filters { display: none; }
 .card-kicker, .card-meta, .card-update { font-size: var(--small); line-height: 20px; }
 .card-kicker { opacity: 0.85; }
 .card-note { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
-/* 準備中は破線で押せない形。字は地の色に寄せて薄くする（読める濃さは残す: 青地で約 5:1、灰地で約 4.4:1） */
-.card.is-soon .card-body { border: 1px dashed var(--fg); color: var(--fg); opacity: 0.62; }
+/* 準備中は破線で押せない形。字はほかの「押せないもの」と同じ --muted（青地・灰地とも 4.5:1 以上） */
+.card.is-soon .card-body { border: 1px dashed var(--muted); color: var(--muted); }
+.is-soon .status, .is-dim .status, .door-soon .status, .card-meta .status { opacity: 1; }
 .card.is-soon .status { margin-left: 0; }
 .cards-program .card-title { font-size: var(--head); line-height: 1.4; }
 .cards-program .card-note { -webkit-line-clamp: 3; line-clamp: 3; }
@@ -1330,3 +1331,4 @@ html:not(.js) .ref-filters { display: none; }
 @media (min-width: 1200px) { .pg-ma-development-process .program-top, .pg-ma-crosstalk .program-top { min-height: 900px; } }
 /* 商品ページの「出てくる回」は見出しの白札で区切るので、旧版の線と余白は使わない */
 .sec.product-media { padding-top: 0; border-top: 0; }
+html:not(.js) .fold-toggle { color: var(--fg); pointer-events: none; cursor: default; }
