@@ -695,8 +695,9 @@ class Site:
         """門のページの見出し: 名前（Lab など）といまの言葉の 2 段。平易な説明は見出しの下の導入文に置く。"""
         state = (' <span class="status">%s</span>' % esc(g["state"])) if g.get("state") else ""
         plain = ('\n    <p class="gh-plain">%s</p>' % esc(g["plain"])) if g.get("plain") else ""
-        return ('<div class="gate-head">\n    <%s class="gh-title" data-m="gh" data-mt><strong>%s</strong>%s</%s>\n'
-                '    <p class="gh-sub" data-m="gs" data-mt>%s</p>%s\n  </div>' % (el, esc(g["name"]), state, el, esc(g["ja"]), plain))
+        # 同じ門のページどうしでは、この塊を同じ形・同じ高さで出す（部屋を移っても上が動かない。g-<門> は移るときの動きの目印）
+        return ('<div class="gate-head g-%s">\n    <%s class="gh-title" data-m="gh" data-mt><strong>%s</strong>%s</%s>\n'
+                '    <p class="gh-sub" data-m="gs" data-mt>%s</p>%s\n  </div>' % (g["key"], el, esc(g["name"]), state, el, esc(g["ja"]), plain))
 
     def new_badge(self):
         return '<span class="new">&lt;NEW&gt;</span>'
@@ -1170,7 +1171,6 @@ class Site:
     <section class="notion-part steps" id="steps">
       {steps_label}
       <p class="part-text" data-m="stept" data-mt>{steps_lines}</p>
-      <p class="formula" data-m="formula"><span class="fm-left" data-m="fml" data-mt>We create of Your MA <span class="fm-eq">=</span></span><span class="fm-frac"><span class="fm-num" data-m="fmn" data-mt>Lab × Ch × Do</span><span class="fm-bar" aria-hidden="true"></span><span class="fm-den" data-m="fmd" data-mt>Notion</span></span></p>
       <figure class="flow" aria-label="間を定める、広める、感化する" data-m="flow">
         <div class="flow-root">間｜MA<br>暮らしへの<br>インストール</div>
         <ol class="flow-steps">
@@ -1179,6 +1179,7 @@ class Site:
       </figure>
       {book}
     </section>
+    <p class="formula formula-notion" data-m="formula"><span class="fm-left" data-m="fml" data-mt>We create of Your MA <span class="fm-eq">=</span></span><span class="fm-frac"><span class="fm-num" data-m="fmn" data-mt>Lab × Ch × Do</span><span class="fm-bar" aria-hidden="true"></span><span class="fm-den" data-m="fmd" data-mt>Notion</span></span></p>
   </div>
 """.format(logo=self.logo(cur, "logo-mark lm-notion", m="lmn"), head=self.gate_head(self.gate("notion")),
            chapters="\n\n".join(chapters), core_label=self.frame(core["label"], m="corel"), core_heading=esc(core["heading"]),
@@ -1222,13 +1223,15 @@ class Site:
             if not ok:
                 lis.append('<li class="is-dim">%s%s</li>' % (esc(label), self.status_badge("planned")))
                 continue
-            cur_attr = ""
+            cur_attr, bar = "", ""
             if url == here:
                 cur_attr = ' aria-current="page"'
             elif label != "入口" and here.startswith(url):
                 cur_attr = ' aria-current="true"'
-            lis.append('<li><a href="%s"%s>%s</a></li>' % (self.href(cur, url), cur_attr, esc(label)))
-        return '<nav class="local-nav" aria-label="%s の部屋"><ul>%s</ul></nav>' % (esc(g["name"]), "".join(lis))
+            if cur_attr:
+                bar = '<span class="ln-bar" aria-hidden="true"></span>'  # いまいる所の下線。部屋を移ると横へ滑って移る（css の view-transition）
+            lis.append('<li><a href="%s"%s>%s%s</a></li>' % (self.href(cur, url), cur_attr, esc(label), bar))
+        return '<nav class="local-nav ln-%s" aria-label="%s の部屋"><ul>%s</ul></nav>' % (g["key"], esc(g["name"]), "".join(lis))
 
     def lab_glyph(self, form):
         return '<span class="fg" aria-hidden="true">%s</span>' % esc(LAB_GLYPH.get(form, "■"))
@@ -1302,13 +1305,10 @@ class Site:
     def lab_head(self, cur, door):
         """扉のページの見出し: 上に門の名前（小さく）、扉の帯、扉の名前（h1）と副題・役割。"""
         g = self.gate("lab")
-        state = (' <span class="status">%s</span>' % esc(g["state"])) if g.get("state") else ""
-        # 門の名前は文字だけ（入口へは扉の帯の「入口」から行ける。同じ行き先のリンクを 2 つ並べない）
-        return ('<div class="gate-head gate-head-sub">\n    <p class="gh-gate"><strong>%s</strong>%s <span class="gh-gate-ja">%s</span></p>\n  </div>\n'
-                '    %s\n    <h1 class="gh-title gh-door"><strong>%s</strong></h1>\n'
-                '    <p class="gh-sub">%s</p>\n    <p class="lab-lead">%s</p>'
-                % (esc(g["name"]), state, esc(g["ja"]), self.local_nav(cur, g, door["url"]),
-                   esc(door["en"]), esc(door["ja"]), esc(door["role"])))
+        # 上の塊（門の名前・言葉・説明・扉の帯）は入口と同じ形で出し、その下に部屋の名前（h1）を置く。部屋を移っても上が動かない
+        return ('%s\n    %s\n    <div class="room-head">\n      <h1 class="room-title"><strong>%s</strong></h1>\n'
+                '      <p class="room-sub">%s</p>\n    </div>\n    <p class="lab-lead">%s</p>'
+                % (self.gate_head(g, el="p"), self.local_nav(cur, g, door["url"]), esc(door["en"]), esc(door["ja"]), esc(door["role"])))
 
     def build_lab(self):
         lab = self.lab
@@ -1331,21 +1331,28 @@ class Site:
             acts = "・".join(esc(a) for a in e.get("acts", []))  # 押せないので札にしない（丸い札は絞り込みだけ）
             nref = len(by_el.get(e["key"], []))
             terms = term_of.get(e["key"], [])
-            tlink = ('<span class="chips-label">用語</span>' + " ".join('<a href="%s">%s</a>' % (self.href(cur, "lab/dictionary/#t-%s" % t["key"]), esc(t["word"])) for t in terms)) if terms else ""
+            ch = '<a class="lab-ch" href="%s">第 %d 章</a>' % (self.href(cur, "notion/#ch%d" % e["ch"]), e["ch"])
+            # 一節が密／間の側の文そのものなら、同じ文を 2 度出さず、その行に章へのリンクを付ける
+            side_of_quote = "mitsu" if e["quote"] == e["mitsu"] else ("ma" if e["quote"] == e["ma"] else "")
+            quote = "" if side_of_quote else '\n        <p class="el-quote"><q>%s</q> %s</p>' % (esc(e["quote"]), ch)
+            row = lambda side, label: '<div class="el-row el-%s"><dt>%s</dt><dd>%s%s%s</dd></div>' % (
+                side, esc(label), esc(e[side]), mark(side), (" " + ch) if side_of_quote == side else "")
+            links = ['<a href="%s">資料 %d 件</a>' % (self.href(cur, "lab/reference/#e-%s" % e["key"]), nref)]
+            if terms:
+                links.append('用語：' + "・".join('<a href="%s">%s</a>' % (self.href(cur, "lab/dictionary/#t-%s" % t["key"]), esc(t["word"])) for t in terms))
             cards.append("""      <li class="el" id="e-{key}">
         <p class="el-no">{no:02d}</p>
         <h2 class="el-name">{name}</h2>
         <p class="el-sub">{sub}</p>
         <dl class="el-pair">
-          <div class="ep-mitsu"><dt>{left}の側</dt><dd>{mitsu}{gm}</dd></div>
-          <div class="ep-ma"><dt>{right}の側</dt><dd>{ma}{ga}</dd></div>
-        </dl>
-        {quote}
-        <p class="el-acts"><span class="chips-label">羅列から（Lab の見立て）：</span>{acts}</p>
-        <p class="el-links"><a href="{rurl}">資料 {nref}</a>{tlink}</p>
-      </li>""".format(key=esc(e["key"]), no=i, name=esc(e["name"]), sub=esc(e["sub"]), left=esc(lab["poles"]["left"]), right=esc(lab["poles"]["right"]),
-                       mitsu=esc(e["mitsu"]), ma=esc(e["ma"]), gm=mark("mitsu"), ga=mark("ma"), quote=self.lab_quote(cur, e), acts=acts,
-                       rurl=self.href(cur, "lab/reference/#e-%s" % e["key"]), nref=nref, tlink=(" " + tlink) if tlink else ""))
+          {mitsu}
+          {ma}
+        </dl>{quote}
+        <p class="el-acts"><span class="el-label">当てはまる行い</span>{acts}</p>
+        <p class="el-links">{links}</p>
+      </li>""".format(key=esc(e["key"]), no=i, name=esc(e["name"]), sub=esc(e["sub"]),
+                       mitsu=row("mitsu", lab["poles"]["left"]), ma=row("ma", lab["poles"]["right"]), quote=quote, acts=acts,
+                       links="　".join(links)))
         # 3 つの部屋はカードにして、導入文のすぐ後（地図より先）に置く（部門の入口は下の階層へすぐ進めることが先）
         rooms = []
         for d in g["doors"]:
@@ -1372,7 +1379,7 @@ class Site:
     <p class="map-note">要素の札を押すと下の欄へ、資料の点を押すとその資料へ。{unmapped}</p>
     </section>
     {el_label}
-    <p class="el-legend">※ は、本文に無い Lab の見立て。</p>
+    <p class="el-legend">密は詰まった側、間は余白の側。※ と「当てはまる行い」は、本文に無い Lab の見立て。</p>
     <ol class="el-grid">
 {cards}
     </ol>
@@ -1571,7 +1578,7 @@ class Site:
            logo=self.logo(cur, "logo-mark lm-program", m="lmp") if p.get("logo") == "top" else "",
            logo_end=self.logo(cur, "logo-mark lm-end", m="lme") if p.get("logo") == "end" else "",
            illust_end=self.illust(cur, p["illust"], "program-illust-end sp-only", m="pille") if p.get("illust_sp") == "end" else "",
-           ep_tag=self.tag("回", "t"), entries=entries)
+           ep_tag=self.tag("エピソード", "t"), entries=entries)
             self.page(cur, p["ja"], body, main_class="page program-page pg-%s" % p["slug"])
 
     def build_episodes(self):
@@ -1821,7 +1828,7 @@ class Site:
 {feats}
     </section>
   </div>
-""".format(home=h(""), dev=h("do/device/"), dname=esc(self.gate("do")["name"]), nav="    " + self.local_nav(cur, self.gate("do"), self.product_url(prod)), search=self.device_search(h("do/device/")), shop=esc(shop["name"]), name=esc(prod["name"]),
+""".format(home=h(""), dev=h("do/device/"), dname=esc(self.gate("do")["name"]), nav="    " + self.gate_head(self.gate("do"), el="p") + "\n    " + self.local_nav(cur, self.gate("do"), self.product_url(prod)), search=self.device_search(h("do/device/")), shop=esc(shop["name"]), name=esc(prod["name"]),
            slides=slides, count=len(prod["variants"]), thumbs=thumbs, price=esc(self.price_label(prod)),
            note=self.tax_label(), ec=esc(prod["ec_url"]),
            colornames=esc(" / ".join(v["color"] for v in prod["variants"])), colors=colors, copy=esc(prod["copy"]),
