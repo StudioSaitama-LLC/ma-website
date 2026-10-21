@@ -25,6 +25,7 @@ tools/
   import_manifesto.py          # Notion の docx → src/manifesto.json
   import_device.py             # Device 表の xlsx → src/device.json
   import_youtube.py            # YouTube の題と説明文の冒頭 → src/contents.json の yt_title・yt_lead
+  import_article.py            # Magazine の原稿（Word を Google ドキュメントで .html に書き出したもの）→ 記事の断片と contents.json
   generated.txt                # build.py が生成したファイルの一覧
 css/ js/ assets/               # 見た目と画像（assets/device/ は Device の写真、assets/illust/ は手描きの絵）
 
@@ -59,7 +60,7 @@ about.html ほか 8 月版のページ   # 新しいページへ転送するだ�
 | `device` | このコンテンツを、商品ページの商品説明に回の枠で出すときの商品 ID の並び（例 `["2"]`）。無ければ出さない |
 | `redirect_from` | この記事へ転送する 8 月版の URL |
 | `hero` `portrait` `portrait_focus` | 記事の冒頭で切り替わる写真（`assets/` の名前の並び）・記事の終わりに画面いっぱいに出す人物の写真・その切り抜きの中心（例 `"68% 50%"`） |
-| `related` | 番組ページで「関連コンテンツ」に回すとき `true`。ほかの番組のコンテンツを関連に入れるときは、`programs.json` の番組に `"related": ["2-1-2"]` と番号を並べる（1 件ずつの枠で出る。並びは TV・Magazine・Radio の順、その中は番号順） |
+| `related` | 番組ページで「関連コンテンツ」に回すとき `true`。ほかの番組のコンテンツを関連に入れるときは、`programs.json` の番組に `"related": ["2-1-2"]` と番号を並べる（1 件ずつの枠で出る。並びは、この番組の関連（contents.json の順）のあとに related に書いた順） |
 | `memo` | 作業用のメモ。ページには出ないが、この repo は公開なので人に見せられないことは書かない |
 
 `build.py` は生成の前にこれらを検査し、綴り違い・未登録の番組・画像の置き忘れがあると止まる。
@@ -97,6 +98,17 @@ python3 tools/import_manifesto.py <Notion_YYYYMMDD.docx>
 python3 tools/import_device.py <Device_YYYYMMDD.xlsx> --ids 2
 python3 tools/build.py
 ```
+
+Magazine の原稿（Word）が届いた・直ったとき（記事と題・冒頭はいつも原稿に合わせる）。原稿を Google ドキュメントで開き「ファイル → ダウンロード → ウェブページ」で書き出して渡す:
+
+```bash
+python3 tools/import_article.py <原稿.html> --id 2-2-4 --article src/articles/2-2-4.html \
+    --photo "1_○○.jpg=ep224-1.jpg" --alt "ep224-2.jpg=写真の説明"   # 公開する記事（写真は assets/ に置いてから）
+python3 tools/import_article.py <原稿.html> --id 2-2-3 --meta-only   # 掲載予定: 題と冒頭 4 行だけ
+python3 tools/build.py
+```
+
+原稿の決まり（まなかの Word のひな形）: 冒頭の写真 → 記事の種類 → 「YYYY/MM/DD MA Magazine/2-2-N」 → 副題 → Place / Words / Photo → 赤字の「(記事タイトル:)」の次の行が記事のタイトル → 本文（太字の行は見出し、「(写真: ○○)」と赤字の「（写真キャプション）」）。赤字はページに出さない。最後の行の写真は記事の終わりに画面いっぱいに出す。
 
 YouTube の題や説明文を変えたとき（回の題と一言はいつも YouTube に合わせる）:
 

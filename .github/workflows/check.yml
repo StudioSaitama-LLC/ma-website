@@ -20,6 +20,6 @@ jobs:
         with:
           python-version: "3.9"
       - name: tools の構文確認
-        run: python -m py_compile tools/build.py tools/import_manifesto.py tools/import_device.py tools/import_youtube.py tools/make_spheres.py
+        run: python -m py_compile tools/build.py tools/import_manifesto.py tools/import_device.py tools/import_youtube.py tools/import_article.py tools/make_spheres.py
       - name: tools/build.py --check
         run: python tools/build.py --check

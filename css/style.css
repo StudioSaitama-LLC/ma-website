@@ -850,6 +850,9 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .article-answer { margin: 203px 0 var(--lh); font-size: var(--fs); font-weight: 700; line-height: var(--lh); }
 #article-start > .article-answer:first-child, #article-start > .article-body:first-child { margin-top: 203px; }
 .article-body p + p { margin-top: var(--lh); }
+/* 2 つ目からの見出し（本文・写真・記事のタイトルの後）は、原稿どおり 2 行あけるだけにする。
+   いちばん上の見出しの大きな余白（203px・PC 136px）は、上の段の右下の矢印と重ならないためのもの */
+.article-answer + .article-answer, .article-body + .article-answer, .article-figure + .article-answer, .article-photo + .article-answer { margin-top: calc(var(--lh) * 2) !important; }
 /* 本文の写真: 本文のすぐ下（スマホ 3px・PC 52.5px）、説明は写真の下（8px・25px）、次の本文まで（27px・48.5px） */
 .article-photo { display: block; width: calc(100% + 30px); max-width: none; height: auto; margin: 3px -15px 27px; }
 .article-figure { margin: 3px 0 27px; }
@@ -975,9 +978,18 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .product-desc { margin-top: 54px; }
 .line-head { margin: 0 0 20px; font-size: 14px; font-weight: 700; line-height: 22px; }
 .pd-copy { margin-bottom: 20px; font-size: 17px; line-height: 30px; }
-/* 商品の情緒（映像・記事・音声）を回の枠で並べる */
+/* 商品の情緒（映像・記事・音声）を回の枠で並べる（Device テンプレ: 部品の間はすべて 20px・↓ は一言の下の行の右） */
 .product-media { margin-top: 50px; padding-top: 20px; border-top: 1px solid var(--line); }
 .product-media .entry + .entry { margin-top: 20px; padding-top: 20px; }
+.product-media .entry-title, .product-media .entry-text, .product-media .entry-excerpt { margin-top: 20px; }
+.product-media .entry > summary { padding-right: 0; padding-bottom: 40px; }
+.product-media .fold-btn { bottom: 0; }
+.product-media .entry-body { padding-top: 20px; }
+.product-media .entry-body .door { padding-bottom: 40px; }
+.product-media .entry-body .door + .door { padding-top: 20px; }
+.product-media .door .video, .product-media .door .audio-ph, .product-media .door-blurb, .product-media .door-text { margin-top: 20px; }
+.product-media .door-text + .door-text { margin-top: 20px; }
+.product-media .entry-body .fold-end { margin-top: 20px; }
 .features { display: grid; gap: 72px; margin-top: 72px; }
 .feature { margin: 0; }
 .feature img { display: block; width: 100%; height: auto; margin: 0 0 21.5px; background: var(--ph); }

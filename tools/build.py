@@ -682,9 +682,9 @@ class Site:
                     # 4 行で切り、4 行目の右に「…… ○○を読む」を置く（css の .door-text.is-clamped。リンクは本文より先に書く）
                     # 本文が 3 行に満たない短い記事では、リンクが 4 行目に残って間が空く（今の記事はどれも長い）
                     if c["id"] == here:
-                        more = '<span class="more">…… <span class="read-here">この記事</span></span>'
+                        more = '<span class="more">… <span class="read-here">この記事</span></span>'
                     else:
-                        more = '<span class="more">…… <a class="read-link" href="%s">%sを読む</a></span>' % (
+                        more = '<span class="more">… <a class="read-link" href="%s">%sを読む</a></span>' % (
                             self.href(cur, self.item_url(c)), esc(c.get("badge") or "記事"))
                     out.append('<p class="door-text is-clamped">%s%s</p>' % (more, text))
                 else:
@@ -980,9 +980,9 @@ class Site:
             eps = self.episodes(p)
             entries = "\n\n".join(self.entry(cur, p, e, items, i + 1) for i, (e, items) in enumerate(eps))
             # 関連コンテンツ＝この番組で related にしたもの＋programs.json の related に番号を並べたもの（ほかの番組の回も入れられる）
+            # 並びは、この番組の関連（contents.json の順）→ programs.json の related に書いた順（デザインの注記で 2-2-3 の後ろに TV）
             related = [c for c in self.contents if c["program"] == p["slug"] and c.get("related")]
             related += [self.content(cid) for cid in p.get("related", [])]
-            related.sort(key=lambda c: (KIND_ORDER[c["kind"]], id_key(c)))
             rel = ""
             if related:
                 rel_items = []
@@ -1341,7 +1341,9 @@ class Site:
         for old, target, label in (("about.html", "notion/", "MA Notion"),
                                    ("ma-channel.html", "channel/", "MA Channel"),
                                    ("edge-riders.html", "channel/", "MA Channel"),
-                                   ("beyond-the-vanishing-point.html", "channel/beyond-the-vanishingpoint/", "死を、教えてくれ。")):
+                                   ("beyond-the-vanishing-point.html", "channel/beyond-the-vanishingpoint/", "死を、教えてくれ。"),
+                                   # 8 月版の取材後記は、今は #2-2-3（掲載予定）の旧版にあたるので、番組のページへ送る
+                                   ("article-2-2-1-postscript.html", "channel/beyond-the-vanishingpoint/", "死を、教えてくれ。")):
             self.redirect(old, target, label)
         # β 版の途中まであった「お店ごとのページ」は、そのお店の商品ページへ送る
         for s in self.site["shops"]:
