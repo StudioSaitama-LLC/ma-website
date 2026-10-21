@@ -12,6 +12,7 @@
 - 見た目は 2026-10-16 版のデザイン（荒井さんの PC / Phone の PDF）に合わせている。
 """
 import argparse
+import hashlib
 import datetime
 import html
 import json
@@ -32,6 +33,10 @@ VIEW = {"tv": "動画", "mag": "読み物", "radio": "音声"}  # 回の中で�
 KIND_ORDER = {"tv": 0, "mag": 1, "radio": 2}
 NEW_COUNT = 3  # 日付の新しい順にこの件数だけ <NEW> を付ける
 NEW_DAYS = 60  # ただし、いちばん新しい日付からこの日数より古いものには付けない
+# 先読み: 同じサイトの中のリンクに乗せた（スマホは押し始めた）ら、次のページを先に組み立てておく（Chrome・Edge の Speculation Rules。
+# 対応していないブラウザは何もしない）。外のサイト・新しい窓で開くものは除く
+SPECULATION = ('<script type="speculationrules">{"prerender":[{"where":{"and":[{"href_matches":"/*"},'
+               '{"not":{"selector_matches":"[target=_blank], [rel~=nofollow]"}}]},"eagerness":"moderate"}]}</script>')
 DEVICE_SEARCH_MIN = 10  # 道具がこの数に満たない間は、検索欄とお店の絞り込みを出さない（1 つを探すための道具は要らない）
 SLUG = r"[a-z0-9][a-z0-9-]*"  # URL と id に入る名前（番組・回・お店）
 IMAGE_NAME = r"[A-Za-z0-9_-]+\.(?:jpg|jpeg|png|webp)"
@@ -824,6 +829,14 @@ class Site:
         if cur in self.pages:
             raise SystemExit("同じ住所に 2 つのページを作ろうとした: %s（回の key と記事の番号、回を決めていない記事を確かめる）" % cur)
 
+    def asset_version(self, rel):
+        """見た目・動きのファイルの中身の印（中身が変われば変わる）。URL に付けておけば、置き場で長く覚えさせても古いものが残らない。"""
+        self._ver = getattr(self, "_ver", {})
+        if rel not in self._ver:
+            with open(os.path.join(ROOT, rel), "rb") as f:
+                self._ver[rel] = hashlib.sha1(f.read()).hexdigest()[:10]
+        return self._ver[rel]
+
     def page(self, cur, title, body, main_class="page", description=None):
         self.claim(cur)
         h = lambda t: self.href(cur, t)
@@ -854,6 +867,7 @@ class Site:
 <link rel="icon" type="image/png" href="{png}">
 <link rel="apple-touch-icon" href="{touch}">
 <link rel="stylesheet" href="{css}">
+{spec}
 </head>
 <body>
 
@@ -868,8 +882,8 @@ class Site:
 </html>
 """.format(mark=MARK, full=esc(full), robots=robots, desc=esc(desc), name=esc(name),
            touch=h("assets/apple-touch-icon.png"), ico=h("favicon.ico"), png=h("assets/favicon.png"),
-           css=h("css/style.css"), header=self.header(cur), main_class=main_class, body=body.strip("\n"),
-           footer=self.footer(cur), js=h("js/main.js"))
+           css=h("css/style.css") + "?v=" + self.asset_version("css/style.css"), header=self.header(cur), main_class=main_class, body=body.strip("\n"),
+           footer=self.footer(cur), js=h("js/main.js") + "?v=" + self.asset_version("js/main.js"), spec=SPECULATION)
         self.pages[cur] = doc
 
     def redirect(self, cur, target, label):
@@ -1288,9 +1302,10 @@ class Site:
         return '<p class="lab-quote"><q>%s</q> <a class="lab-ch" href="%s">第 %d 章</a></p>' % (
             esc(item["quote"]), self.href(cur, "notion/#ch%d" % item["ch"]), item["ch"])
 
-    def lab_terms(self, cur, keys, label="用語"):
-        links = " ".join('<a href="%s">%s</a>' % (self.href(cur, "lab/dictionary/#t-%s" % k), esc(self.lab_term(k)["word"])) for k in keys)
-        return '<p class="ref-terms">%s: %s</p>' % (esc(label), links) if keys else ""
+    def lab_terms(self, cur, keys, label="Dictionary"):
+        """部屋どうしの参照は部屋の名前で呼ぶ（Dictionary の言葉へ）。"""
+        links = "・".join('<a href="%s">%s</a>' % (self.href(cur, "lab/dictionary/#t-%s" % k), esc(self.lab_term(k)["word"])) for k in keys)
+        return '<p class="ref-terms"><span class="ref-label">%s</span>%s</p>' % (esc(label), links) if keys else ""
 
     def lab_pole(self, v):
         p = self.lab["poles"]
@@ -1339,9 +1354,9 @@ class Site:
             quote = "" if side_of_quote else '\n        <p class="el-quote"><q>%s</q> %s</p>' % (esc(e["quote"]), ch)
             row = lambda side, label: '<div class="el-row el-%s"><dt>%s</dt><dd>%s%s%s</dd></div>' % (
                 side, esc(label), esc(e[side]), mark(side), (" " + ch) if side_of_quote == side else "")
-            links = ['<a href="%s">資料 %d 件</a>' % (self.href(cur, "lab/reference/#e-%s" % e["key"]), nref)]
+            links = ['<span class="el-label">Reference</span><a href="%s">%d 件</a>' % (self.href(cur, "lab/reference/#e-%s" % e["key"]), nref)]
             if terms:
-                links.append('用語：' + "・".join('<a href="%s">%s</a>' % (self.href(cur, "lab/dictionary/#t-%s" % t["key"]), esc(t["word"])) for t in terms))
+                links.append('<span class="el-label">Dictionary</span>' + "・".join('<a href="%s">%s</a>' % (self.href(cur, "lab/dictionary/#t-%s" % t["key"]), esc(t["word"])) for t in terms))
             cards.append("""      <li class="el" id="e-{key}">
         <p class="el-no">{no:02d}</p>
         <h2 class="el-name">{name}</h2>
@@ -1408,8 +1423,8 @@ class Site:
                 by_term.setdefault(k, []).append(r)
         rows = []
         for t in lab["terms"]:
-            refs = " ".join('<a href="%s">%s</a>' % (self.href(cur, "lab/reference/#r-%s" % r["id"]), esc(r["title"])) for r in by_term.get(t["key"], []))
-            related = " ".join('<a href="#t-%s">%s</a>' % (esc(k), esc(self.lab_term(k)["word"])) for k in t.get("related", []))
+            refs = "・".join('<a href="%s">%s</a>' % (self.href(cur, "lab/reference/#r-%s" % r["id"]), esc(r["title"])) for r in by_term.get(t["key"], []))
+            related = "・".join('<a href="#t-%s">%s</a>' % (esc(k), esc(self.lab_term(k)["word"])) for k in t.get("related", []))
             acts = ""
             if t.get("acts"):
                 acts = '\n        <div><dt>羅列</dt><dd>%s</dd></div>' % esc("・".join(t["acts"]))
@@ -1422,7 +1437,7 @@ class Site:
         <div><dt>一節</dt><dd>{quote}</dd></div>{acts}
         <div><dt>オノマトペの手がかり</dt><dd>{ono}</dd></div>
         <div><dt>要素</dt><dd class="lab-links">{chips}</dd></div>
-        <div><dt>資料</dt><dd class="lab-links">{refs}</dd></div>
+        <div><dt>Reference</dt><dd class="lab-links">{refs}</dd></div>
         <div><dt>関連</dt><dd class="lab-links">{related}</dd></div>
       </dl>
       <p class="lab-q"><span class="lq-label">問い</span>{q}</p>
