@@ -90,8 +90,10 @@
     "program": "beyond-the-vanishingpoint",
     "episode": "miura",
     "title": "三浦 豪太",
-    "status": "planned",
-    "memo": "番号は仮（Radio の番号 #2-3 に合わせた）"
+    "status": "published",
+    "memo": "番号は仮（Radio の番号 #2-3 に合わせた）。SoundCloud の回は 10/22 夜の時点で外から見えない（公開前か非公開）ので、埋め込まずに外へ出す",
+    "soundcloud": "https://soundcloud.com/ma-jpn/gotamiura-bvp",
+    "date": "2026-10-23"
   },
   {
     "id": "2-2-3",
@@ -137,8 +139,12 @@
     "episode": "flagship-store",
     "title": "Flagship Store [1]",
     "recorded": "2026-06-24",
-    "status": "editing",
-    "memo": "8 月版のサイトに Flagship Store の動画（mDg3PherfCQ）がある"
+    "status": "published",
+    "memo": "8 月版のサイトに Flagship Store の動画（mDg3PherfCQ）がある",
+    "youtube": "ULUz4i7yyWE",
+    "yt_title": "香りを持たない香りのブランド「日々香好日」。竣工直後の店舗で鼻を効かし、築地の中心でサムシングと叫ぶ",
+    "yt_lead": "",
+    "date": "2026-10-21"
   },
   {
     "id": "2-1-6",
@@ -147,6 +153,10 @@
     "episode": "flagship-store",
     "title": "Flagship Store [2]",
     "recorded": "2026-07-06",
-    "status": "editing"
+    "status": "published",
+    "youtube": "1PsfoOXJpK0",
+    "yt_title": "香りを持たない香りのブランド「日々香好日」。社長不在の窮地に立つのは、空間香具の開発担当：男・梶原健司。開発の葛藤を思いだし、汗と涙が流す姿に加藤はサムシングと叫ぶのか。",
+    "yt_lead": "",
+    "date": "2026-10-21"
   }
 ]

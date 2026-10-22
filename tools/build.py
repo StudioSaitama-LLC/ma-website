@@ -239,6 +239,8 @@ class Site:
                               % (cid, c.get("program"), c["episode"]))
             if c.get("date") and bad_date(c["date"]):
                 errors.append("contents.json #%s: date は YYYY-MM-DD: %r" % (cid, c["date"]))
+            if c.get("soundcloud") and not (c.get("kind") == "radio" and re.fullmatch(r"https://soundcloud\.com/[\w-]+/[\w-]+", c["soundcloud"])):
+                errors.append("contents.json #%s: soundcloud は音声（radio）の項目に、https://soundcloud.com/<持ち主>/<回> の形で書く: %r" % (cid, c["soundcloud"]))
             if c.get("youtube") and not re.fullmatch(r"[A-Za-z0-9_-]{11}", c["youtube"]):
                 errors.append("contents.json #%s: YouTube の動画 ID（11 文字）ではない: %r" % (cid, c["youtube"]))
             for k in ("yt_title", "yt_lead", "excerpt"):
@@ -888,13 +890,14 @@ class Site:
                     % (esc(item["youtube"]), esc(drop_code(item.get("yt_title")) or item["title"])))
         return '<div class="video video-ph"><span class="play" aria-hidden="true"></span><span class="ph-label">準備中</span></div>'
 
-    def card(self, href, rows, cls, id_=None, soon=False):
-        """カードの外枠。href があれば枠ごと押せて右下に →、無ければ（準備中）灰色の破線で押せない。"""
+    def card(self, href, rows, cls, id_=None, soon=False, ext=False):
+        """カードの外枠。href があれば枠ごと押せて右下に →（外のサイトへは ↗ で、新しいタブ）、無ければ（準備中）灰色の破線で押せない。"""
         idattr = (' id="%s"' % id_) if id_ else ""
         inner = "\n          ".join(r for r in rows if r)
         if href and not soon:
-            return ('      <li class="card %s"%s>\n        <a class="card-link" href="%s">\n          %s\n          '
-                    '<span class="card-go" aria-hidden="true">→</span>\n        </a>\n      </li>' % (cls, idattr, href, inner))
+            return ('      <li class="card %s"%s>\n        <a class="card-link" href="%s"%s>\n          %s\n          '
+                    '<span class="card-go" aria-hidden="true">%s</span>\n        </a>\n      </li>'
+                    % (cls, idattr, href, ' target="_blank" rel="noopener"' if ext else "", inner, "↗" if ext else "→"))
         return '      <li class="card %s is-soon"%s>\n        <div class="card-body">\n          %s\n        </div>\n      </li>' % (cls, idattr, inner)
 
     def cards(self, items, cls=""):
@@ -942,10 +945,13 @@ class Site:
         return self.card(self.href(cur, self.item_url(c)) if pub else None, rows, "card-episode card-prologue", soon=not pub)
 
     def view_card(self, cur, c, p, e):
-        """見方カード: 種類・一言（いつを、誰の目で）・書き手。動画は回のページで再生、記事は記事へ。"""
+        """見方カード: 種類・一言（いつを、誰の目で）・書き手。動画は回のページで再生、記事は記事へ、音声は SoundCloud へ（↗）。"""
         pub = c.get("status") == "published"
+        ext = False
         if c["kind"] == "tv":
             href, note = self.href(cur, self.episode_url(p, e)), "この回のページで観る"
+        elif c["kind"] == "radio" and c.get("soundcloud"):
+            href, note, ext = c["soundcloud"], "SoundCloud で聴く", True
         elif c.get("article"):
             href, note = self.href(cur, self.item_url(c)), self.view_note(c)
         else:
@@ -954,7 +960,7 @@ class Site:
                 '<span class="card-note">%s</span>' % esc(note) if note else "",
                 '<span class="card-meta">Words %s</span>' % esc(c["words"]) if c.get("words") and pub else "",
                 '<span class="card-meta">%s</span>' % self.status_badge(c.get("status")).strip() if not pub else ""]
-        return self.card(href if pub else None, rows, "card-view", soon=not pub or not href)
+        return self.card(href if pub else None, rows, "card-view", soon=not pub or not href, ext=ext)
 
     def product_card(self, cur, prod):
         """道具カード（一覧）。枠ごと押せる。「詳細」のボタンは置かない。"""
@@ -999,9 +1005,10 @@ class Site:
     # ---------- 各ページ ----------
 
     def latest_episode(self):
-        """いちばん新しく公開した回（Home の「最新の回を観る」の行き先）。"""
+        """動画を公開した回のうち、いちばん新しい回（Home の「最新の回を観る」の行き先）。
+        読み物や音声だけ先に出た回は、観るものが無いので選ばない。"""
         for x in self.news:
-            if x.get("episode"):
+            if x.get("episode") and any(c["kind"] == "tv" and c.get("status") == "published" for c in x["items"]):
                 return x
         return None
 
@@ -1694,7 +1701,8 @@ class Site:
                 pub = [c for c in items if c.get("status") == "published"]
                 lines_ = self.ep_lines(e, items)
                 place = next((c.get("place") for c in items if c.get("place")), "")
-                videos = "\n    ".join(self.tv_media(c) for c in pub if c["kind"] == "tv")
+                # 動画がまだの回も、動画の枠は「準備中」で置く（読み物や音声だけ先に出た回で、動画が来ることが分かるように）
+                videos = "\n    ".join(self.tv_media(c) for c in items if c["kind"] == "tv")
                 views = [self.view_card(cur, c, p, e) for c in items if c["kind"] != "tv"]
                 prods = []
                 for c in items:

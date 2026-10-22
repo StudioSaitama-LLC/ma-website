@@ -6,8 +6,10 @@ beyond-the-vanishing-point.html
 channel/beyond-the-vanishingpoint/2-2-1/index.html
 channel/beyond-the-vanishingpoint/2-2-4/index.html
 channel/beyond-the-vanishingpoint/index.html
+channel/beyond-the-vanishingpoint/miura/index.html
 channel/beyond-the-vanishingpoint/nishina/index.html
 channel/index.html
+channel/ma-crosstalk/flagship-store/index.html
 channel/ma-crosstalk/index.html
 channel/ma-development-process/2-1-1/index.html
 channel/ma-development-process/2-1-2/index.html
