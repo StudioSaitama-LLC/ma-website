@@ -26,7 +26,7 @@ tools/
   import_manifesto.py          # Notion の docx → src/manifesto.json
   import_device.py             # Device 表の xlsx → src/device.json
   import_youtube.py            # YouTube の題と説明文の冒頭 → src/contents.json の yt_title・yt_lead
-  import_article.py            # Magazine の原稿（Word を Google ドキュメントで .html に書き出したもの）→ 記事の断片と contents.json
+  import_article.py            # Magazine の原稿（Word の .docx。Google ドキュメントの .html 書き出しも可）→ 記事の断片と contents.json
   generated.txt                # build.py が生成したファイルの一覧
 css/ js/ assets/               # 見た目と画像（assets/device/ は Device の写真、assets/illust/ は手描きの絵）
 
@@ -139,16 +139,16 @@ python3 tools/import_device.py <Device_YYYYMMDD.xlsx> --ids 2
 python3 tools/build.py
 ```
 
-Magazine の原稿（Word）が届いた・直ったとき（記事と題・冒頭はいつも原稿に合わせる）。原稿を Google ドキュメントで開き「ファイル → ダウンロード → ウェブページ」で書き出して渡す:
+Magazine の原稿（Word）が届いた・直ったとき（記事と題・冒頭はいつも原稿に合わせる）。原稿の .docx をそのまま渡す（Google ドキュメントで「ファイル → ダウンロード → ウェブページ」で書き出した .html も読める）:
 
 ```bash
-python3 tools/import_article.py <原稿.html> --id 2-2-4 --article src/articles/2-2-4.html \
+python3 tools/import_article.py <原稿.docx> --id 2-2-4 --article src/articles/2-2-4.html \
     --photo "1_○○.jpg=ep224-1.jpg" --alt "ep224-2.jpg=写真の説明"   # 公開する記事（写真は assets/ に置いてから）
-python3 tools/import_article.py <原稿.html> --id 2-2-3 --meta-only   # 掲載予定: 題と冒頭 4 行だけ
+python3 tools/import_article.py <原稿.docx> --id 2-2-3 --meta-only   # 掲載予定: 題と冒頭 4 行だけ
 python3 tools/build.py
 ```
 
-原稿の決まり（まなかの Word のひな形）: 冒頭の写真 → 記事の種類 → 「YYYY/MM/DD MA Magazine/2-2-N」 → 副題 → Place / Words / Photo → 赤字の「(記事タイトル:)」の次の行が記事のタイトル → 本文（太字の行は見出し、「(写真: ○○)」と赤字の「（写真キャプション）」）。赤字はページに出さない。最後の行の写真は記事の終わりに画面いっぱいに出す。
+原稿の決まり（まなかの Word のひな形）: 冒頭の写真 → 記事の種類 → 「YYYY/MM/DD MA Magazine/2-2-N」 → 副題 → Place / Words / Photo → 赤字の「(記事タイトル:)」の次の行が記事のタイトル → 本文（太字の行は見出し、「(写真: ○○)」と赤字の「（写真キャプション）」）。赤字はページに出さない。最後の行の写真は記事の終わりに画面いっぱいに出す。原稿の記事の種類がサイトの分け方（`contents.json` の `badge`）と違うときは `--badge` で揃える（例 #2-2-3 は原稿「一般記事」→ `--badge 企画背景`）。
 
 YouTube の題や説明文を変えたとき（回の題と一言はいつも YouTube に合わせる）:
 

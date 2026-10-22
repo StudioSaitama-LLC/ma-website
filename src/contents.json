@@ -72,7 +72,14 @@
     "episode": "miura",
     "badge": "随想記事",
     "title": "三浦 豪太",
-    "status": "planned"
+    "status": "published",
+    "caption": "ANSwer：死とは勝手に来ちゃうもの",
+    "date": "2026-09-20",
+    "hero": [
+      "ep222-1.jpg"
+    ],
+    "words": "宮嶋 孝尚",
+    "article": "articles/2-2-2.html"
   },
   {
     "id": "2-2-5",
@@ -101,10 +108,15 @@
     "program": "beyond-the-vanishingpoint",
     "badge": "企画背景",
     "title": "なぜオッさん達が、「死」を叫ぶのか。 (Behind The Scenes: 企画 死を、教えてくれ。)",
-    "status": "planned",
-    "excerpt": "親父が逝った。最後は脳梗塞で何も語らず旅立った親父のクロゼットを整理していたら、全く同じパチモノらしきベルトが3本出てきて、思わず笑った。“VALENTINO CHRISTY” って何だよ親父…なんで3本も買ってんだよ…土木建築業を営んでいて、特別ファッションにこだわりがあるようには見えなかった親父だが、クロゼットは着もしない真新しいスーツばかりで、結局気に入った服をずっと着続けていた。思い返せば、小1の僕に、レザーのフライトジャケットやらBOBSONのデ",
+    "status": "published",
     "prologue": true,
-    "words": "荒井 道広"
+    "words": "荒井 道広",
+    "caption": "なぜオッさん達が、「死」を叫ぶのか。 (Behind The Scenes: 企画 死を、教えてくれ。)",
+    "date": "2026-10-08",
+    "hero": [
+      "ep223-1.jpg"
+    ],
+    "article": "articles/2-2-3.html"
   },
   {
     "id": "2-1-1",

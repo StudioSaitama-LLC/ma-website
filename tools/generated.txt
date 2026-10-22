@@ -4,6 +4,8 @@ article-2-2-1.html
 article-3-2-1.html
 beyond-the-vanishing-point.html
 channel/beyond-the-vanishingpoint/2-2-1/index.html
+channel/beyond-the-vanishingpoint/2-2-2/index.html
+channel/beyond-the-vanishingpoint/2-2-3/index.html
 channel/beyond-the-vanishingpoint/2-2-4/index.html
 channel/beyond-the-vanishingpoint/index.html
 channel/beyond-the-vanishingpoint/miura/index.html
