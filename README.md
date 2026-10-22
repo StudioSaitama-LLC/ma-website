@@ -169,7 +169,7 @@ python3 -m http.server 8000
 ```
 
 main への直 push は禁止。ブランチ → PR でマージする（Pages は main から自動配信）。
-β版の間（一般公開を決めるまで）は `src/site.json` の `noindex` を `true` にしておく。
+2026-10-23 に一般公開した（`src/site.json` の `noindex` は `false`）。関係者だけに見せるプレビュー（Cloudflare Pages の `ss-ma-beta`）に出すときは `true` にして作る（検索に出さない印と、足元の「β版（関係者確認用）」が付く）。
 
 ## Provenance（archived-from）
 
