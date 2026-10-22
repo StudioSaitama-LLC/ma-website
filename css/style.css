@@ -1521,3 +1521,6 @@ a.toc-door:hover { background: var(--accent); color: var(--on-accent); text-deco
   .menu-home { margin-bottom: 30px; }
   .menu-overlay .menu-figure { bottom: 24px; }
 }
+.menu-links a:visited { color: var(--accent); }
+.menu-gate.mg-do { margin-top: 0; }
+.flowmap.fm-sp { max-width: 460px; margin-left: auto; margin-right: auto; }
