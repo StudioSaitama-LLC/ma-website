@@ -320,6 +320,8 @@ class Site:
             for e in p.get("episodes", []):
                 if re.fullmatch(r"\d+-\d+-\d+", e.get("key", "")):
                     errors.append("programs.json %s: 回の key に番号の形（%s）は使わない（記事の住所と重なる）" % (p["slug"], e["key"]))
+        if "url" in self.site and not re.fullmatch(r"https://[^\s\"<>]+/", str(self.site["url"])):
+            errors.append("site.json url: 公開の住所は https:// で始め、/ で終える（og:image の絶対 URL に使う）: %r" % self.site["url"])
         for g in self.site.get("gates", []):
             if not re.fullmatch(SLUG, g.get("key", "")):
                 errors.append("site.json gates: key は英小文字・数字・ハイフンだけ（class の名前に使う）: %r" % g.get("key"))
