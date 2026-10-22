@@ -827,7 +827,7 @@ class Site:
 <meta property="og:site_name" content="{name}">
 <meta property="og:title" content="{full}">
 <meta property="og:description" content="{desc}">
-<meta property="og:image" content="{touch}">
+<meta property="og:image" content="{og_image}">
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#1414dc">
 <link rel="icon" href="{ico}" sizes="any">
@@ -848,6 +848,7 @@ class Site:
 </body>
 </html>
 """.format(mark=MARK, full=esc(full), robots=robots, desc=esc(desc), name=esc(name),
+           og_image=esc(self.site["url"] + "assets/apple-touch-icon.png") if self.site.get("url") else h("assets/apple-touch-icon.png"),
            touch=h("assets/apple-touch-icon.png"), ico=h("favicon.ico"), png=h("assets/favicon.png"),
            css=h("css/style.css") + "?v=" + self.asset_version("css/style.css"), header=self.header(cur), main_class=main_class, body=body.strip("\n"),
            footer=self.footer(cur), js=h("js/main.js") + "?v=" + self.asset_version("js/main.js"), spec=SPECULATION)
@@ -1798,7 +1799,7 @@ class Site:
 {portrait}  <div class="home-end article-end">{logo}</div>
 """.format(hero=hero, where=where, head=head.rstrip("\n"), rest=rest.strip("\n"), others=others, steps=steps, portrait=portrait,
            logo=self.logo(cur, "home-logo", m="lma"))
-            self.page(cur, "%s %s" % (item.get("badge", ""), item["title"]), body, main_class="page article-page")
+            self.page(cur, item["title"] if item.get("badge", "") in item["title"] else "%s %s" % (item.get("badge", ""), item["title"]), body, main_class="page article-page")
             for old in item.get("redirect_from", []):
                 self.redirect(old, self.item_url(item), item["title"])
 

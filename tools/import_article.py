@@ -559,7 +559,7 @@ def main():
         words = [c.split(":", 1)[1].strip() for c in doc["cred"] if re.match(r"Words\s*:", c)]
         if words:
             want["words"] = words[0]
-        want["article"] =os.path.relpath(os.path.join(ROOT, a.article), os.path.join(ROOT, "src"))
+        want["article"] = os.path.relpath(os.path.join(ROOT, a.article), os.path.join(ROOT, "src"))
         want.pop("excerpt", None)
     changed = {k: (item.get(k), want.get(k)) for k in set(item) | set(want) if item.get(k) != want.get(k)}
     for k, (x, y) in sorted(changed.items()):
