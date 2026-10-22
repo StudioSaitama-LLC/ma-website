@@ -379,7 +379,7 @@ class Site:
             raise SystemExit("データに問題があります:\n  " + "\n  ".join(errors))
 
     def validate_lab(self, errors):
-        """Lab の試作データ（src/lab.json）。引用の一節がマニフェストの本文に無ければ止める（マニフェストを軸にする決まり）。"""
+        """Lab の試作データ（src/lab.json）。引用の一節が MA Notion の本文に無ければ止める（MA Notion を軸にする決まり）。"""
         lab = self.lab
         shape = {"version": str, "intro": list, "rule": dict, "poles": dict, "forms": list, "doors": dict,
                  "elements": list, "terms": list, "references": list, "research": list}
@@ -481,9 +481,9 @@ class Site:
                 if kind == "elements":
                     for a in it.get("acts", []):
                         if a not in acts:
-                            errors.append("lab.json elements %s: acts はマニフェストの羅列（用語の acts）にある語だけ: %r" % (name, a))
+                            errors.append("lab.json elements %s: acts は MA Notion の羅列（用語の acts）にある語だけ: %r" % (name, a))
                 if type(it.get("ch")) is not int or it["ch"] not in chapters:
-                    errors.append("lab.json %s %s: ch はマニフェストの章番号（整数）: %r" % (kind, name, it.get("ch")))
+                    errors.append("lab.json %s %s: ch は MA Notion の章番号（整数）: %r" % (kind, name, it.get("ch")))
                 elif not isinstance(it.get("quote"), str) or len(it["quote"].strip()) < LAB_QUOTE_MIN:
                     errors.append("lab.json %s %s: quote は %d 字以上の一節を写す" % (kind, name, LAB_QUOTE_MIN))
                 elif it["quote"] not in self.chapter_text(it["ch"]):
@@ -1092,15 +1092,16 @@ class Site:
            news=self.news_rows(cur, 3))
         self.page(cur, None, body, main_class="page home-page")
 
-    def fold_chapter(self, no, title, paras, i):
-        """章の開閉（最初は見出しだけ）。章の題そのものが開閉のボタンで、右の ＋ が開く・− が閉じる。本文の最後の − でも閉じる。"""
+    def fold_chapter(self, no, title, paras, i, label=None):
+        """章の開閉（最初は見出しだけ）。章の題そのものが開閉のボタンで、右の ＋ が開く・− が閉じる。本文の最後の − でも閉じる。
+        label を渡すとそれを見出しにする（MA Notion は原稿の「0. 真面目な提案」の形）。無ければ「第 n 章 : 「題」」。"""
         return """    <section class="fold chapter is-folded" id="ch{no}">
-      <h2 class="fold-head"><button class="fold-toggle" type="button" aria-expanded="false" aria-controls="ch{no}-body"><span class="ft-title" data-m="ch{i}" data-mt>第 {no} 章 : 「{title}」</span><span class="ft-sign" aria-hidden="true"></span></button></h2>
+      <h2 class="fold-head"><button class="fold-toggle" type="button" aria-expanded="false" aria-controls="ch{no}-body"><span class="ft-title" data-m="ch{i}" data-mt>{label}</span><span class="ft-sign" aria-hidden="true"></span></button></h2>
       <div class="fold-body prose" id="ch{no}-body">
 {paras}
-        <p class="fold-end"><button class="fold-close" type="button" aria-controls="ch{no}-body" aria-label="第 {no} 章を閉じる"></button></p>
+        <p class="fold-end"><button class="fold-close" type="button" aria-controls="ch{no}-body" aria-label="「{title}」を閉じる"></button></p>
       </div>
-    </section>""".format(no=no, title=esc(title), paras="\n".join(paras), i=i)
+    </section>""".format(no=no, title=esc(title), label=esc(label or "第 %s 章 : 「%s」" % (no, title)), paras="\n".join(paras), i=i)
 
     def build_notion(self):
         cur = "notion/index.html"
@@ -1115,7 +1116,7 @@ class Site:
                                % "\n".join("          <p>%s</p>" % esc(l) for l in p["box"]))
                 else:
                     out += ['        <p>%s</p>' % esc(l.strip()) for l in p.split("\n") if l.strip()]
-            chapters.append(self.fold_chapter(c["no"], c["title"], out, i))
+            chapters.append(self.fold_chapter(c["no"], c["title"], out, i, label=c["heading"]))
         core, steps = n["core"], n["steps"]
         flow = []
         for i, st in enumerate(steps["flow"]):
@@ -1168,8 +1169,15 @@ class Site:
 
     # ---------- Lab（試作） ----------
 
+    def ch_label(self, no):
+        """章の呼び名。MA Notion の見出しと同じ「0. 真面目な提案」の形（10/22 まなかの指示）。"""
+        for c in self.manifesto["chapters"]:
+            if c["no"] == no:
+                return c["heading"]
+        return "%d." % no
+
     def chapter_text(self, no):
-        """マニフェストの章の本文を一つの文字列に（引用の一節がそこにあるかを確かめる用）。"""
+        """MA Notion の章の本文を一つの文字列に（引用の一節がそこにあるかを確かめる用）。"""
         for c in self.manifesto["chapters"]:
             if c["no"] == no:
                 return "\n".join(("\n".join(p["box"]) if isinstance(p, dict) else p) for p in c["paragraphs"])
@@ -1215,7 +1223,7 @@ class Site:
         return '<span class="fg" aria-hidden="true">%s</span>' % esc(LAB_GLYPH.get(form, "■"))
 
     def lab_flow(self, cur):
-        """要素の地図（流れの図）。間 → マニフェストの章 → 要素 → 部屋（Dictionary・Reference・Research）。
+        """要素の地図（流れの図）。間 → MA Notion の章 → 要素 → 部屋（Dictionary・Reference・Research）。
         帯の太さは、その要素が映っている言葉・資料・テーマの数。PC は 4 列、スマホは 要素 → 部屋 の 2 列（章はまとまりの見出し）。
         JS 無しでも出る。名前に乗せると、そこにつながる帯だけが濃くなる（js/main.js）。"""
         lab = self.lab
@@ -1258,7 +1266,6 @@ class Site:
             return '<a href="%s" data-focus="%s" aria-label="%s">%s</a>' % (href, focus, esc(label), inner)
 
         room_href = [h("lab/%s/" % r) for r, _, _, _ in rooms]
-        ch_title = {c["no"]: c["title"] for c in chapters}
         # ---------- PC（間 → 章 → 要素 → 部屋） ----------
         W, H, w = 990, 540, 10
         xA, xB, xC, xD = 58, 250, 560, 860
@@ -1304,11 +1311,11 @@ class Site:
         labels.append('<text class="t-fg t-ma" x="%d" y="%.1f" text-anchor="end" dominant-baseline="central">間</text>' % (xA - 12, mid(nA["ma"])))
         for c in chapters:
             y = mid(nB[c["no"]])
-            text = '<text x="%d" y="%.1f" dominant-baseline="central">第 %d 章「%s」</text>' % (xB + w + 8, y, c["no"], esc(c["title"]))
+            text = '<text x="%d" y="%.1f" dominant-baseline="central">%s</text>' % (xB + w + 8, y, esc(self.ch_label(c["no"])))
             if ctot[c["no"]]:
-                labels.append(link(h("notion/#ch%d" % c["no"]), "ch:%d" % c["no"], text, "第 %d 章「%s」（つながり %d）" % (c["no"], c["title"], ctot[c["no"]])))
+                labels.append(link(h("notion/#ch%d" % c["no"]), "ch:%d" % c["no"], text, "%s（つながり %d）" % (self.ch_label(c["no"]), ctot[c["no"]])))
             else:
-                labels.append('<text class="t-muted" x="%d" y="%.1f" dominant-baseline="central">第 %d 章「%s」（要素なし）</text>' % (xB + w + 8, y, c["no"], esc(c["title"])))
+                labels.append('<text class="t-muted" x="%d" y="%.1f" dominant-baseline="central">%s（要素なし）</text>' % (xB + w + 8, y, esc(self.ch_label(c["no"]))))
         for e in order:
             y = mid(nC[e["key"]])
             labels.append(link("#e-%s" % e["key"], "el:%s" % e["key"],
@@ -1320,7 +1327,7 @@ class Site:
                                '<text x="%d" y="%.1f" dominant-baseline="central"><tspan class="t-room">%s</tspan>'
                                '<tspan class="t-n" x="%d" dy="20">%d %s</tspan></text>' % (xD + w + 10, y - 8, en, xD + w + 10, len(items), unit),
                                "%s（%d %s・つながり %d）" % (en, len(items), unit, rtot[i])))
-        pc = ('<svg class="flowmap pc-only" viewBox="0 0 %d %d" role="group" aria-label="間の地図。間からマニフェストの章、%d の要素を経て、Dictionary・Reference・Research へ。帯の太さはつながりの数">'
+        pc = ('<svg class="flowmap pc-only" viewBox="0 0 %d %d" role="group" aria-label="間の地図。間から MA Notion の章、%d の要素を経て、Dictionary・Reference・Research へ。帯の太さはつながりの数">'
               '<title>間の地図</title>%s%s%s</svg>' % (W, H, len(order), "".join(ribs), "".join(nodes), "".join(labels)))
         # ---------- スマホ（要素 → 部屋。章はまとまりの見出し） ----------
         W2, w2 = 285, 8
@@ -1351,8 +1358,8 @@ class Site:
         for e in order:
             if e["key"] in heads:
                 labels2.append(link(h("notion/#ch%d" % e["ch"]), "ch:%d" % e["ch"],
-                                    '<text class="t-head" x="0" y="%.1f">第 %d 章「%s」</text>' % (nE[e["key"]][0] - 12, e["ch"], esc(ch_title[e["ch"]])),
-                                    "第 %d 章「%s」（つながり %d）" % (e["ch"], ch_title[e["ch"]], ctot[e["ch"]])))
+                                    '<text class="t-head" x="0" y="%.1f">%s</text>' % (nE[e["key"]][0] - 12, esc(self.ch_label(e["ch"]))),
+                                    "%s（つながり %d）" % (self.ch_label(e["ch"]), ctot[e["ch"]])))
             labels2.append(link("#e-%s" % e["key"], "el:%s" % e["key"],
                                 '<text x="%d" y="%.1f" text-anchor="end" dominant-baseline="central">%s</text>' % (xE - 6, mid(nE[e["key"]]), esc(e["name"])),
                                 "%s（つながり %d）" % (e["name"], etot[e["key"]])))
@@ -1367,7 +1374,7 @@ class Site:
         empty_ch = [c for c in chapters if not ctot[c["no"]]]
         note = "帯の太さは、その要素が映っている言葉・資料・テーマの数（つながりは全部で %d）。名前を押すと、要素は下の欄へ、章は Notion へ、部屋はその部屋へ。" % total
         if empty_ch:
-            note += "".join("第 %d 章「%s」からは、まだ要素を取り出していない。" % (c["no"], esc(c["title"])) for c in empty_ch)
+            note += "".join("「%s」からは、まだ要素を取り出していない。" % esc(self.ch_label(c["no"])) for c in empty_ch)
         unmapped = [(en, sum(1 for x in items if not x.get("elements"))) for _, en, _, items in rooms]
         unmapped = [(en, n) for en, n in unmapped if n]
         if unmapped:
@@ -1375,9 +1382,9 @@ class Site:
         return sp + "\n    " + pc, note
 
     def lab_quote(self, cur, item):
-        """マニフェストの一節と、その章へのリンク（Notion の章は #chN で開く）。"""
-        return '<p class="lab-quote"><q>%s</q> <a class="lab-ch" href="%s">第 %d 章</a></p>' % (
-            esc(item["quote"]), self.href(cur, "notion/#ch%d" % item["ch"]), item["ch"])
+        """MA Notion の一節と、その章へのリンク（Notion の章は #chN で開く）。"""
+        return '<p class="lab-quote"><q>%s</q> <a class="lab-ch" href="%s">%s</a></p>' % (
+            esc(item["quote"]), self.href(cur, "notion/#ch%d" % item["ch"]), esc(self.ch_label(item["ch"])))
 
     def lab_terms(self, cur, keys, label="Dictionary"):
         """部屋どうしの参照は部屋の名前で呼ぶ（Dictionary の言葉へ）。"""
@@ -1425,7 +1432,7 @@ class Site:
             acts = "・".join(esc(a) for a in e.get("acts", []))  # 押せないので札にしない（丸い札は絞り込みだけ）
             nref = len(by_el.get(e["key"], []))
             terms = term_of.get(e["key"], [])
-            ch = '<a class="lab-ch" href="%s">第 %d 章</a>' % (self.href(cur, "notion/#ch%d" % e["ch"]), e["ch"])
+            ch = '<a class="lab-ch" href="%s">%s</a>' % (self.href(cur, "notion/#ch%d" % e["ch"]), esc(self.ch_label(e["ch"])))
             # 一節が密／間の側の文そのものなら、同じ文を 2 度出さず、その行に章へのリンクを付ける
             side_of_quote = "mitsu" if e["quote"] == e["mitsu"] else ("ma" if e["quote"] == e["ma"] else "")
             quote = "" if side_of_quote else '\n        <p class="el-quote"><q>%s</q> %s</p>' % (esc(e["quote"]), ch)
@@ -1510,7 +1517,7 @@ class Site:
       <div class="term-head"><h2 class="term-word">{word}</h2><span class="status"><span class="visually-hidden">種類: </span>{kind}</span></div>
       <dl class="term-body">
         <div><dt>一般には</dt><dd>{gloss}</dd></div>
-        <div><dt>マニフェストでは</dt><dd>{sense}</dd></div>
+        <div><dt>MA Notion では</dt><dd>{sense}</dd></div>
         <div><dt>一節</dt><dd>{quote}</dd></div>{acts}
         <div><dt>オノマトペの手がかり</dt><dd>{ono}</dd></div>
         <div><dt>要素</dt><dd class="lab-links">{chips}</dd></div>
@@ -1597,7 +1604,7 @@ class Site:
     <ol class="research-list">
 {rows}
     </ol>
-    <p class="pending-note">テーマはまだ決まっていない。ここでは、マニフェストから取れる問いを候補として置いている。</p>
+    <p class="pending-note">テーマはまだ決まっていない。ここでは、MA Notion から取れる問いを候補として置いている。</p>
   </div>
 """.format(head=self.lab_head(cur, self.lab_door("research")), rows="\n".join(rows))
         self.page(cur, "Research | Lab", body)

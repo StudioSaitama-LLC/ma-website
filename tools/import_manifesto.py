@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
-"""副社長のマニフェスト（Notion から書き出した docx）を章ごとに分けて src/manifesto.json に書き出す。
+"""副社長の MA Notion（Word の docx）を章ごとに分けて src/manifesto.json に書き出す。
 
 使い方:
-  python3 tools/import_manifesto.py <Notion_YYYYMMDD.docx> [--out src/manifesto.json]
+  python3 tools/import_manifesto.py <About 間 宮嶋孝尚 YYYY／MM／DD.docx> [--out src/manifesto.json]
 
 - 標準ライブラリだけで動く。
-- 冒頭の目次（「第0章：「真面目な提案」」の形）から章の題をとる。
-- 本文は、最初の段落を第 0 章の見出し、「１．発端」のように番号で始まる段落を各章の見出しとみなして分ける。
-- 段落の中の改行はそのまま残す。文には手を入れない。
+- 冒頭の目次から章の題をとる。目次の形は 2 つ読める。
+  10/22 版から: 「|Notion」「|感じぬ人」「|2026-10-16」「|宮嶋 孝尚」の後に「0.真面目な提案」…（題の無い「4.」などは飛ばす）
+  10/16 版まで: 「感じぬ人 / 宮嶋 孝尚」の後に「第0章：「真面目な提案」」…
+- 本文は、最初の段落を第 0 章の見出し、「1.旅のはじまり」「３．おおよそ」のように番号で始まる段落を各章の見出しとみなして分ける。
+  見出しは目次の題で「0. 真面目な提案」の形（半角の数字・点・空白）にそろえる（10/22 まなかの指示）。
+- 段落の中の改行はそのまま残す。文には手を入れない。ただし FIXES に書いた直しだけは当てる（当たらなければ止める）。
 - 図の中の文字枠は {"box": [行, ...]} として、その図がある段落の直後に置く。表は取り込まず、注意を出す。
 """
 import argparse
@@ -22,6 +25,12 @@ import xml.etree.ElementTree as ET
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 MC = "{http://schemas.openxmlformats.org/markup-compatibility/2006}"
+
+# 原稿に当てる直し（段落の終わりの文字列 → 置き換え）。まなかの指示があったものだけ書く。
+# 当たる段落がちょうど 1 つでなければ止める（原稿が替わったら見直す）。
+FIXES = [
+    ("は特記しておく。ｆ", "は特記しておく。", "10/22 まなかの指示「f 消してください」＝第 3 章に紛れた 1 字"),
+]
 
 
 def walk(node, out, boxes):
@@ -74,15 +83,25 @@ def main():
         elif child.tag == W + "tbl":
             print("注意: 表が 1 つあり、取り込んでいません（必要なら手で src/manifesto.json に足す）", file=sys.stderr)
 
-    title, author, toc = "", "", []
+    title, author, toc, dated = "", "", [], ""
+    bars = [l[1:].strip() for l in toc_lines if l.startswith("|")]
+    for i, l in enumerate(bars):  # 10/22 版: 「|題」「|YYYY-MM-DD」「|書き手」が続く
+        if re.match(r"^\d{4}-\d{2}-\d{2}$", l) and 0 < i < len(bars) - 1:
+            title, dated, author = bars[i - 1], l, bars[i + 1]
+            break
     for line in toc_lines:
         m = re.match(r"^第(\d+)章：「(.+)」$", line)
+        n = re.match(r"^(\d+)\.\s*(\S.*)$", unicodedata.normalize("NFKC", line))
         if m:
             toc.append((int(m.group(1)), m.group(2)))
+        elif n:
+            toc.append((int(n.group(1)), n.group(2).strip()))
         elif "/" in line and not title:
             title, author = [x.strip() for x in line.split("/", 1)]
     if not toc:
-        raise SystemExit("目次（第N章：「…」）が見つかりません")
+        raise SystemExit("目次（「0.題」か「第N章：「…」」）が見つかりません")
+    if not (title and author):
+        raise SystemExit("目次の上に題と書き手が見つかりません")
 
     chapters, current = [], None
     numbered = re.compile(r"^\s*([0-9]+)[.．]\s*(.*)$")
@@ -113,8 +132,19 @@ def main():
     titles = dict(toc)
     for ch in chapters:
         ch["title"] = titles.get(ch["no"], ch["heading"])
-    m = re.search(r"(\d{4})(\d{2})(\d{2})", os.path.basename(a.docx))
-    version = "%s-%s-%s" % m.groups() if m else datetime.date.today().isoformat()
+        ch["heading"] = "%d. %s" % (ch["no"], ch["title"])
+    for old, new, why in FIXES:
+        hits = [(ch, i) for ch in chapters for i, p in enumerate(ch["paragraphs"])
+                if isinstance(p, str) and p.endswith(old)]
+        if len(hits) != 1:
+            raise SystemExit("直し「%s」の当たる段落が %d 個です（1 個のはず）。原稿が替わったら FIXES を見直す: %s"
+                             % (old, len(hits), why))
+        ch, i = hits[0]
+        ch["paragraphs"][i] = ch["paragraphs"][i][:-len(old)] + new
+        print("直した: %s（%s）" % (old, why), file=sys.stderr)
+    base = unicodedata.normalize("NFKC", os.path.basename(a.docx))
+    m = re.search(r"(\d{4})\D?(\d{2})\D?(\d{2})", base)
+    version = "%s-%s-%s" % m.groups() if m else (dated or datetime.date.today().isoformat())
     out = {
         "title": title,
         "author": author,

@@ -16,7 +16,7 @@ src/                           # 直すのはここ
   site.json                    # サイト名・門（name・short・ja・plain）と扉・Home の言葉・News・Notion の図の言葉・見方の一言（views）・お店の一覧・値段の表示
   programs.json                # 番組（間を、喰う／死を、教えてくれ。／異能の表現者たち）と回（ゲストごとのまとまり。並びが #1, #2 … の番号になる）
   contents.json                # コンテンツ（#2-1-3 など。種類・番組・回・状態・YouTube・記事）
-  manifesto.json               # Notion のマニフェスト（tools/import_manifesto.py で docx から作る）
+  manifesto.json               # MA Notion（tools/import_manifesto.py で docx から作る）
   device.json                  # Device の商品（tools/import_device.py で荒井さんの Device 表から作る）
   company.json                 # Company（まなかの軌道・会社概要・運営施設）と Contact の窓口。運営施設は {"name", "url"}（url が無いものは本文の色で出す）
   articles/*.html              # Magazine 記事の本文（HTML の断片。画像の @/ はサイトの最上位。article-head の中に日付の目印 <!-- build:meta --> を置く）
@@ -32,7 +32,7 @@ css/ js/ assets/               # 見た目と画像（assets/device/ は Device 
 
 # 生成されるページ（URL）
 index.html                     # Home（このサイトの一言と「最新の回を観る」・4 つの門の地図・News）
-notion/                        # Notion（マニフェスト・密と間・三段の図と式）
+notion/                        # Notion（MA Notion の章・密と間・三段の図と式）
 lab/                           # Lab（試作。入口は扉の帯・部屋のカード・間の地図。dictionary/ reference/ research/ の 3 部屋）
 channel/                       # Channel（新しい回 1 枚 → 番組のカード → 紹介文。新着の一覧は Home の News だけ）
 channel/<番組>/                # 番組のページ（見出し「エピソード」の下に、第 0 回＝企画背景と回のカード。#ep-<回> で来たら回のページへ送る）
@@ -84,12 +84,12 @@ Device の写真は `assets/device/` にファイル名のまま置く（Device 
 - `assets/figures/` の「密」「間」の球（Notion）は、デザインの描画から球の中心と大きさを測って `tools/make_spheres.py` で作った SVG（光は右上から・下に影）
 - 生成した HTML にある `data-m` / `data-mt` は、デザインの位置と比べる採寸用の目印（表示や動きには使っていない）
 - **Lab は試作**。`src/lab.json` に用語（Dictionary）・資料（Reference）・検証のテーマ（Research）を書く。
-  置き方の決まり: どの項目も、マニフェスト（`src/manifesto.json`）の章 `ch`（整数）と、その本文に一字一句そのまま含まれる
+  置き方の決まり: どの項目も、MA Notion（`src/manifesto.json`）の章 `ch`（整数）と、その本文に一字一句そのまま含まれる
   8 字以上の一節 `quote` を持つ（無ければ `build.py` が止める）
-  - 要素 `elements`: マニフェストの考えを分解したもの。`key`・`name`（6 字まで。間の地図の名前に入れる）・`sub`（一言）・
-    `mitsu`（密の側の姿）・`ma`（間の側の姿。本文に無い言い換えは `guess` に `"mitsu"` / `"ma"` を書くと ※ が付く）・`ch` と `quote`・`acts`（マニフェストの羅列から、この要素に当たる行い。Lab の見立て）。
+  - 要素 `elements`: MA Notion の考えを分解したもの。`key`・`name`（6 字まで。間の地図の名前に入れる）・`sub`（一言）・
+    `mitsu`（密の側の姿）・`ma`（間の側の姿。本文に無い言い換えは `guess` に `"mitsu"` / `"ma"` を書くと ※ が付く）・`ch` と `quote`・`acts`（MA Notion の羅列から、この要素に当たる行い。Lab の見立て）。
     用語・資料・検証は `elements` でこの `key` を引く。資料が 1 つも無い要素があると止める
-  - 用語 `terms`: `key`（英小文字）・`word`・`reading`・`kind`・一般の意味 `gloss`・マニフェストでの使われ方 `sense`（本文に書いてあることだけ）・
+  - 用語 `terms`: `key`（英小文字）・`word`・`reading`・`kind`・一般の意味 `gloss`・MA Notion での使われ方 `sense`（本文に書いてあることだけ）・
     `onomatopoeia`（手がかりの語の並び）・`related`（他の用語の `key`）・`question`。`acts` は本文の羅列を写すとき
   - 資料 `references`: `id`（英小文字。年は入れない）・`form`（`forms` のどれか）・`field`・`title`・`creator`・`year`（文字列）・
     `terms`（用語の `key`）・`elements`（映っている要素。`相談中` 以外は 1 つ以上）・なぜ置くか `why`・`question`・`pole`（0 が密、100 が間）・`status`・`note`。
@@ -106,12 +106,12 @@ Device の写真は `assets/device/` にファイル名のまま置く（Device 
 - 文の中のリンクは水色＋下線、訪れたら `--visited`（青地 #ffb3ff・灰地 #551a8b）。水色と白い本文は 1.25:1 しか差が無く、色だけでは見分けられないため（WCAG 1.4.1 / G183）。上の帯・メニュー・扉の帯・カード・ボタンは位置と形で分かるので下線を付けない（足元の YouTube ↗ などは文中と同じ下線）
 - 扉の帯（`local_nav`）: 扉が 2 つ以上ある門（Lab・Do）の全ページで、門の見出しのすぐ下に横 1 段。いまいる所は白の太字＋下線（`aria-current`）。門の入口が扉と同じ住所なら「入口」は出さない
 - 丸い札は絞り込み（資料庫の「絞り込む」の枠）だけに使う。選んでいる札は白く塗って ✓。要素は文中と同じ下線の文字
-- 部屋どうしの参照は部屋の名前で呼ぶ（資料 → Reference、用語 → Dictionary）。行の見出し（一般には・マニフェストでは など）は小さく薄い字で、本文と見分ける
+- 部屋どうしの参照は部屋の名前で呼ぶ（資料 → Reference、用語 → Dictionary）。行の見出し（一般には・MA Notion では など）は小さく薄い字で、本文と見分ける
 - 同じ門のページどうしでは、上の塊（門の名前・言葉・説明・扉の帯）を同じ形・同じ高さで出す。部屋のページは門の名前を `p`、部屋の名前を `h1` にする（`gate_head(g, el="p")`）
 - ページの切り替え: CSS の `@view-transition`（同じサイトの中の移動）で、上の段・門の塊（`g-<門>`）・扉の帯（`ln-<門>`）をその場に残し、中身だけを溶かして替える。いまいる所の下線（`.ln-bar`）は次の部屋の下へ滑る。対応していないブラウザ（Firefox など）はふつうに切り替わり、動きを減らす設定では動かさない
 - 読み込み: CSS と JS の URL には中身の印（`?v=<sha1 の先頭 10 字>`）を付ける。中身が変われば URL が変わるので、置き場で長く覚えさせてよい（Cloudflare Pages では `_headers` に `/css/*`・`/js/*` を `max-age=31536000, immutable`）。CSS や JS を直したら、`build.py` で生成し直す（`--check` は印のずれも見つける）
 - 先読み: `<script type="speculationrules">` で、同じサイトの中のリンクに乗せた（スマホは押し始めた）ら次のページを先に組み立てる（Chrome・Edge。対応していないブラウザは何もしない）
-- 間の地図（`lab_flow`）: 間 → マニフェストの章 → 要素 → 部屋 の流れの図。帯の太さは、その要素が映っている言葉・資料・テーマの数（要素を決めていない資料は入れない）。PC は 4 列、スマホは 要素 → 部屋 の 2 列で章はまとまりの見出し。名前に乗せると、そこにつながる帯だけが濃くなる（`js/main.js`）。要素の無い章は破線で「要素なし」と出す
+- 間の地図（`lab_flow`）: 間 → MA Notion の章 → 要素 → 部屋 の流れの図。帯の太さは、その要素が映っている言葉・資料・テーマの数（要素を決めていない資料は入れない）。PC は 4 列、スマホは 要素 → 部屋 の 2 列で章はまとまりの見出し。名前に乗せると、そこにつながる帯だけが濃くなる（`js/main.js`）。要素の無い章は破線で「要素なし」と出す
 - 要素の欄は押せないので、枠のカードにしない（上に細い線のパネル）。密／間は 1 行ずつ左に札。一節が密か間の文そのものなら、同じ文を 2 度出さずにその行へ章のリンクを付ける
 - 押せるものの形は 3 つ: 文字リンク、ボタン（`btn-primary`。1 画面に 1 つ）、カード（枠ごと押せて右下に →）。外のサイトは ↗、その場で開くものは ＋／−。↓↑ の矢印のボタンは使わない
 - 1 枚のカードに行き先は 1 つ。カードの中に別のリンクを入れない。準備中は灰色の破線で押せない形（状態の言葉は「準備中」の 1 つ）
@@ -131,7 +131,7 @@ python3 tools/build.py            # src/ から生成し直す
 python3 tools/build.py --check    # 生成結果と repo のファイルが一致するか確かめる
 ```
 
-マニフェストや Device 表の新しい版が届いたとき:
+MA Notion や Device 表の新しい版が届いたとき:
 
 ```bash
 python3 tools/import_manifesto.py <Notion_YYYYMMDD.docx>
