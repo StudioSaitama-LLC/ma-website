@@ -1,0 +1,256 @@
+{
+  "name": "Indies Lifestyle Media 間｜MA",
+  "url": "https://studiosaitama-llc.github.io/ma-website/",
+  "description": "合理化の極致にある現代社会に、\"間\" という新しい文化を届けるインディーズ・ライフスタイルメディア。",
+  "noindex": false,
+  "beta_note": "β版（関係者確認用）",
+  "visitors": 1,
+  "quote": {
+    "lines": [],
+    "credit": "Ryan Gander: The Markers of Our Time",
+    "pending": "ここに Ryan Gander『The Markers of Our Time』からの引用が入ります（掲載の可否を確かめてから載せます）。"
+  },
+  "follow": {
+    "youtube": "https://www.youtube.com/@ma_jpn_com",
+    "podcast": "https://soundcloud.com/ma-jpn",
+    "note": "https://note.com/manaka_notepr"
+  },
+  "news": [],
+  "gates": [
+    {
+      "key": "notion",
+      "no": "0",
+      "en": "MA Notion",
+      "name": "Notion",
+      "short": "考え方",
+      "ja": "間、当事者化への提案",
+      "plain": "間とは何か、なぜいま要るのかを書いた MA Notion を読む。",
+      "url": "notion/",
+      "ready": true,
+      "doors": []
+    },
+    {
+      "key": "lab",
+      "no": "1",
+      "en": "MA Lab",
+      "name": "Lab",
+      "short": "研究室",
+      "ja": "間、定義化への試み",
+      "plain": "MA Notion の言葉と、間が映る資料・調べものから、間とは何かを確かめる。",
+      "url": "lab/",
+      "ready": true,
+      "doors": [
+        {
+          "no": "1-1",
+          "en": "Dictionary",
+          "url": "lab/dictionary/",
+          "ready": true
+        },
+        {
+          "no": "1-2",
+          "en": "Reference",
+          "url": "lab/reference/",
+          "ready": true
+        },
+        {
+          "no": "1-3",
+          "en": "Research",
+          "url": "lab/research/",
+          "ready": true
+        }
+      ],
+      "state": "試作"
+    },
+    {
+      "key": "channel",
+      "no": "2",
+      "en": "MA Channel",
+      "name": "Channel",
+      "short": "番組",
+      "ja": "間、流通化への多手",
+      "plain": "間を巡る番組を、動画・読み物・音声で届ける。",
+      "url": "channel/",
+      "ready": true,
+      "doors": [
+        {
+          "no": "2-1",
+          "en": "TV",
+          "ready": true
+        },
+        {
+          "no": "2-2",
+          "en": "Magazine",
+          "ready": true
+        },
+        {
+          "no": "2-3",
+          "en": "Radio",
+          "ready": true
+        }
+      ]
+    },
+    {
+      "key": "do",
+      "no": "3",
+      "en": "MA Do",
+      "name": "Do",
+      "short": "道具",
+      "ja": "間、個人化への導線",
+      "plain": "暮らしに間を置く道具を知り、買える場所へ行く。",
+      "url": "do/device/",
+      "ready": true,
+      "doors": [
+        {
+          "no": "3-1",
+          "en": "Tips",
+          "ready": false
+        },
+        {
+          "no": "3-2",
+          "en": "Device",
+          "url": "do/device/",
+          "ready": true
+        }
+      ]
+    }
+  ],
+  "notion": {
+    "core": {
+      "label": "核となる二項 \" 密 \" と \" 間 \"",
+      "heading": "「圧縮された言葉と、空間として残された言葉」",
+      "lines": [
+        "間は、言葉として確定した密の対極にある。",
+        "密がぎゅうぎゅうに圧縮された言葉なら、",
+        "間はばらけて空間に浮かぶ言葉。",
+        "論理と感覚、この両極を往復できるよう設計された装置は、全て「間」の概念から生まれている。"
+      ],
+      "caption": [
+        "\" 密 \" と \" 間 \" の対比",
+        "同じ言葉でも、",
+        "密度と余白で意味の振る舞いが変わる。"
+      ]
+    },
+    "steps": {
+      "label": "間を定める、広める、感化する",
+      "lines": [
+        "間は三段階で構成される。",
+        "MA Lab で間を定義化し、MA Channel で流通させ社会に広めていき、MA Do で暮らしの中に装置として埋め込むことで、個人を感化させていく。",
+        "動詞の階段が、受け手の状態変化に対応する。"
+      ],
+      "flow": [
+        {
+          "gate": "1",
+          "en": "Lab",
+          "ja": "間の定義化",
+          "verb": "定める",
+          "doors": [
+            "Dictionary",
+            "Reference",
+            "Research"
+          ]
+        },
+        {
+          "gate": "2",
+          "en": "Channel",
+          "ja": "間の流通化",
+          "verb": "広める",
+          "doors": [
+            "TV",
+            "Magazine",
+            "Radio"
+          ]
+        },
+        {
+          "gate": "3",
+          "en": "Do",
+          "ja": "間の個人化",
+          "verb": "感化する",
+          "doors": [
+            "Device",
+            "Tips"
+          ]
+        }
+      ]
+    }
+  },
+  "channel": {
+    "intro": [
+      [
+        "Channel へようこそ。",
+        "こちらでは、間を届ける、触れる、広める",
+        "そんな目的をあの手この手で形にしております。",
+        "いざ、間を解釈し表現に落とし込んでみました。どんなものにでも接着する、そんな間の特性は相互理解の手段手法を無限にする可能性が。",
+        "死、事業、モハメドアリ、推し活、ナポリタン......どんなフィルターバイアスを通過して頂いてもそこには必ず間の断片が浮遊存在している。その事実は、流通の意味を拡大し続けます。"
+      ],
+      [
+        "画・文字・音を軸に3つの扉を用意しました。これは内緒ですが、鍵は掛かっておりません。",
+        "間の解釈の海へ。",
+        "いざいざダイブしてみては。"
+      ]
+    ]
+  },
+  "platforms": [
+    {
+      "key": "tv",
+      "door": "2-1",
+      "en": "TV",
+      "via": "YouTube",
+      "blurb": []
+    },
+    {
+      "key": "mag",
+      "door": "2-2",
+      "en": "Magazine",
+      "via": "note",
+      "blurb": []
+    },
+    {
+      "key": "radio",
+      "door": "2-3",
+      "en": "Radio",
+      "via": "Podcast",
+      "blurb": [
+        "言葉と言葉の間に落ちる、間。",
+        "音声が捉えた、対話の空気と気配の記録。"
+      ]
+    }
+  ],
+  "views": {
+    "随想記事": "撮影の日を、聞き手の目で",
+    "編集後記": "撮影までを、作り手の目で",
+    "企画背景": "番組を始めたわけ"
+  },
+  "shops": [
+    {
+      "slug": "manaka-store",
+      "name": "祈りの道具屋 まなか",
+      "match": "祈りの道具屋まなか"
+    },
+    {
+      "slug": "hajioso",
+      "name": "はじめてのお葬式",
+      "match": "はじめてのお葬式"
+    },
+    {
+      "slug": "manaka-ohaka",
+      "name": "まなかのお墓",
+      "match": "まなかのお墓"
+    },
+    {
+      "slug": "hibiko",
+      "name": "日々香好日 TOKYO",
+      "match": "日々香好日 TOKYO"
+    },
+    {
+      "slug": "manaka-net",
+      "name": "まなかのぼえん葬",
+      "match": "まなかのぼえん葬"
+    }
+  ],
+  "price": {
+    "sheet": "税抜",
+    "tax_percent": 10,
+    "label": "税込",
+    "memo": "Device 表の販売価格は税抜（manaka-store.com の表示 55,000〜77,000 円（税込）と照合した）。サイトは総額表示のため税込で出す"
+  }
+}

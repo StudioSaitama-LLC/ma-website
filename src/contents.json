@@ -1,0 +1,183 @@
+[
+  {
+    "id": "2-1-3",
+    "kind": "tv",
+    "program": "beyond-the-vanishingpoint",
+    "episode": "nishina",
+    "title": "仁科 正史 (Pro Snowboarder/Artist)",
+    "caption": "死とは、悦びである。",
+    "place": "長野県大町市・白馬村・小谷村",
+    "status": "published",
+    "youtube": "8ZBRdx4mg9U",
+    "yt_title": "「死を、教えてくれ。」4000mのアンデス山脈で死のキワに立った、 Pro Snowboarder/Artist 仁科正史の独自の死生観。「死とは、悦びだ」",
+    "yt_lead": "死のキワに3度立ち、自然と対峙してきた仁科正史。彼がたどり着いた平場は、「死は恐怖ではなく、重力からの解放であり生まれ変わりの悦び」という境地だった。\n命をかける瞬間が消え、死が遠ざかったと語る仁科。そんな現代において、なぜ私たちは生きづらさを抱えるのか？を考察する。 16年間死の周辺にいた まなか宮嶋 が、問いをぶつけ、彷徨い、自分らしく生き切るため、正解の無い旅に出る。",
+    "memo": "8 月版のサイトは別の動画（TgoZ6e3va3A）を使っていた",
+    "date": "2026-09-30"
+  },
+  {
+    "id": "2-2-1",
+    "kind": "mag",
+    "program": "beyond-the-vanishingpoint",
+    "episode": "nishina",
+    "badge": "随想記事",
+    "title": "仁科 正史",
+    "caption": "ANSwer：死とは悦びである",
+    "status": "published",
+    "article": "articles/2-2-1.html",
+    "redirect_from": [
+      "article-2-2-1.html",
+      "article-3-2-1.html"
+    ],
+    "hero": [
+      "photo-1.jpg",
+      "photo-3.jpg",
+      "photo-5.jpg"
+    ],
+    "portrait": "photo-4.jpg",
+    "portrait_focus": "68% 50%",
+    "portrait_alt": "湖畔の木立に立つ仁科正史のポートレート",
+    "words": "宮嶋 孝尚"
+  },
+  {
+    "id": "2-2-4",
+    "kind": "mag",
+    "program": "beyond-the-vanishingpoint",
+    "episode": "nishina",
+    "badge": "編集後記",
+    "title": "仁科 正史 編集後記",
+    "caption": "荒井、大地に立つ。死のキワより引き返した場所は、宮嶋が、唐揚げを食したバーミヤン。 「死を、教えてくれ。〜仁科正史〜」 編集後記",
+    "status": "published",
+    "article": "articles/2-2-4.html",
+    "hero": [
+      "ep224-1.jpg"
+    ],
+    "portrait": "ep224-5.jpg",
+    "portrait_alt": "残雪の白馬で、山を背に手を振る 3 人",
+    "date": "2026-10-08",
+    "portrait_focus": "52% 50%",
+    "words": "荒井 道広"
+  },
+  {
+    "id": "2-1-4",
+    "kind": "tv",
+    "program": "beyond-the-vanishingpoint",
+    "episode": "miura",
+    "title": "三浦 豪太",
+    "status": "editing"
+  },
+  {
+    "id": "2-2-2",
+    "kind": "mag",
+    "program": "beyond-the-vanishingpoint",
+    "episode": "miura",
+    "badge": "随想記事",
+    "title": "三浦 豪太",
+    "status": "published",
+    "caption": "ANSwer：死とは勝手に来ちゃうもの",
+    "date": "2026-09-20",
+    "hero": [
+      "ep222-1.jpg"
+    ],
+    "words": "宮嶋 孝尚",
+    "article": "articles/2-2-2.html"
+  },
+  {
+    "id": "2-2-5",
+    "kind": "mag",
+    "program": "beyond-the-vanishingpoint",
+    "episode": "miura",
+    "badge": "編集後記",
+    "title": "三浦 豪太 編集後記",
+    "status": "published",
+    "memo": "番号は素材の置き場の番号（#2-2-5）に合わせた",
+    "caption": "荒井、再び大地に立つ。完全なるトンザを乗り越え、北へと導いたのは、新橋のハイボールと、諦めの悪さ。 「死を、教えてくれ。〜三浦豪太〜」 編集後記",
+    "date": "2026-10-16",
+    "hero": [
+      "ep224-1.jpg"
+    ],
+    "portrait": "ep225-4.jpg",
+    "words": "荒井 道広",
+    "article": "articles/2-2-5.html",
+    "portrait_alt": "曇り空の下、海を望む山の中腹で対談を撮る撮影クルー",
+    "portrait_focus": "47% 50%"
+  },
+  {
+    "id": "2-3-1",
+    "kind": "radio",
+    "program": "beyond-the-vanishingpoint",
+    "episode": "miura",
+    "title": "三浦 豪太",
+    "status": "planned",
+    "memo": "番号は仮（Radio の番号 #2-3 に合わせた）。soundcloud.com/ma-jpn/gotamiura-bvp は 10/23 01:36 の時点で外から見えない（oEmbed 404）ので準備中。公開されたら status を published に戻す",
+    "soundcloud": "https://soundcloud.com/ma-jpn/gotamiura-bvp"
+  },
+  {
+    "id": "2-2-3",
+    "kind": "mag",
+    "program": "beyond-the-vanishingpoint",
+    "badge": "企画背景",
+    "title": "なぜオッさん達が、「死」を叫ぶのか。 (Behind The Scenes: 企画 死を、教えてくれ。)",
+    "status": "published",
+    "prologue": true,
+    "words": "荒井 道広",
+    "caption": "なぜオッさん達が、「死」を叫ぶのか。 (Behind The Scenes: 企画 死を、教えてくれ。)",
+    "date": "2026-10-08",
+    "hero": [
+      "ep223-1.jpg"
+    ],
+    "article": "articles/2-2-3.html"
+  },
+  {
+    "id": "2-1-1",
+    "kind": "tv",
+    "program": "ma-development-process",
+    "title": "About MA",
+    "caption": "SPACE? BETWEEN? DISTANCE!? まなか宮嶋の思想 \"間\" の平場の中心に加藤が秒で立つ。メディア \"間｜MA\" とは何か？",
+    "recorded": "2026-05-11",
+    "status": "published",
+    "youtube": "wtHW3PYv9Ik",
+    "yt_title": "SPACE? BETWEEN? DISTANCE!? まなか宮嶋の思想 \"間\" の平場の中心に加藤が秒で立つ。 メディア \"間｜MA\" とは何か？",
+    "yt_lead": "16年間の暗黙知を可視化し、表現する。まなか宮嶋の持つ \"怪文書\" を経て一気に立ち現れたのは、合理主義の象徴 \"密\" と、揺れ動く人の感情に気づく \"間\" であった。情報過多の時代に立ち止まり、問いや意思を感じるための場を創る覚悟を胸に、メディア \"間｜MA\" の原点が今、動き出す。",
+    "memo": "8 月版のサイトは別の動画（tVxXxgj9dXo・About Website MA）を使っていた"
+  },
+  {
+    "id": "2-1-2",
+    "kind": "tv",
+    "program": "ma-development-process",
+    "title": "Gateway Shuffle",
+    "caption": "間と死の関係的なサムシング。",
+    "recorded": "2026-05-25",
+    "status": "published",
+    "youtube": "AV7jnVH9m-c",
+    "yt_title": "MA Channel #2.1.2 Gateway Shuffle. [90%]",
+    "yt_lead": "",
+    "memo": "8 月版のサイトに入っていた YouTube"
+  },
+  {
+    "id": "2-1-5",
+    "kind": "tv",
+    "program": "ma-crosstalk",
+    "episode": "flagship-store",
+    "title": "Flagship Store [1]",
+    "recorded": "2026-06-24",
+    "status": "published",
+    "memo": "8 月版のサイトに Flagship Store の動画（mDg3PherfCQ）がある",
+    "youtube": "ULUz4i7yyWE",
+    "yt_title": "香りを持たない香りのブランド「日々香好日」。竣工直後の店舗で鼻を効かし、築地の中心でサムシングと叫ぶ",
+    "yt_lead": "",
+    "date": "2026-10-21"
+  },
+  {
+    "id": "2-1-6",
+    "kind": "tv",
+    "program": "ma-crosstalk",
+    "episode": "flagship-store",
+    "title": "Flagship Store [2]",
+    "recorded": "2026-07-06",
+    "status": "published",
+    "youtube": "1PsfoOXJpK0",
+    "yt_title": "香りを持たない香りのブランド「日々香好日」。社長不在の窮地に立つのは、空間香具の開発担当：男・梶原健司。開発の葛藤を思いだし、汗と涙が流す姿に加藤はサムシングと叫ぶのか。",
+    "yt_lead": "",
+    "date": "2026-10-21"
+  }
+]
