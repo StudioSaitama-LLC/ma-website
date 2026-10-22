@@ -741,9 +741,10 @@ class Site:
         h = lambda t: self.href(cur, t)
         cols = []
         for g in self.site["gates"]:
+            # 門の名前が押せる見出し。呼び名（考え方など）は名前の後ろに添える説明。部屋や番組はその下に字下げで
             state = (' <span class="status">%s</span>' % esc(g["state"])) if g.get("state") else ""
-            head = '<a class="mg-head" href="%s"><span class="mg-short">%s</span><strong>%s</strong></a>%s' % (
-                h(g["url"]), esc(g["short"]), esc(g["name"]), state)
+            head = '<a class="mg-head" href="%s"><strong>%s</strong><span class="mg-short">%s</span></a>%s' % (
+                h(g["url"]), esc(g["name"]), esc(g["short"]), state)
             rows = []
             if g["key"] == "channel":
                 for p in self.programs:
@@ -1011,7 +1012,7 @@ class Site:
     # ---------- 各ページ ----------
 
     def latest_episode(self):
-        """動画を公開した回のうち、いちばん新しい回（Home の「最新の回を観る」の行き先）。
+        """動画を公開した回のうち、いちばん新しい回（Home の「最新の動画を観る」の行き先）。
         読み物や音声だけ先に出た回は、観るものが無いので選ばない。"""
         for x in self.news:
             if x.get("episode") and any(c["kind"] == "tv" and c.get("status") == "published" for c in x["items"]):
@@ -1045,27 +1046,31 @@ class Site:
   </section>
 """.format(lines="\n".join('    <p>%s</p>' % esc(l) for l in q["lines"]), credit=esc(q["credit"]))
         latest = self.latest_episode()
-        start = ('<a class="btn-primary" href="%s">最新の回を観る <span aria-hidden="true">→</span></a>' % h(self.episode_url(latest["program"], latest["episode"]))) if latest else ""
+        start = ('<a class="btn-primary" href="%s">最新の動画を観る <span aria-hidden="true">→</span></a>' % h(self.episode_url(latest["program"], latest["episode"]))) if latest else ""
         gates = []
         for i, g in enumerate(self.site["gates"]):
+            # 門は 1 つの押せる見出し（小さな呼び名・名前 →・いまの言葉）、その下に説明、いちばん下に部屋や番組のボタン
             state = (' <span class="status">%s</span>' % esc(g["state"])) if g.get("state") else ""
-            head = '<a href="%s"><strong>%s</strong></a> <span class="gh-ja">%s</span>%s' % (h(g["url"]), esc(g["name"]), esc(g["ja"]), state)
+            head = ('<a class="toc-link" href="%s"><span class="toc-kicker">%s</span>'
+                    '<span class="toc-name">%s <span class="toc-go" aria-hidden="true">→</span></span>'
+                    '<span class="toc-ja">%s%s</span></a>' % (h(g["url"]), esc(g["short"]), esc(g["name"]), esc(g["ja"]), state))
             subs = []
             if g["key"] == "channel":
                 for p in self.programs:
                     soon = not any(self.is_published(items) for _, _, items in self.numbered(p))
-                    subs.append('<li><a href="%s">%s</a>%s</li>' % (h("channel/%s/" % p["slug"]), esc(p["ja"]), self.status_badge("planned") if soon else ""))
+                    subs.append(('<li class="is-dim"><span class="toc-door">%s%s</span></li>' % (esc(p["ja"]), self.status_badge("planned")))
+                                if soon else '<li><a class="toc-door" href="%s">%s</a></li>' % (h("channel/%s/" % p["slug"]), esc(p["ja"])))
             else:
                 for d in g["doors"]:
                     if d["ready"] and d.get("url"):
-                        subs.append('<li><a href="%s">%s</a></li>' % (h(d["url"]), esc(d["en"])))
+                        subs.append('<li><a class="toc-door" href="%s">%s</a></li>' % (h(d["url"]), esc(d["en"])))
                     elif not d["ready"]:
-                        subs.append('<li class="is-dim">%s%s</li>' % (esc(d["en"]), self.status_badge("planned")))
+                        subs.append('<li class="is-dim"><span class="toc-door">%s%s</span></li>' % (esc(d["en"]), self.status_badge("planned")))
             gates.append("""      <li class="toc-gate">
-        <p class="toc-head" data-m="g{i}" data-mt>{head}</p>
+        {head}
         <p class="toc-plain">{plain}</p>{subs}
-      </li>""".format(i=i, head=head, plain=esc(g.get("plain", "")),
-                      subs=('\n        <ul class="toc-doors" data-m="d%d" data-mt>\n          %s\n        </ul>' % (i, "\n          ".join(subs))) if subs else ""))
+      </li>""".format(head=head, plain=esc(g.get("plain", "")),
+                      subs=('\n        <ul class="toc-doors">\n          %s\n        </ul>' % "\n          ".join(subs)) if subs else ""))
         body = """
   <h1 class="visually-hidden">{name}</h1>
 
@@ -1237,7 +1242,7 @@ class Site:
 
     def lab_flow(self, cur):
         """要素の地図（流れの図）。間 → MA Notion の章 → 要素 → 部屋（Dictionary・Reference・Research）。
-        帯の太さは、その要素が映っている言葉・資料・テーマの数。PC は 4 列、スマホは 要素 → 部屋 の 2 列（章はまとまりの見出し）。
+        帯の太さは、その要素が映っている言葉・資料・テーマの数。PC もスマホも 4 列（スマホは縦長に組み、章の名前はまとまりの見出し）。
         JS 無しでも出る。名前に乗せると、そこにつながる帯だけが濃くなる（js/main.js）。"""
         lab = self.lab
         h = lambda t: self.href(cur, t)
@@ -1342,9 +1347,9 @@ class Site:
                                "%s（%d %s・つながり %d）" % (en, len(items), unit, rtot[i])))
         pc = ('<svg class="flowmap pc-only" viewBox="0 0 %d %d" role="group" aria-label="間の地図。間から MA Notion の章、%d の要素を経て、Dictionary・Reference・Research へ。帯の太さはつながりの数">'
               '<title>間の地図</title>%s%s%s</svg>' % (W, H, len(order), "".join(ribs), "".join(nodes), "".join(labels)))
-        # ---------- スマホ（要素 → 部屋。章はまとまりの見出し） ----------
-        W2, w2 = 285, 8
-        xE, xR = 86, 198
+        # ---------- スマホ（間 → 章 → 要素 → 部屋。PC と同じ 4 列を縦長に組む。章の名前はまとまりの見出し） ----------
+        W2, w2 = 340, 7
+        xM, xS, xE, xR = 2, 36, 152, 248
         k2 = 4.6
         heads, first = {}, set()
         for e in order:
@@ -1355,9 +1360,33 @@ class Site:
         _, endR = stack([(i, rtot[i]) for i in range(len(rooms))], k2, 30, 0)
         H2 = max(endE, endR + 12) + 6  # 要素の列と部屋の列の高い方に合わせる
         nR = stack([(i, rtot[i]) for i in range(len(rooms))], k2, 30, (H2 - endR) / 2 + 6)[0]
-        ribs2, labels2 = [], []
-        cur_r = {i: nR[i][0] for i in range(len(rooms))}
+        # 章の柱: そのまとまりの要素の上端から下端までの真ん中に、つながりの数の高さで置く
+        groups = {}
         for e in order:
+            g = groups.setdefault(e["ch"], [nE[e["key"]][0], nE[e["key"]][1]])
+            g[1] = nE[e["key"]][1]
+        nS = {}
+        for no, (g0, g1) in groups.items():
+            hgt = ctot[no] * k2
+            nS[no] = [(g0 + g1 - hgt) / 2, (g0 + g1 + hgt) / 2]
+        mtop = (H2 - total * k2) / 2
+        nM = [mtop, mtop + total * k2]
+        ribs2, labels2 = [], []
+        ym = nM[0]
+        for c in chapters:  # 間 → 章
+            if c["no"] not in nS:
+                continue
+            v = ctot[c["no"]] * k2
+            ribs2.append(rib(ribbon(xM + w2, ym, ym + v, xS, nS[c["no"]][0], nS[c["no"]][0] + v), ch=c["no"]))
+            ym += v
+        cur_s = {no: r[0] for no, r in nS.items()}
+        for e in order:  # 章 → 要素
+            v = etot[e["key"]] * k2
+            s0, e0 = cur_s[e["ch"]], nE[e["key"]][0]
+            ribs2.append(rib(ribbon(xS + w2, s0, s0 + v, xE, e0, e0 + v), ch=e["ch"], el=e["key"]))
+            cur_s[e["ch"]] += v
+        cur_r = {i: nR[i][0] for i in range(len(rooms))}
+        for e in order:  # 要素 → 部屋
             c0 = nE[e["key"]][0]
             for i in range(len(rooms)):
                 v = val[e["key"]][i] * k2
@@ -1367,14 +1396,16 @@ class Site:
                 ribs2.append(rib(ribbon(xE + w2, c0, c0 + v, xR, d0, d0 + v), ch=e["ch"], el=e["key"], room=rooms[i][0]))
                 c0 += v
                 cur_r[i] += v
-        nodes2 = [node(xE, *nE[e["key"]], w2) for e in order] + [node(xR, *nR[i], w2) for i in range(len(rooms))]
+        nodes2 = [node(xM, *nM, w2)] + [node(xS, *nS[no], w2) for no in nS] + \
+                 [node(xE, *nE[e["key"]], w2) for e in order] + [node(xR, *nR[i], w2) for i in range(len(rooms))]
+        labels2.append('<text class="t-fg t-ma-sp" x="%d" y="%.1f" dominant-baseline="central">間</text>' % (xM + w2 + 5, mid(nM)))
         for e in order:
             if e["key"] in heads:
                 labels2.append(link(h("notion/#ch%d" % e["ch"]), "ch:%d" % e["ch"],
-                                    '<text class="t-head" x="0" y="%.1f">%s</text>' % (nE[e["key"]][0] - 12, esc(self.ch_label(e["ch"]))),
+                                    '<text class="t-head" x="%d" y="%.1f">%s</text>' % (xS, nE[e["key"]][0] - 12, esc(self.ch_label(e["ch"]))),
                                     "%s（つながり %d）" % (self.ch_label(e["ch"]), ctot[e["ch"]])))
             labels2.append(link("#e-%s" % e["key"], "el:%s" % e["key"],
-                                '<text x="%d" y="%.1f" text-anchor="end" dominant-baseline="central">%s</text>' % (xE - 6, mid(nE[e["key"]]), esc(e["name"])),
+                                '<text x="%d" y="%.1f" text-anchor="end" dominant-baseline="central">%s</text>' % (xE - 5, mid(nE[e["key"]]), esc(e["name"])),
                                 "%s（つながり %d）" % (e["name"], etot[e["key"]])))
         for i, (r, en, unit, items) in enumerate(rooms):
             y = mid(nR[i])
@@ -1382,7 +1413,7 @@ class Site:
                                 '<text x="%d" y="%.1f" dominant-baseline="central"><tspan class="t-room">%s</tspan>'
                                 '<tspan class="t-n" x="%d" dy="16">%d %s</tspan></text>' % (xR + w2 + 6, y - 7, en, xR + w2 + 6, len(items), unit),
                                 "%s（%d %s・つながり %d）" % (en, len(items), unit, rtot[i])))
-        sp = ('<svg class="flowmap fm-sp sp-only" viewBox="0 0 %d %.0f" role="group" aria-label="間の地図。%d の要素から Dictionary・Reference・Research へ。帯の太さはつながりの数">'
+        sp = ('<svg class="flowmap fm-sp sp-only" viewBox="0 0 %d %.0f" role="group" aria-label="間の地図。間から MA Notion の章、%d の要素を経て、Dictionary・Reference・Research へ。帯の太さはつながりの数">'
               '<title>間の地図</title>%s%s%s</svg>' % (W2, H2, len(order), "".join(ribs2), "".join(nodes2), "".join(labels2)))
         empty_ch = [c for c in chapters if not ctot[c["no"]]]
         note = "帯の太さは、その要素が映っている言葉・資料・テーマの数（つながりは全部で %d）。名前を押すと、要素は下の欄へ、章は Notion へ、部屋はその部屋へ。" % total
@@ -1649,7 +1680,7 @@ class Site:
     {illust}
   </div>
 """.format(head=self.gate_head(g), intro=intro, logo=self.logo(cur, "logo-mark lm-channel", m="lmc"),
-           feature=('\n    <section class="sec channel-latest">\n      %s\n    %s\n    </section>\n' % (self.tag("新しい回", "t", m="lntag"), feature)) if feature else "",
+           feature=('\n    <section class="sec channel-latest">\n      %s\n    %s\n    </section>\n' % (self.tag("最新の配信", "t", m="lntag"), feature)) if feature else "",
            menu_tag=self.tag("番組", "a", m="cmtag"), programs=self.cards([self.program_card(cur, p) for p in self.programs], "cards-program"),
            illust=self.illust(cur, "distribution", "distribution-illust", m="dist"))
         self.page(cur, "Channel", body, main_class="page channel-page")

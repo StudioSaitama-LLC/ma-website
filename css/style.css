@@ -1447,3 +1447,77 @@ html.light .flowmap.is-focus .rib.on { opacity: 0.6; }
 .fm-sp .t-n { font-size: 11px; }
 @media (min-width: 1200px) { .flowmap { margin-top: 40px; } }
 @media (prefers-reduced-motion: reduce) { .flowmap .rib { transition: none; } }
+
+/* ---------- 第 7 段: Home の目次・メニュー・スマホの地図（押せる所と階層を見分けやすく） ---------- */
+/* Home の「間を巡る 4 つの門」: 門ごとに 呼び名 → 名前（押せる・→）→ いまの言葉 → 説明 → 部屋のボタン。門の間は線で区切る */
+.toc-gates { display: grid; gap: 0; margin-top: 28px; }
+.toc-gate { padding: 22px 0 24px; border-top: 1px solid var(--line); }
+.toc-gate + .toc-gate { margin-top: 0; }
+.toc-gate:last-child { border-bottom: 1px solid var(--line); }
+.toc-link { display: grid; gap: 2px; color: var(--fg); text-decoration: none; }
+.toc-link:visited { color: var(--fg); }
+.toc-kicker { font-size: var(--small); line-height: 20px; opacity: 0.75; }
+.toc-name { color: var(--accent); font-size: 24px; line-height: 32px; font-weight: 700; }
+.toc-go { display: inline-block; font-weight: 400; transition: transform 0.18s ease; }
+.toc-link:hover .toc-name { text-decoration: underline; text-underline-offset: 4px; }
+.toc-link:hover .toc-go { transform: translateX(4px); }
+.toc-ja { line-height: 26px; }
+.toc-ja .status { margin-left: 8px; vertical-align: 1px; }
+.toc-plain { margin-top: 8px; font-size: var(--small); line-height: 22px; opacity: 0.85; }
+.toc-doors { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-left: 0; }
+.toc-doors li { line-height: 1; }
+.toc-doors li::before { content: none; }
+.toc-door { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--accent); color: var(--accent); font-size: var(--small); line-height: 18px; text-decoration: none; }
+a.toc-door:visited { color: var(--accent); }
+a.toc-door:hover { background: var(--accent); color: var(--on-accent); text-decoration: none; }
+.toc-doors .is-dim .toc-door { border-style: dashed; border-color: var(--muted); color: var(--muted); }
+.toc-doors .is-dim .status { margin-left: 2px; }
+@media (min-width: 1200px) {
+  .toc-gates { grid-template-columns: 1fr 1fr; column-gap: 60px; margin-top: 40px; }
+  .toc-gate { padding: 28px 0 32px; }
+  .toc-gate:nth-last-child(2) { border-bottom: 1px solid var(--line); }
+  .toc-doors { display: flex; gap: 10px; padding-left: 0; margin-top: 18px; }
+  .toc-name { font-size: 28px; line-height: 36px; }
+}
+@media (prefers-reduced-motion: reduce) { .toc-go { transition: none; } }
+
+/* メニュー: 門の名前が押せる見出し、呼び名はその後ろの小さな説明。部屋や番組は左の線の内側に字下げ。門ごとに線で区切る */
+.menu-gates { gap: 0; }
+.menu-gate { padding: 16px 0 18px; border-top: 1px solid var(--line); line-height: 1.4; }
+.menu-gate:last-child { border-bottom: 1px solid var(--line); }
+.mg-head { display: inline-flex; align-items: baseline; gap: 10px; color: var(--accent); text-decoration: none; }
+.mg-head strong { font-size: 20px; line-height: 28px; }
+.mg-head .mg-short { color: var(--fg); font-size: 12px; line-height: 18px; opacity: 0.7; }
+.mg-head:hover strong { text-decoration: underline; text-underline-offset: 4px; }
+.mg-head + .status { margin-left: 8px; vertical-align: 3px; }
+.mg-list, .mg-do .mg-list { display: grid; gap: 2px; margin: 10px 0 0 2px; padding-left: 14px; border-left: 1px solid var(--line); }
+.mg-list li, .mg-list li.is-dim { padding-left: 0; text-indent: 0; font-size: 15px; line-height: 30px; }
+.mg-list li::before { content: none; }
+.mg-list a { color: var(--accent); }
+.mg-list a:hover { text-decoration: underline; }
+.mg-list .is-dim { color: var(--muted); }
+.menu-home { font-size: 17px; line-height: 28px; margin-bottom: 14px; }
+.menu-links { display: flex; gap: 24px; margin-top: 22px; }
+.menu-links a { color: var(--accent); }
+@media (min-width: 1200px) {
+  .menu-gates { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 40px; }
+  .menu-gate { padding: 20px 0 24px; border-bottom: 1px solid var(--line); }
+  .mg-head { display: inline-flex; }
+  .mg-head strong { font-size: 24px; line-height: 32px; }
+  .mg-head .mg-short { font-size: 13px; }
+  .mg-list li { font-size: 17px; line-height: 34px; }
+  .menu-links a { color: var(--accent); }
+}
+
+/* スマホの地図（4 列）: 名前は少し大きく、間の字は柱の横に */
+.fm-sp text { font-size: 13px; }
+.fm-sp .t-head { font-size: 12px; }
+.fm-sp .t-ma-sp { font-size: 16px; font-weight: 700; }
+/* メニューの絵は区切り線にかからないよう、いちばん下の Contact の右へ */
+.menu-overlay .menu-figure { top: auto; bottom: 30px; }
+@media (min-width: 1200px) { .menu-overlay .menu-figure { top: auto; bottom: 60px; } }
+@media (min-width: 1200px) {
+  .menu-inner { padding-top: 170px; }
+  .menu-home { margin-bottom: 30px; }
+  .menu-overlay .menu-figure { bottom: 24px; }
+}
