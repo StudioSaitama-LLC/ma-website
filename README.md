@@ -134,7 +134,7 @@ python3 tools/build.py --check    # 生成結果と repo のファイルが一�
 MA Notion や Device 表の新しい版が届いたとき:
 
 ```bash
-python3 tools/import_manifesto.py <Notion_YYYYMMDD.docx>
+python3 tools/import_manifesto.py "<About 間 宮嶋孝尚 YYYY／MM／DD.docx>"   # Lab の引用が本文に無くなると build.py が止める
 python3 tools/import_device.py <Device_YYYYMMDD.xlsx> --ids 2
 python3 tools/build.py
 ```
