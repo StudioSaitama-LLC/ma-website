@@ -634,7 +634,7 @@ class Site:
                         by_date.setdefault(self.item_date(c), []).append(c)
                 if not by_date:
                     continue
-                last = max(by_date)
+                last = max(list(by_date) + ([e["date"]] if e.get("date") else []))  # 回の公開日があれば、それより古くは並べない
                 added = ""
                 # 回の公開日（programs.json の episodes の date）より後の日付のものだけを「追加」と書く。
                 # 回の date が無ければ、いちばん古い日付を回の公開日とみなす（原稿の日付が回より前でも、同時に出たものは追加と書かない）
