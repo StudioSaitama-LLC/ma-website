@@ -634,8 +634,11 @@ class Site:
                     continue
                 last = max(by_date)
                 added = ""
-                if last != min(by_date):
-                    added = "%s %sを追加" % (short_date(last)[3:], "・".join(self.view_label(c) for c in by_date[last]))
+                # 回の公開日（programs.json の episodes の date）より後の日付のものだけを「追加」と書く。
+                # 回の date が無ければ、いちばん古い日付を回の公開日とみなす（原稿の日付が回より前でも、同時に出たものは追加と書かない）
+                later = [d for d in by_date if d > (e.get("date") or min(by_date))]
+                if later:
+                    added = "%s %sを追加" % (short_date(max(later))[3:], "・".join(self.view_label(c) for c in by_date[max(later)]))
                 news.append({"date": last, "program": p, "episode": e, "n": n, "items": items, "added": added})
         for x in self.site.get("news", []):
             news.append({"date": x["date"], "title": x["title"], "url": x.get("url", ""), "text": x.get("text", "")})
@@ -923,7 +926,7 @@ class Site:
         """回カード: 番組名（ほかの番組と並ぶとき）・#回 人・一言・日付・この回にある見方・あとから足したもの。"""
         pub = [c for c in items if c.get("status") == "published"]
         date = max((self.item_date(c) for c in pub if self.item_date(c)), default="")
-        first = min((self.item_date(c) for c in pub if self.item_date(c)), default="")
+        first = e.get("date") or min((self.item_date(c) for c in pub if self.item_date(c)), default="")  # 回の公開日があればそれ
         note = e.get("caption") or (self.ep_lines(e, items)[:1] or [""])[0]
         views = "・".join(dict.fromkeys(self.view_label(c) for c in sorted(pub, key=lambda c: KIND_ORDER[c["kind"]])))
         meta = " ".join(x for x in (self.new_badge() if self.is_new(date) else "", esc(short_date(first)), esc(views)) if x)
@@ -1710,7 +1713,7 @@ class Site:
                         prod = [x for x in self.device["products"] if str(x["id"]) == str(pid)]
                         if prod and prod[0] not in prods:
                             prods.append(prod[0])
-                date = min((self.item_date(c) for c in pub if self.item_date(c)), default="")
+                date = e.get("date") or min((self.item_date(c) for c in pub if self.item_date(c)), default="")  # 回の公開日があればそれ
                 body = """
   <div class="content episode">
     <div class="episode-head">
