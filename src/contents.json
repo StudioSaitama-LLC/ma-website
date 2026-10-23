@@ -33,9 +33,6 @@
       "photo-3.jpg",
       "photo-5.jpg"
     ],
-    "portrait": "photo-4.jpg",
-    "portrait_focus": "68% 50%",
-    "portrait_alt": "湖畔の木立に立つ仁科正史のポートレート",
     "words": "宮嶋 孝尚"
   },
   {
@@ -51,10 +48,7 @@
     "hero": [
       "ep224-1.jpg"
     ],
-    "portrait": "ep224-5.jpg",
-    "portrait_alt": "残雪の白馬で、山を背に手を振る 3 人",
     "date": "2026-10-08",
-    "portrait_focus": "52% 50%",
     "words": "荒井 道広"
   },
   {
@@ -107,9 +101,10 @@
     "program": "beyond-the-vanishingpoint",
     "episode": "miura",
     "title": "三浦 豪太",
-    "status": "planned",
-    "memo": "番号は仮（Radio の番号 #2-3 に合わせた）。soundcloud.com/ma-jpn/gotamiura-bvp は 10/23 01:36 の時点で外から見えない（oEmbed 404）ので準備中。公開されたら status を published に戻す",
-    "soundcloud": "https://soundcloud.com/ma-jpn/gotamiura-bvp"
+    "status": "published",
+    "memo": "番号は仮（Radio の番号 #2-3 に合わせた）。10/24 に SoundCloud が公開になったのを確かめて公開（埋め込まずに外へ出す）",
+    "soundcloud": "https://soundcloud.com/ma-jpn/gotamiura-bvp",
+    "date": "2026-10-24"
   },
   {
     "id": "2-2-3",

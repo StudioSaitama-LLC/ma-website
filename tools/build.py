@@ -667,13 +667,15 @@ class Site:
         """白い線で囲んだ見出し（「間を巡る 4 つの門と 8 つの扉」など）。"""
         return '<%s class="frame-label"%s>%s</%s>' % (el, (' data-m="%s"' % m) if m else "", esc(text), el)
 
-    def gate_head(self, g, el="h1"):
-        """門のページの見出し: 名前（Lab など）といまの言葉の 2 段。平易な説明は見出しの下の導入文に置く。"""
+    def gate_head(self, g, el="h1", sub=None, plain=None):
+        """門のページの見出し: 名前（Lab など）といまの言葉の 2 段。平易な説明は見出しの下の導入文に置く。
+        sub・plain を渡すと、いまの言葉と説明の代わりに出す（Notion は原稿の題・書き手と最終更新日）。"""
         state = (' <span class="status">%s</span>' % esc(g["state"])) if g.get("state") else ""
-        plain = ('\n    <p class="gh-plain">%s</p>' % esc(g["plain"])) if g.get("plain") else ""
+        plain = plain if plain is not None else g.get("plain")
+        plain = ('\n    <p class="gh-plain">%s</p>' % esc(plain)) if plain else ""
         # 同じ門のページどうしでは、この塊を同じ形・同じ高さで出す（部屋を移っても上が動かない。g-<門> は移るときの動きの目印）
         return ('<div class="gate-head g-%s">\n    <%s class="gh-title" data-m="gh" data-mt><strong>%s</strong>%s</%s>\n'
-                '    <p class="gh-sub" data-m="gs" data-mt>%s</p>%s\n  </div>' % (g["key"], el, esc(g["name"]), state, el, esc(g["ja"]), plain))
+                '    <p class="gh-sub" data-m="gs" data-mt>%s</p>%s\n  </div>' % (g["key"], el, esc(g["name"]), state, el, esc(sub if sub is not None else g["ja"]), plain))
 
     def new_badge(self):
         return '<span class="new">&lt;NEW&gt;</span>'
@@ -877,10 +879,11 @@ class Site:
 </html>
 """.format(mark=MARK, to=esc(to), name=esc(self.site["name"]), label=esc(label))
 
-    def date_meta(self, date, el="p", m=None):
-        """日付の行（<NEW> と日付だけ。管理番号は画面に出さない）。"""
+    def date_meta(self, date, el="p", m=None, new=None):
+        """日付の行（<NEW> と日付だけ。管理番号は画面に出さない）。new を渡すと、NEW を付けるかはそれで決める
+        （回のページは回の公開日を出しつつ、あとから足したものの日付でも NEW を付ける＝回のカードと同じ）。"""
         parts = []
-        if self.is_new(date):
+        if self.is_new(date) if new is None else new:
             parts.append(self.new_badge())
         if date:
             parts.append('<span class="em-date">%s</span>' % esc(short_date(date)))
@@ -1121,6 +1124,16 @@ class Site:
       </div>
     </section>""".format(no=no, title=esc(title), label=esc(label or "第 %s 章 : 「%s」" % (no, title)), paras="\n".join(paras), i=i)
 
+    def notion_byline(self):
+        """Notion の見出しの 2 段目: 原稿の題と書き手（「感じぬ人」 宮嶋 孝尚）。10/23 まなかの指定。"""
+        m = self.manifesto
+        return "「%s」 %s" % (m["title"], m["author"])
+
+    def notion_updated(self):
+        """Notion の見出しの下: 原稿の版の日付（(最終更新日: 2026年10月22日)）。取り込んだ原稿の日付から作る。"""
+        y, mo, d = (int(x) for x in self.manifesto["version"].split("-"))
+        return "(最終更新日: %d年%d月%d日)" % (y, mo, d)
+
     def build_notion(self):
         cur = "notion/index.html"
         m = self.manifesto
@@ -1178,7 +1191,7 @@ class Site:
     </section>
     <p class="formula formula-notion" data-m="formula"><span class="fm-left" data-m="fml" data-mt>We create of Your MA <span class="fm-eq">=</span></span><span class="fm-frac"><span class="fm-num" data-m="fmn" data-mt>Lab × Ch × Do</span><span class="fm-bar" aria-hidden="true"></span><span class="fm-den" data-m="fmd" data-mt>Notion</span></span></p>
   </div>
-""".format(logo=self.logo(cur, "logo-mark lm-notion", m="lmn"), head=self.gate_head(self.gate("notion")),
+""".format(logo=self.logo(cur, "logo-mark lm-notion", m="lmn"), head=self.gate_head(self.gate("notion"), sub=self.notion_byline(), plain=self.notion_updated()),
            chapters="\n\n".join(chapters), core_label=self.frame(core["label"], m="corel"), core_heading=esc(core["heading"]),
            core_lines=brs(core["lines"]), dense=self.href(cur, "assets/figures/dots-dense.svg"), sparse=self.href(cur, "assets/figures/dots-sparse.svg"), cap0=esc(cap[0]), cap1=esc(cap[1]), cap2=esc(cap[2]),
            steps_label=self.frame(steps["label"], m="stepl"), steps_lines=brs(steps["lines"]),
@@ -1766,7 +1779,7 @@ class Site:
     {steps}
   </div>
 """.format(channel=self.href(cur, "channel/"), gname=esc(self.gate("channel")["name"]), prog=self.href(cur, "channel/%s/" % p["slug"]),
-           pja=esc(p["ja"]), label=esc(self.ep_label(n, e)), title=esc(self.ep_title(e, items)), meta=self.date_meta(date),
+           pja=esc(p["ja"]), label=esc(self.ep_label(n, e)), title=esc(self.ep_title(e, items)), meta=self.date_meta(date, new=self.is_new(max((self.item_date(c) for c in pub if self.item_date(c)), default=""))),
            lines="<br>".join(esc(x) for x in lines_), place=('\n      <p class="ep-place">Place: %s</p>' % esc(place)) if place else "",
            videos=videos, views=self.section("読む・聴く", self.cards(views, "cards-view")),
            prods=self.section("出てくる道具", ('<ul class="dev-grid">\n%s\n    </ul>' % "\n".join(self.product_card(cur, x) for x in prods)) if prods else ""),
