@@ -879,10 +879,11 @@ class Site:
 </html>
 """.format(mark=MARK, to=esc(to), name=esc(self.site["name"]), label=esc(label))
 
-    def date_meta(self, date, el="p", m=None):
-        """日付の行（<NEW> と日付だけ。管理番号は画面に出さない）。"""
+    def date_meta(self, date, el="p", m=None, new=None):
+        """日付の行（<NEW> と日付だけ。管理番号は画面に出さない）。new を渡すと、NEW を付けるかはそれで決める
+        （回のページは回の公開日を出しつつ、あとから足したものの日付でも NEW を付ける＝回のカードと同じ）。"""
         parts = []
-        if self.is_new(date):
+        if self.is_new(date) if new is None else new:
             parts.append(self.new_badge())
         if date:
             parts.append('<span class="em-date">%s</span>' % esc(short_date(date)))
@@ -1778,7 +1779,7 @@ class Site:
     {steps}
   </div>
 """.format(channel=self.href(cur, "channel/"), gname=esc(self.gate("channel")["name"]), prog=self.href(cur, "channel/%s/" % p["slug"]),
-           pja=esc(p["ja"]), label=esc(self.ep_label(n, e)), title=esc(self.ep_title(e, items)), meta=self.date_meta(date),
+           pja=esc(p["ja"]), label=esc(self.ep_label(n, e)), title=esc(self.ep_title(e, items)), meta=self.date_meta(date, new=self.is_new(max((self.item_date(c) for c in pub if self.item_date(c)), default=""))),
            lines="<br>".join(esc(x) for x in lines_), place=('\n      <p class="ep-place">Place: %s</p>' % esc(place)) if place else "",
            videos=videos, views=self.section("読む・聴く", self.cards(views, "cards-view")),
            prods=self.section("出てくる道具", ('<ul class="dev-grid">\n%s\n    </ul>' % "\n".join(self.product_card(cur, x) for x in prods)) if prods else ""),
