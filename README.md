@@ -171,6 +171,12 @@ python3 -m http.server 8000
 main への直 push は禁止。ブランチ → PR でマージする（Pages は main から自動配信）。
 2026-10-23 に一般公開した（`src/site.json` の `noindex` は `false`）。関係者だけに見せるプレビュー（Cloudflare Pages の `ss-ma-beta`）に出すときは `true` にして作る（検索に出さない印と、足元の「β版（関係者確認用）」が付く）。
 
+## PR のプレビュー（2026-10-29）
+
+- PR の枝（`sai/*`＝サイ坊の更新案・`work/*`＝人の作業）を push すると、Cloudflare Pages のプロジェクト `ma-website-preview`（Studio Saitama の sites アカウント・GitHub 連携）がその枝の中身をそのまま配備し、PR に `https://<枝名の - 区切り>.ma-website-preview-501.pages.dev` のコメントを付ける（1〜2 分）。承認する人は差分でなく画面で確かめてから Approve する。
+- 本番（main）は GitHub Pages のままで、このプロジェクトは本番の配備をしない。プレビューは URL を知っていれば誰でも開けるが、`_headers` の `X-Robots-Tag: noindex` で検索には出さない（GitHub Pages は `_headers` を読まないので本番には影響しない）。
+- 止まったとき: PR のコメントに失敗が出る。Cloudflare の管理画面（Workers & Pages → ma-website-preview）の配備の記録で理由を見る。GitHub 側は何も要らない（秘密も workflow も置いていない）。
+
 ## Provenance（archived-from）
 
 - 初期ファイル一式はデザイナー制作の静的書き出しを Google Drive 経由で受領したもの（2026-07-27 受領 / `drive-download-20260727T043816Z-1-001/ma-website`）
