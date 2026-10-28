@@ -171,6 +171,14 @@ python3 -m http.server 8000
 main への直 push は禁止。ブランチ → PR でマージする（Pages は main から自動配信）。
 2026-10-23 に一般公開した（`src/site.json` の `noindex` は `false`）。関係者だけに見せるプレビュー（Cloudflare Pages の `ss-ma-beta`）に出すときは `true` にして作る（検索に出さない印と、足元の「β版（関係者確認用）」が付く）。
 
+## PR プレビュー（2026-10-29）
+
+- PR の枝（`sai/*`＝サイ坊の更新案・`work/*`＝人の作業）を push すると、Cloudflare Pages のプロジェクト `ma-website-preview`（Studio Saitama の sites アカウント・GitHub 連携）がその枝の中身をそのまま配備し、PR に住所のコメントを付ける（1〜2 分）。住所は `https://<枝名>.ma-website-preview-501.pages.dev`（枝名の英数字以外は `-` になる。長い枝名は切り詰められることがあるので、実際の住所は PR のコメントで確かめる）。承認する人は差分でなく画面で確かめてから Approve する。
+- 本番（main）は GitHub Pages のままで、このプロジェクトは本番の配備をしない。PR プレビューは URL を知っていれば誰でも開けるが、`_headers` の `X-Robots-Tag: noindex` で検索には出さない（GitHub Pages は `_` で始まるファイルを配信しないので、本番には出ない）。β 期の関係者確認用（`ss-ma-beta`）とは別物。
+- 本番との違い: 存在しない住所は、プレビューではトップページが出る（本番の GitHub Pages では 404）。リンク切れはプレビューでは見つからない。
+- 止まったとき: PR のコメントに失敗が出る。Cloudflare の管理画面（Workers & Pages → ma-website-preview）の配備の記録で理由を見る。リポの中には何も要らない（Cloudflare の GitHub アプリがこのリポに入っていることが前提。外れるとコメントも出ない）。
+- 戻し方: `_headers` を消せば noindex が消え、Cloudflare のプロジェクトを消せばプレビューが止まる。
+
 ## Provenance（archived-from）
 
 - 初期ファイル一式はデザイナー制作の静的書き出しを Google Drive 経由で受領したもの（2026-07-27 受領 / `drive-download-20260727T043816Z-1-001/ma-website`）
