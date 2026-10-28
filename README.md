@@ -3,7 +3,7 @@
 Indies Lifestyle Media 間｜MA のウェブサイト（株式会社まなか × Studio Saitama）。
 静的 HTML/CSS/JS 構成。GitHub Pages で公開する。
 
-- 公開URL: https://studiosaitama-llc.github.io/ma-website/
+- 公開URL: https://ma-jpn.com/ （www.ma-jpn.com と https://studiosaitama-llc.github.io/ma-website/ はここへ転送される）
 - 関連リポジトリ: [ma-jpn](https://github.com/StudioSaitama-LLC/ma-jpn)（旧サイト / GitHub Pages。本 repo とは別系統）
 - 企画・戦略ドキュメント: `studiosaitama/clients/manaka/docs/`（ローカル）/ [manaka-docs](https://github.com/StudioSaitama-LLC/manaka-docs)
 
@@ -171,6 +171,14 @@ python3 -m http.server 8000
 main への直 push は禁止。ブランチ → PR でマージする（Pages は main から自動配信）。
 2026-10-23 に一般公開した（`src/site.json` の `noindex` は `false`）。関係者だけに見せるプレビュー（Cloudflare Pages の `ss-ma-beta`）に出すときは `true` にして作る（検索に出さない印と、足元の「β版（関係者確認用）」が付く）。
 
+## 公開とドメイン（2026-10-29）
+
+- 配信は GitHub Pages（main の直下）。独自ドメインは `CNAME`（`ma-jpn.com`）で指定し、`src/site.json` の `url` も同じ住所にする（og:image の絶対 URL に使う。canonical や og:url は出していない）。
+- DNS はムームードメインのムームーDNS（カスタム設定）。`ma-jpn.com` の A を GitHub Pages の 4 つ（185.199.108.153 / 185.199.109.153 / 185.199.110.153 / 185.199.111.153）、`www` の CNAME を `studiosaitama-llc.github.io` にする。メールはムームーメール（MX `mx.hetemail.jp`・SPF の TXT）なので、その行は残す。
+- HTTPS の証明書は GitHub が出す（DNS が通ってから数分〜1 時間）。出たら Pages の設定で「Enforce HTTPS」を入れる。
+- www.ma-jpn.com と studiosaitama-llc.github.io/ma-website/ は ma-jpn.com へ転送される（GitHub Pages の仕組み）。
+- `_handoff/` の古い文書に残る github.io の住所は当時の記録なので直さない。
+
 ## PR プレビュー（2026-10-29）
 
 - PR の枝（`sai/*`＝サイ坊の更新案・`work/*`＝人の作業）を push すると、Cloudflare Pages のプロジェクト `ma-website-preview`（Studio Saitama の sites アカウント・GitHub 連携）がその枝の中身をそのまま配備し、PR に住所のコメントを付ける（1〜2 分）。住所は `https://<枝名>.ma-website-preview-501.pages.dev`（枝名の英数字以外は `-` になる。長い枝名は切り詰められることがあるので、実際の住所は PR のコメントで確かめる）。承認する人は差分でなく画面で確かめてから Approve する。
@@ -193,5 +201,5 @@ main への直 push は禁止。ブランチ → PR でマージする（Pages �
 - 動画への入口の言葉は YouTube でふつうに使う言い方にそろえる（「最新の動画を観る」「最新の配信」）
 
 ### 旧版（8 月版）の退避（2026-10-23）
-- 一般公開の前に main にあった 8 月版を `old/` に置いた（https://studiosaitama-llc.github.io/ma-website/old/ ）。生成物ではなく、`tools/build.py` も触らない。各ページに検索に出さない印を足しただけで、中身は 8 月版のまま
+- 一般公開の前に main にあった 8 月版を `old/` に置いた（https://ma-jpn.com/old/ ）。生成物ではなく、`tools/build.py` も触らない。各ページに検索に出さない印を足しただけで、中身は 8 月版のまま
 - 8 月版の住所（about.html・article-2-2-1.html など）は、これまでどおり新しいページへ移るだけのページ
