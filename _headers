@@ -1,2 +1,3 @@
+# ma-website-preview（PR プレビュー）用。本番を Cloudflare Pages へ移すときは外す
 /*
   X-Robots-Tag: noindex
