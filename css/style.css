@@ -1273,10 +1273,17 @@ html:not(.js) .ref-filters { display: none; }
 .ep-lines { margin-top: 14px; }
 .ep-place { margin-top: 6px; font-size: var(--small); }
 .episode > .video { margin-top: 32px; }
+/* 音声（SoundCloud の埋め込み）: 動画と同じ幅。プレイヤーの高さは埋め込みコードの 166px */
+.audio { margin-left: -15px; margin-right: -15px; background: var(--ph); }
+.audio iframe { display: block; width: 100%; height: 166px; border: 0; }
+.episode > .audio { margin-top: 32px; }
+.episode > .video + .audio { margin-top: 16px; }
 .episode-page + .site-footer { margin-top: 60px; }
 @media (min-width: 1200px) {
   .episode-head { padding-top: 146px; }
   .episode > .video { width: 768px; max-width: 100%; margin: 56px auto 0; }
+  .episode > .audio { width: 768px; max-width: 100%; margin: 56px auto 0; }
+  .episode > .video + .audio { margin-top: 24px; }
 }
 
 /* 記事: 上に回への道、後ろに同じ回のほかの形と次の一歩（人物の写真の前） */
