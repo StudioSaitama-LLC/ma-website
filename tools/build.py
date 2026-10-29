@@ -19,6 +19,7 @@ import json
 import os
 import re
 import sys
+from urllib.parse import quote
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SRC = os.path.join(ROOT, "src")
@@ -900,6 +901,17 @@ class Site:
                     % (esc(item["youtube"]), esc(drop_code(item.get("yt_title")) or item["title"])))
         return '<div class="video video-ph"><span class="play" aria-hidden="true"></span><span class="ph-label">準備中</span></div>'
 
+    def radio_media(self, item, id_=None):
+        """音声（Radio）の再生プレイヤー: SoundCloud の埋め込み（公開のときだけ。ページを離れずに聴ける）。
+        contents.json には回の住所だけ書き、プレイヤーの URL はここで作る。押せる所の色は青地の色（白いプレイヤーの上で見えるように）。"""
+        if not (item.get("soundcloud") and item.get("status") == "published"):
+            return ""
+        src = ("https://w.soundcloud.com/player/?url=%s&color=%%231414dc&auto_play=false&hide_related=false"
+               "&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" % quote(item["soundcloud"], safe=""))
+        return ('<div class="audio"%s><iframe src="%s" title="%s（SoundCloud）" loading="lazy" '
+                'allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>'
+                % ((' id="%s"' % id_) if id_ else "", esc(src), esc(item["title"])))
+
     def card(self, href, rows, cls, id_=None, soon=False, ext=False):
         """カードの外枠。href があれば枠ごと押せて右下に →（外のサイトへは ↗ で、新しいタブ）、無ければ（準備中）灰色の破線で押せない。"""
         idattr = (' id="%s"' % id_) if id_ else ""
@@ -955,13 +967,13 @@ class Site:
         return self.card(self.href(cur, self.item_url(c)) if pub else None, rows, "card-episode card-prologue", soon=not pub)
 
     def view_card(self, cur, c, p, e):
-        """見方カード: 種類・一言（いつを、誰の目で）・書き手。動画は回のページで再生、記事は記事へ、音声は SoundCloud へ（↗）。"""
+        """見方カード: 種類・一言（いつを、誰の目で）・書き手。動画と音声は回のページで再生（音声はプレイヤーの位置 #radio へ）、記事は記事へ。"""
         pub = c.get("status") == "published"
         ext = False
         if c["kind"] == "tv":
             href, note = self.href(cur, self.episode_url(p, e)), "この回のページで観る"
         elif c["kind"] == "radio" and c.get("soundcloud"):
-            href, note, ext = c["soundcloud"], "SoundCloud で聴く", True
+            href, note = self.href(cur, self.episode_url(p, e)) + "#radio", "この回のページで聴く"
         elif c.get("article"):
             href, note = self.href(cur, self.item_url(c)), self.view_note(c)
         else:
@@ -1741,7 +1753,7 @@ class Site:
             self.page(cur, p["ja"], body, main_class="page program-page pg-%s" % p["slug"])
 
     def build_episodes(self):
-        """回のページ: 動画が主役。その下に読む・聴く（見方カード）、出てくる道具、映っている間、次の一歩。
+        """回のページ: 動画が主役（音声の回は、その下に SoundCloud のプレイヤー）。その下に読む・聴く（見方カード）、出てくる道具、映っている間、次の一歩。
         見出しは YouTube の題に揃える（回の題と一言を YouTube に合わせる決まり）。公開済みのコンテンツが 1 つも無い回はページを作らない。"""
         for p in self.programs:
             for n, e, items in self.numbered(p):
@@ -1751,8 +1763,12 @@ class Site:
                 pub = [c for c in items if c.get("status") == "published"]
                 lines_ = self.ep_lines(e, items)
                 place = next((c.get("place") for c in items if c.get("place")), "")
-                # 動画がまだの回も、動画の枠は「準備中」で置く（読み物や音声だけ先に出た回で、動画が来ることが分かるように）
-                videos = "\n    ".join(self.tv_media(c) for c in items if c["kind"] == "tv")
+                # 動画がまだの回も、動画の枠は「準備中」で置く（読み物や音声だけ先に出た回で、動画が来ることが分かるように）。
+                # 音声（SoundCloud）はその下に埋め込む（最初の 1 つに #radio。見方カードの行き先）
+                radios = [c for c in items if c["kind"] == "radio"]
+                media = [self.tv_media(c) for c in items if c["kind"] == "tv"]
+                media += [self.radio_media(c, id_="radio" if i == 0 else None) for i, c in enumerate(radios)]
+                videos = "\n    ".join(x for x in media if x)
                 views = [self.view_card(cur, c, p, e) for c in items if c["kind"] != "tv"]
                 prods = []
                 for c in items:

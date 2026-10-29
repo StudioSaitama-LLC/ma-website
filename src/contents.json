@@ -102,7 +102,7 @@
     "episode": "miura",
     "title": "三浦 豪太",
     "status": "published",
-    "memo": "番号は仮（Radio の番号 #2-3 に合わせた）。10/24 に SoundCloud が公開になったのを確かめて公開（埋め込まずに外へ出す）",
+    "memo": "番号は仮（Radio の番号 #2-3 に合わせた）。10/24 に SoundCloud が公開になったのを確かめて公開。10/29 まなかの依頼で、ページの中のプレイヤーに（soundcloud の住所から build.py が埋め込む）",
     "soundcloud": "https://soundcloud.com/ma-jpn/gotamiura-bvp",
     "date": "2026-10-24"
   },

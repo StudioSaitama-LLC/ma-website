@@ -57,6 +57,7 @@ about.html ほか 8 月版のページ   # 新しいページへ転送するだ�
 | `status` | 必須。`published`（公開）/ `editing`（編集中）/ `planned`（掲載予定）。公開以外は、画面ではどちらも「準備中」と出し、押せない形にする |
 | `title` `caption` `badge` `place` `recorded` | 表示する題・ひとこと・記事の種類・場所・収録日（`YYYY-MM-DD`） |
 | `youtube` | YouTube の動画 ID（11 文字）。公開のときだけ埋め込む |
+| `soundcloud` | 音声（Radio）の SoundCloud の住所（`https://soundcloud.com/<持ち主>/<回>`）。公開のときだけ、回のページの動画の下に再生プレイヤーを埋め込む（ページを離れずに聴ける）。「読む・聴く」の音声のカードは、そのプレイヤーへ |
 | `yt_title` `yt_lead` | YouTube の題と、説明文のうち「TIMELINE」の見出しか、時刻で始まる行が 2 行続く所より前（`tools/import_youtube.py` が公開の動画だけ書く。手で直さない）。あれば回の題と一言はこれを使う（題・一言を YouTube にいつも合わせるため）。説明文が空なら `caption` が一言になる |
 | `article` | Magazine の本文（`src/articles/` の断片）。公開のときだけ記事ページを作る。`episode` か `prologue` が要る（無いと回のページと住所が重なるので `build.py` が止まる）。題の頭の管理番号（2.2.1 など）は画面に出さない（本文が取れないと `build.py` が止まる） |
 | `excerpt` | 記事がまだ無いときの冒頭（いまは画面に出さない。原稿の取り込みの控え） |
