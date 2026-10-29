@@ -910,7 +910,7 @@ class Site:
                "&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" % quote(item["soundcloud"], safe=""))
         return ('<div class="audio"%s><iframe src="%s" title="%s（SoundCloud）" loading="lazy" '
                 'allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>'
-                % ((' id="%s"' % id_) if id_ else "", esc(src), esc(item["title"])))
+                % ((' id="%s"' % id_) if id_ else "", esc(src), esc(drop_code(item["title"]) or item["title"])))
 
     def card(self, href, rows, cls, id_=None, soon=False, ext=False):
         """カードの外枠。href があれば枠ごと押せて右下に →（外のサイトへは ↗ で、新しいタブ）、無ければ（準備中）灰色の破線で押せない。"""
@@ -1764,12 +1764,13 @@ class Site:
                 lines_ = self.ep_lines(e, items)
                 place = next((c.get("place") for c in items if c.get("place")), "")
                 # 動画がまだの回も、動画の枠は「準備中」で置く（読み物や音声だけ先に出た回で、動画が来ることが分かるように）。
-                # 音声（SoundCloud）はその下に埋め込む（最初の 1 つに #radio。見方カードの行き先）
-                radios = [c for c in items if c["kind"] == "radio"]
+                # 音声（SoundCloud）はその下に埋め込む（出した最初の 1 つに #radio。ほかのページの見方カードの行き先）。
+                # 回のページ自身では、プレイヤーを出した音声のカードは出さない（動画と同じ。準備中の音声はカードで知らせる）
+                radios = [c for c in items if c["kind"] == "radio" and self.radio_media(c)]
                 media = [self.tv_media(c) for c in items if c["kind"] == "tv"]
                 media += [self.radio_media(c, id_="radio" if i == 0 else None) for i, c in enumerate(radios)]
                 videos = "\n    ".join(x for x in media if x)
-                views = [self.view_card(cur, c, p, e) for c in items if c["kind"] != "tv"]
+                views = [self.view_card(cur, c, p, e) for c in items if c["kind"] != "tv" and c not in radios]
                 prods = []
                 for c in items:
                     for pid in c.get("device", []):
