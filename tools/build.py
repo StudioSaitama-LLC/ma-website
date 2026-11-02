@@ -323,6 +323,8 @@ class Site:
                     errors.append("programs.json %s: 回の key に番号の形（%s）は使わない（記事の住所と重なる）" % (p["slug"], e["key"]))
         if "url" in self.site and not re.fullmatch(r"https://[^\s\"<>]+/", str(self.site["url"])):
             errors.append("site.json url: 公開の住所は https:// で始め、/ で終える（og:image の絶対 URL に使う）: %r" % self.site["url"])
+        if self.site.get("counter_api") is not None and not re.fullmatch(r"https://[^\s\"<>/]+(/[^\s\"<>]*)?", str(self.site["counter_api"])):
+            errors.append("site.json counter_api: 数える口の住所は https:// で始める（無いときは項目ごと消す）: %r" % self.site["counter_api"])
         for g in self.site.get("gates", []):
             if not re.fullmatch(SLUG, g.get("key", "")):
                 errors.append("site.json gates: key は英小文字・数字・ハイフンだけ（class の名前に使う）: %r" % g.get("key"))
@@ -1092,7 +1094,7 @@ class Site:
   <section class="hero" id="top">
     <div class="hero-block">
       <p class="hero-now" data-m="now" data-mt>現在、</p>
-      <p class="hero-count" data-m="count"><span class="hc-line" data-m="hcline"></span><span class="hc-num" data-m="hcnum">{visitors}</span></p>
+      <p class="hero-count" data-m="count"{counter}><span class="hc-line" data-m="hcline"></span><span class="hc-num" data-m="hcnum">{visitors}</span></p>
       <p class="hero-text" data-m="htext" data-mt>人が平場に立ちました。</p>
       {figure}
     </div>
@@ -1118,6 +1120,7 @@ class Site:
   </section>
   <div class="home-end">{homelogo}</div>
 """.format(homelogo=self.logo(cur, "home-logo", m="flogo"), name=esc(self.site["name"]), visitors=esc(str(self.site.get("visitors", 1))),
+           counter=(' data-counter="%s"' % esc(self.site["counter_api"])) if self.site.get("counter_api") else "",
            figure=self.illust(cur, "figure", "hero-figure", m="figure"), desc=esc(self.site["description"]), start=start,
            hiraba=self.illust(cur, "hiraba", "hiraba-illust", m="hiraba"), quote=quote,
            toc_tag=self.tag("間を巡る 4 つの門", "b", m="toctag"), gates="\n".join(gates),

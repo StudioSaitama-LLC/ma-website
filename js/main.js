@@ -1,5 +1,6 @@
 /* 間｜MA — ページ共通の動き
    - 色の切り替え（青地 / 灰地）。ページを読む前に <head> の小さなスクリプトが前回の選択を戻している
+   - Home の「現在、N 人が平場に立ちました。」の N を、数える口（counter/）が返した本物の数にする
    - メニュー（全画面）の開閉
    - 章の開閉（最初は見出しだけ。章の題を押すと開き、右の印が ＋ → −）
    - 記事の冒頭の写真の切り替え
@@ -54,6 +55,28 @@
         syncToggle();
       });
     });
+
+    // ---------- Home の「現在、N 人」 ----------
+    // 組み立てた HTML には src/site.json の visitors（最後に組み立てたときの数）が入っている。
+    // 数える口（counter/worker.js）に届いたら本物の数で置き換え、届かなければそのまま。
+    // 数える（POST /hit）のは本番の住所（ma-jpn.com）で開いたときだけ。プレビューや手元では読むだけ（GET /count）。
+    // 先読み（Speculation Rules）で裏で組み立てている間は数えず、表に出てから数える
+    var heroCount = document.querySelector(".hero-count[data-counter]");
+    if (heroCount && window.fetch) {
+      var countLive = function () {
+        var api = heroCount.dataset.counter.replace(/\/+$/, "");
+        var num = heroCount.querySelector(".hc-num");
+        var live = /^(www\.)?ma-jpn\.com$/.test(location.hostname);
+        fetch(api + (live ? "/hit" : "/count"), { method: live ? "POST" : "GET", mode: "cors", credentials: "omit", cache: "no-store" })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) {
+            if (d && num && typeof d.count === "number" && d.count >= 0) num.textContent = String(d.count);
+          })
+          .catch(function () {});
+      };
+      if (document.prerendering) document.addEventListener("prerenderingchange", countLive, { once: true });
+      else countLive();
+    }
 
     // ---------- メニュー ----------
     var overlay = document.getElementById("site-menu");
