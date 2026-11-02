@@ -1,12 +1,13 @@
 // 間｜MA — Home の「現在、N 人が平場に立ちました。」の N を数える口（Cloudflare Worker ＋ Durable Object）
 //
-// - POST /hit   … 本番（ma-jpn.com）の Home を開いた人を 1 日 1 人 1 回だけ数え、いまの N を返す
+// - POST /hit   … 本番（ma-jpn.com）の Home を開いた接続元を 1 日 1 回だけ数え、いまの N を返す
 // - GET  /count … 数えずに N を返す（プレビュー・手元・確認用）
 // - GET  /      … 生存確認
 //
 // 数え方: 来た人の IP そのものは保存しない。「毎日替わる合言葉（salt）＋日付＋接続元」の SHA-256 の
 // 一部（記号）だけを当日の表に置き、同じ記号が既にあれば増やさない。接続元は IPv4 はそのまま、IPv6 は
-// 回線単位の先頭 64 ビットに丸める（アドレスを替えても同じ回線は 1 回）。日が替わると前日の表と合言葉は消す。
+// 回線単位の先頭 64 ビットに丸める（アドレスを替えても同じ回線は 1 回）。日が替わって最初の呼び出しのときに
+// 前日までの表と合言葉を消す（静かな日は次の呼び出しまで残る。読まれはしない）。
 // 日付は日本時間で区切る。数える（POST）のは本番の住所から来たときだけ受け付ける。
 
 import { DurableObject } from "cloudflare:workers";
@@ -133,7 +134,7 @@ export class Counter extends DurableObject {
       total += 1;
       this._set("total", String(total));
     }
-    // 当日分だけ持つ: 前日までの表と合言葉は消す
+    // 当日分だけ持つ: 前日までの表と合言葉は、日が替わって最初の呼び出しで消す
     this.sql.exec("DELETE FROM visits WHERE day < ?", day);
     this.sql.exec("DELETE FROM meta WHERE k LIKE 'salt%' AND k < ?", saltKey);
     return total;

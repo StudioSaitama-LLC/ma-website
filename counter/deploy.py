@@ -5,6 +5,7 @@
   CLOUDFLARE_API_TOKEN=… CLOUDFLARE_ACCOUNT_ID=… python3 counter/deploy.py          # 配備（初回は Durable Object の移行も）
   CLOUDFLARE_API_TOKEN=… CLOUDFLARE_ACCOUNT_ID=… python3 counter/deploy.py --check  # 配備せず、いまの状態を見る
   … python3 counter/deploy.py --migrate   # Durable Object のクラスを増やしたとき（MIGRATIONS を直してから）
+  … python3 counter/deploy.py --enable-url  # workers.dev の住所を有効にし直す（初回の配備が途中で止まったとき）
 
 トークンに要る権限: Workers Scripts の編集。値をコマンド引数・ログ・PR に書かない（環境変数で渡す）。
 """
@@ -80,6 +81,7 @@ def main():
     ap.add_argument("--check", action="store_true", help="配備せず、いまの状態を表示する")
     ap.add_argument("--migrate", action="store_true", help="既存の script でも MIGRATIONS を送る")
     ap.add_argument("--name", default=SCRIPT_NAME, help="script の名前（既定: %(default)s）")
+    ap.add_argument("--enable-url", action="store_true", help="workers.dev の住所を有効にし直す（初回でなくても）")
     args = ap.parse_args()
 
     token = os.environ.get("CLOUDFLARE_API_TOKEN", "")
@@ -119,7 +121,7 @@ def main():
     ])
     result = call("PUT", base + "/scripts/%s" % args.name, token, body, content_type)
     # workers.dev の住所は初回だけ有効にする（あとで意図して止めたものを、配備のたびに戻さない）
-    if not exists:
+    if not exists or args.enable_url:
         call("POST", base + "/scripts/%s/subdomain" % args.name, token, {"enabled": True, "previews_enabled": False})
     enabled = (call("GET", base + "/scripts/%s/subdomain" % args.name, token) or {}).get("enabled")
     print(json.dumps({"script": args.name, "deployed": True, "etag": (result or {}).get("etag"),
