@@ -1092,7 +1092,7 @@ class Site:
   <section class="hero" id="top">
     <div class="hero-block">
       <p class="hero-now" data-m="now" data-mt>現在、</p>
-      <p class="hero-count" data-m="count"><span class="hc-line" data-m="hcline"></span><span class="hc-num" data-m="hcnum">{visitors}</span></p>
+      <p class="hero-count" data-m="count"{counter}><span class="hc-line" data-m="hcline"></span><span class="hc-num" data-m="hcnum">{visitors}</span></p>
       <p class="hero-text" data-m="htext" data-mt>人が平場に立ちました。</p>
       {figure}
     </div>
@@ -1118,6 +1118,7 @@ class Site:
   </section>
   <div class="home-end">{homelogo}</div>
 """.format(homelogo=self.logo(cur, "home-logo", m="flogo"), name=esc(self.site["name"]), visitors=esc(str(self.site.get("visitors", 1))),
+           counter=(' data-counter="%s"' % esc(self.site["counter_api"])) if self.site.get("counter_api") else "",
            figure=self.illust(cur, "figure", "hero-figure", m="figure"), desc=esc(self.site["description"]), start=start,
            hiraba=self.illust(cur, "hiraba", "hiraba-illust", m="hiraba"), quote=quote,
            toc_tag=self.tag("間を巡る 4 つの門", "b", m="toctag"), gates="\n".join(gates),

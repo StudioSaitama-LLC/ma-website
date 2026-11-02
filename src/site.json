@@ -5,6 +5,7 @@
   "noindex": false,
   "beta_note": "β版（関係者確認用）",
   "visitors": 1,
+  "counter_api": "https://ma-counter.studiosaitama.workers.dev",
   "quote": {
     "lines": [],
     "credit": "Ryan Gander: The Markers of Our Time",

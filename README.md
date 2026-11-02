@@ -13,7 +13,7 @@ Indies Lifestyle Media 間｜MA のウェブサイト（株式会社まなか ×
 
 ```
 src/                           # 直すのはここ
-  site.json                    # サイト名・門（name・short・ja・plain）と扉・Home の言葉・News・Notion の図の言葉・見方の一言（views）・お店の一覧・値段の表示
+  site.json                    # サイト名・門（name・short・ja・plain）と扉・Home の言葉・News・Notion の図の言葉・見方の一言（views）・お店の一覧・値段の表示・Home の数（visitors＝組み立て時の初期値・counter_api＝数える口の住所）
   programs.json                # 番組（間を、喰う／死を、教えてくれ。／異能の表現者たち）と回（ゲストごとのまとまり。並びが #1, #2 … の番号になる）
   contents.json                # コンテンツ（#2-1-3 など。種類・番組・回・状態・YouTube・記事）
   manifesto.json               # MA Notion（tools/import_manifesto.py で docx から作る）
@@ -29,6 +29,7 @@ tools/
   import_article.py            # Magazine の原稿（Word の .docx。Google ドキュメントの .html 書き出しも可）→ 記事の断片と contents.json
   generated.txt                # build.py が生成したファイルの一覧
 css/ js/ assets/               # 見た目と画像（assets/device/ は Device の写真、assets/illust/ は手描きの絵）
+counter/                       # Home の「現在、N 人」を数える口（Cloudflare Worker。worker.js と配備の deploy.py。下の「訪問者カウンター」）
 
 # 生成されるページ（URL）
 index.html                     # Home（このサイトの一言と「最新の動画を観る」・4 つの門の目次・News）
@@ -179,6 +180,17 @@ main への直 push は禁止。ブランチ → PR でマージする（Pages �
 - HTTPS の証明書は GitHub が出す（DNS が通ってから数分〜1 時間）。出たら Pages の設定で「Enforce HTTPS」を入れる。
 - www.ma-jpn.com と studiosaitama-llc.github.io/ma-website/ は ma-jpn.com へ転送される（GitHub Pages の仕組み）。
 - `_handoff/` の古い文書に残る github.io の住所は当時の記録なので直さない。
+
+## 訪問者カウンター（2026-11-02）
+
+Home の「現在、N 人が平場に立ちました。」の N は、本物の訪問者数（1 日 1 人 1 回）。サイトは静的配信（GitHub Pages）なので、数える口は別に置く。
+
+- 口は Cloudflare Worker `ma-counter`（`counter/worker.js`・Durable Object に保存）。住所は `src/site.json` の `counter_api`（`https://ma-counter.studiosaitama.workers.dev`）。
+- 組み立てた HTML には `visitors`（組み立てたときの数）が入り、`js/main.js` が口に届いた本物の数で置き換える。口が止まっていても Home は崩れず、`visitors` の数が出たまま。
+- 数える（`POST /hit`）のは本番の住所 `ma-jpn.com` で開いたときだけ。プレビュー・手元では読むだけ（`GET /count`）なので、確認作業で数は増えない。
+- 数え方: IP は保存しない。その日だけの合言葉＋日付＋IP のハッシュの一部を当日の表に置き、同じ組は増やさない（再読み込み・同じ人の連打では増えない）。日付は日本時間。古い日の表は消す。
+- 配備: `CLOUDFLARE_API_TOKEN`（Workers Scripts の編集権）と `CLOUDFLARE_ACCOUNT_ID` を環境変数で渡して `python3 counter/deploy.py`（`--check` で状態だけ見る）。鍵の値はコマンド引数・ログ・PR に書かない。口の置き場（Cloudflare のアカウント）は `_handoff/` でなく社内の台帳に記す。
+- 口を替えたいときは `counter_api` を書き換えて組み立て直す。`counter_api` を消すと JS は何もせず、`visitors` の固定値に戻る。
 
 ## PR プレビュー（2026-10-29）
 
