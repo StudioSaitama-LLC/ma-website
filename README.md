@@ -183,14 +183,14 @@ main への直 push は禁止。ブランチ → PR でマージする（Pages �
 
 ## 訪問者カウンター（2026-11-02）
 
-Home の「現在、N 人が平場に立ちました。」の N は、本物の訪問者数（1 日 1 人 1 回）。サイトは静的配信（GitHub Pages）なので、数える口は別に置く。
+Home の「現在、N 人が平場に立ちました。」の N は、本物の訪問者数（同じ接続元は 1 日 1 回＝おおむね 1 人 1 回）。サイトは静的配信（GitHub Pages）なので、数える口は別に置く。
 
 - 口は Cloudflare Worker `ma-counter`（`counter/worker.js`・Durable Object に保存）。住所は `src/site.json` の `counter_api`（`https://ma-counter.studiosaitama.workers.dev`）。
-- 組み立てた HTML には `visitors`（組み立てたときの数）が入り、`js/main.js` が口に届いた本物の数で置き換える。口が止まっていても Home は崩れず、`visitors` の数が出たまま。
+- 組み立てた HTML には `visitors`（組み立てたときの数）が入り、`js/main.js` が口に届いた本物の数で置き換える。口が返すまでの一瞬と、口が止まっているときは `visitors` の数が見える（Home は崩れない）。
 - 数える（`POST /hit`）のは本番の住所 `ma-jpn.com` で開いたときだけ。プレビュー・手元では読むだけ（`GET /count`）なので、確認作業で数は増えない。
-- 数え方: IP は保存しない。その日だけの合言葉＋日付＋IP のハッシュの一部を当日の表に置き、同じ組は増やさない（再読み込み・同じ人の連打では増えない）。日付は日本時間。古い日の表は消す。
-- 配備: `CLOUDFLARE_API_TOKEN`（Workers Scripts の編集権）と `CLOUDFLARE_ACCOUNT_ID` を環境変数で渡して `python3 counter/deploy.py`（`--check` で状態だけ見る）。鍵の値はコマンド引数・ログ・PR に書かない。口の置き場（Cloudflare のアカウント）は `_handoff/` でなく社内の台帳に記す。
-- 口を替えたいときは `counter_api` を書き換えて組み立て直す。`counter_api` を消すと JS は何もせず、`visitors` の固定値に戻る。
+- 数え方: IP そのものは保存しない。毎日替わる合言葉＋日付＋接続元（IPv4 はそのまま・IPv6 は回線単位の先頭 64 ビット）から作った記号（ハッシュ）を当日の表に置き、同じ記号は増やさない（再読み込み・同じ接続元の連打では増えない）。日付は日本時間。日が替わると前日の表と合言葉は消す。口の呼び出しログは切ってある（接続元を残さない）。共有回線は 1 と数え、JS を動かす検索ロボットは数えうる。
+- 配備の順: `CLOUDFLARE_API_TOKEN`（Workers Scripts の編集権）と `CLOUDFLARE_ACCOUNT_ID` を環境変数で渡して `python3 counter/deploy.py`（初回は Durable Object の移行と workers.dev の住所の有効化も）→ `--check` が出す `url` と `src/site.json` の `counter_api` が同じことを確かめる → 組み立て直す。鍵の値はコマンド引数・ログ・PR に書かない。口の置き場（Cloudflare のアカウント）は運用側の記録に残す。
+- 数は口（Durable Object）の中にだけある。口を作り直す・別の口に替えると数は 0 からになる。替えるときは `counter_api` を書き換えて組み立て直す。`counter_api` を消すと JS は何もせず、`visitors` の固定値に戻る。
 
 ## PR プレビュー（2026-10-29）
 

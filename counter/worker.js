@@ -4,8 +4,9 @@
 // - GET  /count … 数えずに N を返す（プレビュー・手元・確認用）
 // - GET  /      … 生存確認
 //
-// 数え方: 来た人の IP は保存せず、「その日だけの合言葉（salt）＋日付＋IP」の SHA-256 の一部だけを
-// 当日の表に置く。同じ組が既にあれば増やさない。表は前日分まで残して古い日は消す。
+// 数え方: 来た人の IP そのものは保存しない。「毎日替わる合言葉（salt）＋日付＋接続元」の SHA-256 の
+// 一部（記号）だけを当日の表に置き、同じ記号が既にあれば増やさない。接続元は IPv4 はそのまま、IPv6 は
+// 回線単位の先頭 64 ビットに丸める（アドレスを替えても同じ回線は 1 回）。日が替わると前日の表と合言葉は消す。
 // 日付は日本時間で区切る。数える（POST）のは本番の住所から来たときだけ受け付ける。
 
 import { DurableObject } from "cloudflare:workers";
@@ -76,6 +77,19 @@ async function sha256hex(text) {
   return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// 接続元の鍵: IPv4 はそのまま。IPv6 は先頭 4 つの区切り（64 ビット＝家庭や会社の回線に配られる単位）に丸める。
+// IPv4 を IPv6 に包んだ形（::ffff:1.2.3.4）は IPv4 として扱う
+function ipKey(ip) {
+  if (!ip.includes(":")) return ip;
+  const parts = ip.split("::");
+  const left = parts[0] ? parts[0].split(":") : [];
+  const right = parts.length > 1 && parts[1] ? parts[1].split(":") : [];
+  const last = right.length ? right[right.length - 1] : (left.length ? left[left.length - 1] : "");
+  if (last.includes(".")) return last;
+  const groups = parts.length > 1 ? left.concat(Array(Math.max(0, 8 - left.length - right.length)).fill("0"), right) : left;
+  return groups.slice(0, 4).map((g) => (parseInt(g || "0", 16) || 0).toString(16)).join(":") + "::/64";
+}
+
 function randomHex(bytes) {
   const a = new Uint8Array(bytes);
   crypto.getRandomValues(a);
@@ -105,12 +119,13 @@ export class Counter extends DurableObject {
 
   async hit(ip) {
     const day = jstDay(0);
-    let salt = this._get("salt");
+    const saltKey = "salt:" + day;
+    let salt = this._get(saltKey);
     if (!salt) {
       salt = randomHex(16);
-      this._set("salt", salt);
+      this._set(saltKey, salt);
     }
-    const h = (await sha256hex(salt + "|" + day + "|" + ip)).slice(0, 32);
+    const h = (await sha256hex(salt + "|" + day + "|" + ipKey(ip))).slice(0, 32);
     let total = Number(this._get("total") || 0);
     const seen = this.sql.exec("SELECT 1 FROM visits WHERE day = ? AND h = ?", day, h).toArray().length > 0;
     if (!seen) {
@@ -118,7 +133,9 @@ export class Counter extends DurableObject {
       total += 1;
       this._set("total", String(total));
     }
-    this.sql.exec("DELETE FROM visits WHERE day < ?", jstDay(-1));
+    // 当日分だけ持つ: 前日までの表と合言葉は消す
+    this.sql.exec("DELETE FROM visits WHERE day < ?", day);
+    this.sql.exec("DELETE FROM meta WHERE k LIKE 'salt%' AND k < ?", saltKey);
     return total;
   }
 }

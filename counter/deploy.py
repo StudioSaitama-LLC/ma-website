@@ -49,7 +49,7 @@ def call(method, path, token, body=None, content_type=None):
             except Exception:
                 payload = {"success": False, "errors": [{"message": "HTTP %s" % err.code}]}
             break
-        except (http.client.IncompleteRead, urllib.error.URLError, TimeoutError) as err:
+        except (http.client.HTTPException, urllib.error.URLError, OSError) as err:
             # 読み取りの途中切れ・一時的な網の不調。読むだけの GET はやり直す（書く PUT/POST は 1 回で止める）
             if method != "GET" or attempt == 2:
                 raise SystemExit("%s %s に失敗: %s" % (method, path, err))
@@ -90,8 +90,10 @@ def main():
 
     existing = call("GET", base + "/scripts", token)
     exists = any(s.get("id") == args.name for s in existing or [])
-    subdomain = call("GET", base + "/subdomain", token).get("subdomain")
-    url = "https://%s.%s.workers.dev" % (args.name, subdomain) if subdomain else None
+    subdomain = (call("GET", base + "/subdomain", token) or {}).get("subdomain")
+    if not subdomain:
+        sys.exit("このアカウントには workers.dev の名前（subdomain）がありません。Cloudflare の Workers の画面で先に決めてください")
+    url = "https://%s.%s.workers.dev" % (args.name, subdomain)
 
     if args.check:
         print(json.dumps({"script": args.name, "exists": exists, "url": url}, ensure_ascii=False))
@@ -106,7 +108,8 @@ def main():
         "main_module": "worker.js",
         "compatibility_date": COMPATIBILITY_DATE,
         "bindings": BINDINGS,
-        "observability": {"enabled": True},
+        # 呼び出しログ（Workers Logs）は切る。付けると呼び出しごとの要求情報（接続元の IP を含む）が数日残る
+        "observability": {"enabled": False},
     }
     if not exists or args.migrate:
         metadata["migrations"] = MIGRATIONS
@@ -115,9 +118,12 @@ def main():
         ("worker.js", "worker.js", "application/javascript+module", (HERE / "worker.js").read_bytes()),
     ])
     result = call("PUT", base + "/scripts/%s" % args.name, token, body, content_type)
-    call("POST", base + "/scripts/%s/subdomain" % args.name, token, {"enabled": True, "previews_enabled": False})
+    # workers.dev の住所は初回だけ有効にする（あとで意図して止めたものを、配備のたびに戻さない）
+    if not exists:
+        call("POST", base + "/scripts/%s/subdomain" % args.name, token, {"enabled": True, "previews_enabled": False})
+    enabled = (call("GET", base + "/scripts/%s/subdomain" % args.name, token) or {}).get("enabled")
     print(json.dumps({"script": args.name, "deployed": True, "etag": (result or {}).get("etag"),
-                      "first_deploy": not exists, "url": url}, ensure_ascii=False))
+                      "first_deploy": not exists, "url": url, "url_enabled": enabled}, ensure_ascii=False))
 
 
 if __name__ == "__main__":
