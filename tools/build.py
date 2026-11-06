@@ -362,6 +362,17 @@ class Site:
                     errors.append("company.json facilities: 施設は {\"name\": …, \"url\": …} の形で書く: %r" % (x,))
                 elif x.get("url") and not (isinstance(x["url"], str) and re.fullmatch(r"https?://[^\s\"<>]+", x["url"])):
                     errors.append("company.json facilities %s: url は http(s):// で始める: %r" % (x["name"], x["url"]))
+        if "privacy" in self.company:
+            privacy = self.company["privacy"]
+            if not isinstance(privacy, dict):
+                errors.append("company.json privacy: head と paragraphs を持つ形で書く")
+            else:
+                if not isinstance(privacy.get("head"), str) or not privacy["head"].strip():
+                    errors.append("company.json privacy: head は空でない文字列が要る")
+                paragraphs = privacy.get("paragraphs")
+                if not (isinstance(paragraphs, list) and paragraphs and
+                        all(isinstance(p, str) and p.strip() for p in paragraphs)):
+                    errors.append("company.json privacy: paragraphs は空でない文字列を 1 つ以上並べる")
         for n in self.site.get("news", []):
             if not isinstance(n.get("title"), str) or not n["title"].strip():
                 errors.append("site.json news: title（文字）が要る: %r" % (n,))
@@ -2040,6 +2051,15 @@ class Site:
             return esc(x["name"])
         fac = "\n".join("""        <li><p class="fac-name">{name}</p><ul>{items}</ul></li>""".format(
             name=place(f), items="".join("<li>%s</li>" % place(x) for x in f.get("items", []))) for f in c["facilities"])
+        privacy = ""
+        if "privacy" in c:
+            privacy = """
+
+    <section class="privacy">
+      <h2 class="line-head">{head}</h2>
+{paragraphs}
+    </section>""".format(head=esc(c["privacy"]["head"]),
+                        paragraphs="\n".join("      <p>%s</p>" % esc(p) for p in c["privacy"]["paragraphs"]))
         body = """
   <div class="content">
     <div class="simple-head">
@@ -2061,10 +2081,10 @@ class Site:
       <ul class="facilities">
 {fac}
       </ul>
-    </section>
+    </section>{privacy}
   </div>
 """.format(title=esc(c["title"]), photo=self.href(cur, "assets/" + ph["src"]), w=ph["width"], h=ph["height"], alt=esc(ph["alt"]),
-           chapters="\n".join(chapters), profile=profile, fac=fac)
+           chapters="\n".join(chapters), profile=profile, fac=fac, privacy=privacy)
         self.page(cur, "Company", body, main_class="page company-page")
 
     def build_contact(self):
