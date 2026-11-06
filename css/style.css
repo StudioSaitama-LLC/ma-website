@@ -1046,6 +1046,11 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .facilities > li + li { margin-top: var(--lh); }
 .fac-name, .facilities ul li { color: var(--fg); }
 .facilities a { color: var(--accent); }
+.privacy { margin-top: 59px; }
+.privacy .line-head { margin: 0; }
+.privacy p { line-height: var(--lh); }
+.privacy .line-head + p { margin-top: 29.5px; }
+.privacy p + p { margin-top: var(--lh); }
 .company-page + .site-footer { margin-top: 104px; }
 .contact-group:first-of-type { margin-top: 43.5px; }
 .contact-group + .contact-group { margin-top: 59px; }
@@ -1061,6 +1066,8 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
   .company-page .chapters { margin-top: 90.5px; }
   .profile { margin-top: 143px; }
   .profile-list { margin-top: 50px; }
+  .privacy { margin-top: 90px; }
+  .privacy .line-head + p { margin-top: 50px; }
   .pr-stack-sp dt, .pr-stack-sp dd, .pr-stack-sp .seg-line, .seg { display: inline; }
   .company-page + .site-footer { margin-top: 272px; }
   .seg-bracket { margin-left: -0.45em; }

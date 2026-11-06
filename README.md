@@ -18,7 +18,7 @@ src/                           # 直すのはここ
   contents.json                # コンテンツ（#2-1-3 など。種類・番組・回・状態・YouTube・記事）
   manifesto.json               # MA Notion（tools/import_manifesto.py で docx から作る）
   device.json                  # Device の商品（tools/import_device.py で荒井さんの Device 表から作る）
-  company.json                 # Company（まなかの軌道・会社概要・運営施設）と Contact の窓口。運営施設は {"name", "url"}（url が無いものは本文の色で出す）
+  company.json                 # Company（まなかの軌道・会社概要・運営施設・プライバシー文面）と Contact の窓口。運営施設は {"name", "url"}（url が無いものは本文の色で出す）
   articles/*.html              # Magazine 記事の本文（HTML の断片。画像の @/ はサイトの最上位。article-head の中に日付の目印 <!-- build:meta --> を置く）
   lab.json                     # Lab の試作データ（要素・用語・資料・検証のテーマ）
 tools/
