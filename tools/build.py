@@ -672,7 +672,7 @@ class Site:
         return prefix + target
 
     def tag(self, text, variant="a", el="h2", id_=None, m=None):
-        """白い札の見出し（デザインの News・Table of Contents など）。"""
+        """■ を添える共通見出し（ニュース・各ページのセクション）。"""
         mm = (' data-m="%s"' % m) if m else ""
         return '<%s class="tag tag-%s"%s%s><span%s>%s</span></%s>' % (
             el, variant, (' id="%s"' % id_) if id_ else "", mm, (' data-m="%s-t" data-mt' % m) if m else "", esc(text), el)
@@ -840,7 +840,7 @@ class Site:
 <script>document.documentElement.classList.add("js");function maTheme(){{try{{document.documentElement.classList.toggle("light",localStorage.getItem("ma-theme")==="light")}}catch(e){{}}}}maTheme();if(document.prerendering)document.addEventListener("prerenderingchange",maTheme,{{once:true}});(function(){{try{{if(!matchMedia("(max-width:359.98px)").matches)return;var d=document.documentElement,z=document.createElement("div");z.style.cssText="position:absolute;visibility:hidden;width:0;height:100vh;zoom:.5";d.appendChild(z);var h=z.getBoundingClientRect().height;z.remove();if(h>0&&h<innerHeight*.75)d.classList.add("zoom-vh")}}catch(e){{}}}})()</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,500;0,800;1,300;1,500;1,800&amp;family=Noto+Sans+JP:wght@300;500;800&amp;display=swap" rel="stylesheet">
 <meta name="description" content="{desc}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{name}">
@@ -1064,24 +1064,30 @@ class Site:
         cur = "index.html"
         h = lambda t: self.href(cur, t)
         q = self.site["quote"]
-        # 引用は掲載が決まるまで欄ごと出さない（空いたままの欄は画面 1 枚分の空白になる）
+        # 固定の一節を最初の画面の直後へ置く。本文未登録時は空の段を出さない。
         quote = ""
         if q.get("lines"):
             quote = """
   <section class="quote col" id="quote" aria-label="引用">
+    <figure class="quote-body">
+      <blockquote>
 {lines}
-    <p class="quote-credit" data-m="credit" data-mt>(-{credit})</p>
+      </blockquote>
+      <figcaption class="quote-credit" data-m="credit" data-mt>— {credit}</figcaption>
+    </figure>
   </section>
-""".format(lines="\n".join('    <p>%s</p>' % esc(l) for l in q["lines"]), credit=esc(q["credit"]))
+""".format(lines="\n".join('        <p>%s</p>' % esc(l) for l in q["lines"]), credit=esc(q["credit"]))
         latest = self.latest_episode()
         start = ('<a class="btn-primary" href="%s">最新の動画を観る <span aria-hidden="true">→</span></a>' % h(self.episode_url(latest["program"], latest["episode"]))) if latest else ""
         gates = []
         for i, g in enumerate(self.site["gates"]):
-            # 門は 1 つの押せる見出し（小さな呼び名・名前 →・いまの言葉）、その下に説明、いちばん下に部屋や番組のボタン
+            # 英名と日本語カテゴリーを同じ行に、いまの言葉を次の行へ組む。
             state = (' <span class="status">%s</span>' % esc(g["state"])) if g.get("state") else ""
-            head = ('<a class="toc-link" href="%s"><span class="toc-kicker">%s</span>'
-                    '<span class="toc-name">%s <span class="toc-go" aria-hidden="true">→</span></span>'
-                    '<span class="toc-ja">%s%s</span></a>' % (h(g["url"]), esc(g["short"]), esc(g["name"]), esc(g["ja"]), state))
+            head = ('<h3 class="toc-title"><a class="toc-link" href="%s"><span class="toc-heading">'
+                    '<span class="toc-name">%s</span><span class="toc-kicker">%s</span>'
+                    '<span class="toc-go" aria-hidden="true">→</span></span>'
+                    '<span class="toc-ja">%s%s</span></a></h3>'
+                    % (h(g["url"]), esc(g["name"]), esc(g["short"]), esc(g["ja"]), state))
             subs = []
             if g["key"] == "channel":
                 for p in self.programs:
@@ -1110,13 +1116,13 @@ class Site:
       {figure}
     </div>
   </section>
-
+{quote}
   <section class="home-start col" aria-label="このサイトについて">
     <p class="home-lead">{desc}</p>
     {start}
     {hiraba}
   </section>
-{quote}
+
   <section class="toc col" id="toc">
     {toc_tag}
     <ol class="toc-gates">
@@ -1134,8 +1140,8 @@ class Site:
            counter=(' data-counter="%s"' % esc(self.site["counter_api"])) if self.site.get("counter_api") else "",
            figure=self.illust(cur, "figure", "hero-figure", m="figure"), desc=esc(self.site["description"]), start=start,
            hiraba=self.illust(cur, "hiraba", "hiraba-illust", m="hiraba"), quote=quote,
-           toc_tag=self.tag("間を巡る 4 つの門", "b", m="toctag"), gates="\n".join(gates),
-           news_tag=self.tag("News", "t", m="newstag"), device=self.illust(cur, "device", "device-illust", m="device"),
+           toc_tag=self.tag("問いを巡る４つの門", "b", m="toctag"), gates="\n".join(gates),
+           news_tag=self.tag("ニュース", "t", m="newstag"), device=self.illust(cur, "device", "device-illust", m="device"),
            news=self.news_rows(cur, 3))
         self.page(cur, None, body, main_class="page home-page")
 
