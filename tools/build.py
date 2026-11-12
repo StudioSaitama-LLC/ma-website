@@ -55,6 +55,12 @@ def esc(s):
     return html.escape(s or "", quote=True)
 
 
+def mark_latin(s):
+    """和文と混ざるサイト名では、欧数字だけを Inter 用の要素にする。"""
+    return "".join('<span class="latin">%s</span>' % esc(part) if re.search(r"[A-Za-z0-9]", part) else esc(part)
+                   for part in re.split(r"([\u3000-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff00-\uffef]+)", s or ""))
+
+
 def lines(s):
     """改行をそのまま見せる（文に手を入れない）。"""
     return "<br>\n".join(esc(x) for x in (s or "").split("\n"))
@@ -672,31 +678,35 @@ class Site:
         return prefix + target
 
     def tag(self, text, variant="a", el="h2", id_=None, m=None):
-        """白い札の見出し（デザインの News・Table of Contents など）。"""
+        """節の見出し。印と文言を別要素にし、全ページで同じ型にする。"""
         mm = (' data-m="%s"' % m) if m else ""
-        return '<%s class="tag tag-%s"%s%s><span%s>%s</span></%s>' % (
+        return '<%s class="tag section-title tag-%s"%s%s><span class="section-mark" aria-hidden="true"></span><span class="section-text"%s>%s</span></%s>' % (
             el, variant, (' id="%s"' % id_) if id_ else "", mm, (' data-m="%s-t" data-mt' % m) if m else "", esc(text), el)
 
     def frame(self, text, el="h2", m=None):
-        """白い線で囲んだ見出し（「間を巡る 4 つの門と 8 つの扉」など）。"""
-        return '<%s class="frame-label"%s>%s</%s>' % (el, (' data-m="%s"' % m) if m else "", esc(text), el)
+        """節の見出し。旧来の白枠は使わず、共通の ■ 型にそろえる。"""
+        return '<%s class="frame-label section-title"%s><span class="section-mark" aria-hidden="true"></span><span class="section-text">%s</span></%s>' % (
+            el, (' data-m="%s"' % m) if m else "", esc(text), el)
 
     def gate_head(self, g, el="h1", sub=None, plain=None):
         """門のページの見出し: 名前（Lab など）といまの言葉の 2 段。平易な説明は見出しの下の導入文に置く。
         sub・plain を渡すと、いまの言葉と説明の代わりに出す（Notion は原稿の題・書き手と最終更新日）。"""
-        state = (' <span class="status">%s</span>' % esc(g["state"])) if g.get("state") else ""
+        state = self.state_badge(g.get("state"))
         plain = plain if plain is not None else g.get("plain")
         plain = ('\n    <p class="gh-plain">%s</p>' % esc(plain)) if plain else ""
         # 同じ門のページどうしでは、この塊を同じ形・同じ高さで出す（部屋を移っても上が動かない。g-<門> は移るときの動きの目印）
-        return ('<div class="gate-head g-%s">\n    <%s class="gh-title" data-m="gh" data-mt><strong>%s</strong>%s</%s>\n'
+        return ('<div class="gate-head g-%s">\n    <%s class="gh-title" data-m="gh" data-mt><strong class="gh-en latin">%s</strong>%s</%s>\n'
                 '    <p class="gh-sub" data-m="gs" data-mt>%s</p>%s\n  </div>' % (g["key"], el, esc(g["name"]), state, el, esc(sub if sub is not None else g["ja"]), plain))
 
     def new_badge(self):
-        return '<span class="new">&lt;NEW&gt;</span>'
+        return '<span class="new latin">&lt;NEW&gt;</span>'
 
     def status_badge(self, status):
         s = STATUS.get(status, "")
-        return ' <span class="status">%s</span>' % s if s else ""
+        return self.state_badge(s)
+
+    def state_badge(self, label):
+        return ' <span class="status">（ %s ）</span>' % esc(label) if label else ""
 
     def viewbox(self, name):
         """assets/illust/<name>.svg の viewBox（手描きの絵の SVG。元は荒井さんの PDF から線をなぞったもの）。"""
@@ -732,9 +742,10 @@ class Site:
         tabs = []
         for g in self.site["gates"]:
             active = cur.startswith(g["url"].split("/")[0] + "/")
-            # 名札（小）: 上の小さな字に短い一言、白札に名前。いまいる門は黒の塗り（青は押せる印に取っておく）
-            tabs.append('<a class="gate-tab gt-%s%s" href="%s"%s><span class="gt-no" data-m="tl-%s" data-mt>%s</span>'
-                        '<span class="gt-box" data-m="tb-%s"><span data-m="tt-%s" data-mt>%s</span></span></a>'
+            # 名札: ■ と和文の呼び名、下に英名。白い札は使わない。
+            tabs.append('<a class="gate-tab gt-%s%s" href="%s"%s><span class="gt-label"><span class="gt-mark" aria-hidden="true"></span>'
+                        '<span class="gt-ja" data-m="tl-%s" data-mt>%s</span></span>'
+                        '<span class="gt-en latin" data-m="tb-%s"><span data-m="tt-%s" data-mt>%s</span></span></a>'
                         % (g["key"], " is-active" if active else "", h(g["url"]), ' aria-current="page"' if active else "",
                            g["key"], esc(g["short"]), g["key"], g["key"], esc(g["name"])))
         # サイト名の段はスクロールで流れ、名札の段は上端まで来たら貼り付く（css の .gate-bar）。メニューのボタンは右上に残す
@@ -750,7 +761,7 @@ class Site:
   </div>
 </nav>
 
-{menu}""".format(home=h(""), name=esc(self.site["name"]), tabs="\n    ".join(tabs), menu=self.menu(cur))
+{menu}""".format(home=h(""), name=mark_latin(self.site["name"]), tabs="\n    ".join(tabs), menu=self.menu(cur))
 
     def menu(self, cur):
         """全体の地図。門は名前と短い一言の 2 段、その下に番組や扉。準備中は灰色で押せない形。"""
@@ -758,8 +769,8 @@ class Site:
         cols = []
         for g in self.site["gates"]:
             # 門の名前が押せる見出し。呼び名（考え方など）は名前の後ろに添える説明。部屋や番組はその下に字下げで
-            state = (' <span class="status">%s</span>' % esc(g["state"])) if g.get("state") else ""
-            head = '<a class="mg-head" href="%s"><strong>%s</strong><span class="mg-short">%s</span></a>%s' % (
+            state = self.state_badge(g.get("state"))
+            head = '<a class="mg-head" href="%s"><strong class="latin">%s</strong><span class="mg-short">%s</span></a>%s' % (
                 h(g["url"]), esc(g["name"]), esc(g["short"]), state)
             rows = []
             if g["key"] == "channel":
@@ -769,9 +780,9 @@ class Site:
             else:
                 for d in g["doors"]:
                     if d["ready"] and d.get("url"):
-                        rows.append('<li><a href="%s">%s</a></li>' % (h(d["url"]), esc(d["en"])))
+                        rows.append('<li><a class="latin" href="%s">%s</a></li>' % (h(d["url"]), esc(d["en"])))
                     elif not d["ready"]:
-                        rows.append('<li class="is-dim">%s%s</li>' % (esc(d["en"]), self.status_badge("planned")))
+                        rows.append('<li class="is-dim"><span class="latin">%s</span>%s</li>' % (esc(d["en"]), self.status_badge("planned")))
             ul = ('\n        <ul class="mg-list">\n          %s\n        </ul>' % "\n          ".join(rows)) if rows else ""
             cols.append("""      <div class="menu-gate mg-{key}">
         {head}{ul}
@@ -790,7 +801,7 @@ class Site:
   </nav>
   {figure}
 </div>
-""".format(home=h(""), name=esc(self.site["name"]), cols="\n".join(cols), contact=h("contact/"), company=h("company/"),
+""".format(home=h(""), name=mark_latin(self.site["name"]), cols="\n".join(cols), contact=h("contact/"), company=h("company/"),
            figure=self.illust(cur, "figure", "menu-figure"))
 
     def footer(self, cur):
@@ -798,16 +809,16 @@ class Site:
         f = self.site["follow"]
         # 外のサイトは行き先のサービス名と ↗ で呼ぶ（音声は扉の名前 Radio・Podcast ではなく、行き先の SoundCloud）
         links = [(f.get("youtube"), "YouTube"), (f.get("podcast"), "SoundCloud"), (f.get("note"), "note")]
-        follow = " ".join('<a href="%s" target="_blank" rel="noopener">%s <span aria-hidden="true">↗</span></a>' % (esc(u), n) for u, n in links if u)
+        follow = " ".join('<a class="latin" href="%s" target="_blank" rel="noopener">%s <span aria-hidden="true">↗</span></a>' % (esc(u), n) for u, n in links if u)
         return """<footer class="site-footer">
   <p class="fc-1"><span class="fc-name" data-m="f1" data-mt>{name}</span> <span class="fc-follow" data-m="f2" data-mt>{follow}</span></p>
   <p class="fc-2" data-m="f3" data-mt>©2026, Manaka Ltd.{beta}</p>
   <button class="theme-toggle" type="button" aria-label="表示の色を切り替える" data-m="toggle">
-    <span class="tt-knob"></span><span class="tt-label">Dark</span><span class="tt-icon" aria-hidden="true">☾</span>
+    <span class="tt-knob"></span><span class="tt-label latin">Dark</span><span class="tt-icon" aria-hidden="true">☾</span>
   </button>
-  <p class="footer-links" data-m="flinks"><a href="{contact}">Contact</a><a href="{company}">Company</a></p>
+  <p class="footer-links" data-m="flinks"><a class="latin" href="{contact}">Contact</a><a class="latin" href="{company}">Company</a></p>
 </footer>
-""".format(name=esc(self.site["name"]), follow=follow, beta=("　" + esc(self.site["beta_note"])) if self.site.get("noindex") else "",
+""".format(name=mark_latin(self.site["name"]), follow=follow, beta=("　" + esc(self.site["beta_note"])) if self.site.get("noindex") else "",
            company=h("company/"), contact=h("contact/"))
 
     def claim(self, cur):
@@ -840,7 +851,7 @@ class Site:
 <script>document.documentElement.classList.add("js");function maTheme(){{try{{document.documentElement.classList.toggle("light",localStorage.getItem("ma-theme")==="light")}}catch(e){{}}}}maTheme();if(document.prerendering)document.addEventListener("prerenderingchange",maTheme,{{once:true}});(function(){{try{{if(!matchMedia("(max-width:359.98px)").matches)return;var d=document.documentElement,z=document.createElement("div");z.style.cssText="position:absolute;visibility:hidden;width:0;height:100vh;zoom:.5";d.appendChild(z);var h=z.getBoundingClientRect().height;z.remove();if(h>0&&h<innerHeight*.75)d.classList.add("zoom-vh")}}catch(e){{}}}})()</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
 <meta name="description" content="{desc}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{name}">
@@ -900,7 +911,7 @@ class Site:
         if self.is_new(date) if new is None else new:
             parts.append(self.new_badge())
         if date:
-            parts.append('<span class="em-date">%s</span>' % esc(short_date(date)))
+            parts.append('<span class="em-date number">%s</span>' % esc(short_date(date)))
         mm = (' data-m="%s" data-mt' % m) if m else ""
         return '<%s class="entry-meta"%s>%s</%s>' % (el, mm, " ".join(parts), el) if parts else ""
 
@@ -961,10 +972,10 @@ class Site:
         first = e.get("date") or min((self.item_date(c) for c in pub if self.item_date(c)), default="")  # 回の公開日があればそれ
         note = e.get("caption") or (self.ep_lines(e, items)[:1] or [""])[0]
         views = "・".join(dict.fromkeys(self.view_label(c) for c in sorted(pub, key=lambda c: KIND_ORDER[c["kind"]])))
-        meta = " ".join(x for x in (self.new_badge() if self.is_new(date) else "", esc(short_date(first)), esc(views)) if x)
+        meta = " ".join(x for x in (self.new_badge() if self.is_new(date) else "", '<span class="number">%s</span>' % esc(short_date(first)), esc(views)) if x)
         rows = [
             '<span class="card-kicker">%s</span>' % esc(p["ja"]) if show_program else "",
-            '<span class="card-title">%s</span>' % esc(self.ep_label(n, e)),
+            '<span class="card-title"><span class="number latin">#%d</span> %s</span>' % (n, esc(self.ep_name(e))),
             '<span class="card-note">%s</span>' % esc(note) if note else "",
             ('<span class="card-meta">%s</span>' % meta) if pub else '<span class="card-meta">%s</span>' % self.status_badge("planned").strip(),
             '<span class="card-update">%s</span>' % esc(added) if added else "",
@@ -1055,8 +1066,8 @@ class Site:
                 rows.append(self.episode_card(cur, x["program"], x["n"], x["episode"], x["items"], show_program=True, added=x["added"]))
             else:
                 link = self.href(cur, x["url"]) if x.get("url") else None
-                rows.append(self.card(link, ['<span class="card-meta">%s</span>' % esc(short_date(x["date"])),
-                                             '<span class="card-title">%s</span>' % esc(x["title"]),
+                rows.append(self.card(link, ['<span class="card-meta number">%s</span>' % esc(short_date(x["date"])),
+                                             '<span class="card-title">%s</span>' % mark_latin(x["title"]),
                                              '<span class="card-note">%s</span>' % esc(x["text"]) if x.get("text") else ""], "card-news"))
         return self.cards(rows)
 
@@ -1072,15 +1083,15 @@ class Site:
 {lines}
     <p class="quote-credit" data-m="credit" data-mt>(-{credit})</p>
   </section>
-""".format(lines="\n".join('    <p>%s</p>' % esc(l) for l in q["lines"]), credit=esc(q["credit"]))
+""".format(lines="\n".join('    <p class="quote-copy">%s</p>' % esc(l) for l in q["lines"]), credit=esc(q["credit"]))
         latest = self.latest_episode()
         start = ('<a class="btn-primary" href="%s">最新の動画を観る <span aria-hidden="true">→</span></a>' % h(self.episode_url(latest["program"], latest["episode"]))) if latest else ""
         gates = []
         for i, g in enumerate(self.site["gates"]):
-            # 門は 1 つの押せる見出し（小さな呼び名・名前 →・いまの言葉）、その下に説明、いちばん下に部屋や番組のボタン
-            state = (' <span class="status">%s</span>' % esc(g["state"])) if g.get("state") else ""
+            # 門の見出しは呼び名、英名と矢印、和文の役割の順。
+            state = self.state_badge(g.get("state"))
             head = ('<a class="toc-link" href="%s"><span class="toc-kicker">%s</span>'
-                    '<span class="toc-name">%s <span class="toc-go" aria-hidden="true">→</span></span>'
+                    '<span class="toc-name latin">%s <span class="toc-go latin" aria-hidden="true">→</span></span>'
                     '<span class="toc-ja">%s%s</span></a>' % (h(g["url"]), esc(g["short"]), esc(g["name"]), esc(g["ja"]), state))
             subs = []
             if g["key"] == "channel":
@@ -1091,9 +1102,9 @@ class Site:
             else:
                 for d in g["doors"]:
                     if d["ready"] and d.get("url"):
-                        subs.append('<li><a class="toc-door" href="%s">%s</a></li>' % (h(d["url"]), esc(d["en"])))
+                        subs.append('<li><a class="toc-door latin" href="%s">%s</a></li>' % (h(d["url"]), esc(d["en"])))
                     elif not d["ready"]:
-                        subs.append('<li class="is-dim"><span class="toc-door">%s%s</span></li>' % (esc(d["en"]), self.status_badge("planned")))
+                        subs.append('<li class="is-dim"><span class="toc-door latin">%s%s</span></li>' % (esc(d["en"]), self.status_badge("planned")))
             gates.append("""      <li class="toc-gate">
         {head}
         <p class="toc-plain">{plain}</p>{subs}
@@ -1111,12 +1122,12 @@ class Site:
     </div>
   </section>
 
+{quote}
   <section class="home-start col" aria-label="このサイトについて">
+    {hiraba}
     <p class="home-lead">{desc}</p>
     {start}
-    {hiraba}
   </section>
-{quote}
   <section class="toc col" id="toc">
     {toc_tag}
     <ol class="toc-gates">
@@ -1132,10 +1143,11 @@ class Site:
   <div class="home-end">{homelogo}</div>
 """.format(homelogo=self.logo(cur, "home-logo", m="flogo"), name=esc(self.site["name"]), visitors=esc(str(self.site.get("visitors", 1))),
            counter=(' data-counter="%s"' % esc(self.site["counter_api"])) if self.site.get("counter_api") else "",
-           figure=self.illust(cur, "figure", "hero-figure", m="figure"), desc=esc(self.site["description"]), start=start,
+           figure=self.illust(cur, "figure", "hero-figure", m="figure"),
+           desc=esc(self.site["description"]).replace('、&quot;間&quot; ', '、<br class="lead-break-sp">&quot;間&quot; ', 1).replace('届ける', '届ける<br class="lead-break">', 1), start=start,
            hiraba=self.illust(cur, "hiraba", "hiraba-illust", m="hiraba"), quote=quote,
            toc_tag=self.tag("間を巡る 4 つの門", "b", m="toctag"), gates="\n".join(gates),
-           news_tag=self.tag("News", "t", m="newstag"), device=self.illust(cur, "device", "device-illust", m="device"),
+           news_tag=self.tag("ニュース", "t", m="newstag"), device=self.illust(cur, "device", "device-illust", m="device"),
            news=self.news_rows(cur, 3))
         self.page(cur, None, body, main_class="page home-page")
 
