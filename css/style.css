@@ -1204,7 +1204,7 @@ html:not(.js) .ref-filters { display: none; }
 .home-end { padding-top: 150px; }
 .hero-figure { left: calc(50% - 16px); width: 32px; height: 120px; }
 /* 引用は掲載時に自然な高さで組む。本文が空の間は生成されない。 */
-.quote { font-family: "Noto Sans JP", sans-serif; height: auto; margin-top: 0; margin-bottom: 100px; font-size: 15px; line-height: 28px; }
+.quote { font-family: "Noto Sans JP", sans-serif; height: auto; margin-top: 0; margin-bottom: 63px; font-size: 15px; line-height: 28px; }
 .quote p { text-indent: 1em; }
 .quote .quote-credit { position: static; margin-top: 28px; text-indent: 0; }
 @media (min-width: 1200px) {
@@ -1216,7 +1216,7 @@ html:not(.js) .ref-filters { display: none; }
   .device-illust { left: 260px; top: -76px; width: 108px; height: 140px; }
   .home-end { padding-top: 200px; }
   .hero-figure { left: calc(50% - 303px); width: 45px; height: 170px; }
-  .quote { margin-bottom: 150px; font-size: 18px; line-height: 33px; }
+  .quote { margin-bottom: 60px; font-size: 18px; line-height: 33px; }
   .quote .quote-credit { margin-top: 33px; }
 }
 
@@ -1517,9 +1517,9 @@ a.toc-door:hover { background: var(--accent); color: var(--on-accent); text-deco
 .site-footer a, .site-footer a .latin, .hc-num, .ep-no,
 .flowmap .t-ma, .flowmap .t-room { font-family: "Inter", sans-serif; font-weight: 800; }
 .site-footer a { font-size: var(--small); }
-/* フッター右の案内と著作権表記は、main と同じ通常ウェイト・寸法に戻す。 */
-.site-footer .footer-links a { font-size: inherit; font-weight: 400; }
-.site-footer .fc-2 { font-size: var(--small); font-weight: 400; }
+/* フッター右の案内と著作権表記は Inter Light。寸法は維持する。 */
+.site-footer .footer-links a { font-size: inherit; font-weight: 300; }
+.site-footer .fc-2 { font-size: var(--small); font-weight: 300; }
 .theme-toggle .tt-label { font-size: inherit; font-weight: 400; }
 .toc-door.latin, .toc-door > .latin, .local-nav .latin { font-weight: 500; }
 .status, .status .latin, .status .number { font-family: "Noto Sans JP", sans-serif; font-weight: 400; color: var(--muted); }
