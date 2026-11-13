@@ -1291,6 +1291,13 @@ html:not(.js) .ref-filters { display: none; }
 /* Home: 最初の画面の下に、このサイトの一言と「最新の回を観る」が見えるよう、平場の段を詰める */
 .hero { height: max(390px, calc(var(--h1) - 150px)); }
 @media (min-width: 1200px) { .hero { height: max(590px, calc(var(--h1) - 90px)); } }
+/* スマホの冒頭はカウンターと人物を画面高の段の中央に置き、引用はスクロールした先へ。
+   --scr は 100svh（未対応なら 100vh）。小画面での zoom の補正も引き継ぐ。 */
+@media (max-width: 767px) {
+  .home-page .hero { height: auto; min-height: var(--scr); display: flex; align-items: center; }
+  .home-page .hero-block { position: relative; top: auto; width: 100%; }
+  .home-page .quote { margin-top: 64px; }
+}
 /* 番組の冒頭の段: 矢印を外したので高さは中身と絵で決める（絵の下端が収まる最小の高さだけ残す） */
 .program-top { height: auto; min-height: calc(var(--p-min) - 88px); }
 @media (min-width: 1200px) { .program-top, .pg-ma-development-process .program-top, .pg-ma-crosstalk .program-top { height: auto; min-height: 900px; } }
