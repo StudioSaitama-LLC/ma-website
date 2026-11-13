@@ -181,6 +181,22 @@ def split_after_block(html, open_tag, where):
     raise SystemExit("src/%s: %s の閉じタグがありません" % (where, open_tag))
 
 
+def insert_after_figure(frag, image_src, figure, where):
+    """指定した写真の figure の直後へ挿入する。原稿の変更で目印が消えたら生成を止める。"""
+    matches = []
+    for m in re.finditer(r"<!--.*?-->|<figure\b([^>]*)>.*?</figure\s*>", frag, flags=re.S | re.I):
+        if m.group(1) is None or "article-figure" not in class_list(m.group(1)):
+            continue
+        body = re.sub(r"<!--.*?-->", "", m.group(0), flags=re.S)
+        if re.search(r'<img\b[^>]*\ssrc\s*=\s*([\"\'])' + re.escape(image_src) + r'\1', body, flags=re.I):
+            matches.append(m.end())
+    if len(matches) != 1:
+        raise SystemExit("src/%s: portrait の挿入先 %s を含む article-figure は 1 つ必要（%d 個）" %
+                         (where, image_src, len(matches)))
+    end = matches[0]
+    return frag[:end] + "\n\n" + figure + frag[end:]
+
+
 class Site:
     def __init__(self):
         self.site = load("site.json")
@@ -270,10 +286,16 @@ class Site:
                 errors.append("contents.json #%s: site.json の views に「%s」の一言が無い（見方のカードに出す）" % (cid, c["badge"]))
             if c.get("portrait_focus") and not re.fullmatch(r"\d{1,3}% \d{1,3}%", c["portrait_focus"]):
                 errors.append("contents.json #%s: portrait_focus は \"68%% 50%%\" の形で書く" % cid)
-            if c.get("portrait_position", "end") not in ("end", "after_article"):
-                errors.append("contents.json #%s: portrait_position は end か after_article にする" % cid)
+            if c.get("portrait_position", "end") not in ("end", "after_article", "after_figure"):
+                errors.append("contents.json #%s: portrait_position は end / after_article / after_figure にする" % cid)
             if "portrait_position" in c and not (c.get("portrait") and c.get("article")):
                 errors.append("contents.json #%s: portrait_position を指定するなら portrait と article も書く" % cid)
+            if c.get("portrait_position") == "after_figure":
+                target = c.get("portrait_after_figure")
+                if not isinstance(target, str) or not re.fullmatch(IMAGE_NAME, target):
+                    errors.append("contents.json #%s: portrait_after_figure に本文の写真のファイル名を書く" % cid)
+            elif "portrait_after_figure" in c:
+                errors.append("contents.json #%s: portrait_after_figure は portrait_position が after_figure のときだけ書く" % cid)
             hero = c.get("hero", [])
             if not (isinstance(hero, list) and all(isinstance(x, str) for x in hero)):
                 errors.append("contents.json #%s: hero は写真の名前の並び（[\"photo-1.jpg\", …]）" % cid)
@@ -1860,10 +1882,17 @@ class Site:
             focus = (' style="object-position: %s"' % item["portrait_focus"]) if item.get("portrait_focus") else ""
             portrait = ('  <figure class="article-portrait" data-m="aport"><img src="%s" alt="%s" loading="lazy" decoding="async"%s></figure>\n' % (
                 esc(h("assets/" + item["portrait"])), esc(item["portrait_alt"]), focus)) if item.get("portrait") else ""
-            # 指定した記事だけ本文直後に置く。本文の列の外で、末尾に置く場合と同じ幅・切り抜きを保つ。
+            # after_article は本文の外の全幅表示、after_figure は本文写真と同じ幅・元の縦横比で置く。
             portrait_after_article = ""
             if item.get("portrait_position", "end") == "after_article":
                 portrait_after_article, portrait = portrait, ""
+            elif item.get("portrait_position") == "after_figure":
+                inline_portrait = ('    <figure class="article-figure">\n'
+                                   '      <img class="article-photo" src="%s" alt="%s" loading="lazy" decoding="async">\n'
+                                   '    </figure>' % (esc(h("assets/" + item["portrait"])), esc(item["portrait_alt"])))
+                rest = insert_after_figure(rest, esc(h("assets/" + item["portrait_after_figure"])),
+                                           inline_portrait, item["article"])
+                portrait = ""
             if item.get("prologue"):
                 ep_p = self.program(item["program"])
                 where = '<a href="%s">%s</a> #0' % (h("channel/%s/" % ep_p["slug"]), esc(ep_p["ja"]))

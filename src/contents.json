@@ -90,7 +90,8 @@
       "ep224-1.jpg"
     ],
     "portrait": "ep225-4.jpg",
-    "portrait_position": "after_article",
+    "portrait_position": "after_figure",
+    "portrait_after_figure": "ep225-3.jpg",
     "words": "荒井 道広",
     "article": "articles/2-2-5.html",
     "portrait_alt": "曇り空の下、海を望む山の中腹で対談を撮る撮影クルー",
