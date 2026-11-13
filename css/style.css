@@ -302,14 +302,14 @@ html:not(.js) .menu-btn, html:not(.js) .ft-sign { display: none; }
   height: 22px;
   padding: 0 8px 0 2px;
   border: 0;
-  border-radius: 0;
+  border-radius: 11px;
   background: var(--pill-bg);
   color: var(--pill-fg);
   font: inherit;
   font-size: 11px;
   cursor: pointer;
 }
-.tt-knob { width: 18px; height: 18px; border-radius: 0; background: var(--pill-fg); }
+.tt-knob { width: 18px; height: 18px; border-radius: 50%; background: var(--pill-fg); }
 html.light .theme-toggle { flex-direction: row-reverse; padding: 0 2px 0 8px; }
 .home-end { padding-top: 107px; }
 .home-logo { display: block; width: 40px; margin: 0 auto; transform: rotate(-16deg); }
@@ -321,7 +321,7 @@ html.light .theme-toggle { flex-direction: row-reverse; padding: 0 2px 0 8px; }
   .fc-name { margin-right: 0.8em; }
   .fc-2 { top: 16px; }
   .footer-links { right: 39px; top: 12px; gap: 16px; font-size: 18px; line-height: 30px; }
-  .theme-toggle { left: 46px; top: 12px; height: 30px; padding: 0 12px 0 3px; border-radius: 0; font-size: 14px; gap: 7px; }
+  .theme-toggle { left: 46px; top: 12px; height: 30px; padding: 0 12px 0 3px; border-radius: 15px; font-size: 14px; gap: 7px; }
   .tt-knob { width: 24px; height: 24px; }
   html.light .theme-toggle { padding: 0 3px 0 12px; }
   .home-end { padding-top: 180px; }
@@ -1191,11 +1191,10 @@ html:not(.js) .ref-filters { display: none; }
 .door-soon { margin-top: 14px; color: var(--muted); }
 @media (min-width: 1200px) { .btn-primary { min-height: 35px; padding-top: 7.5px; padding-bottom: 7.5px; font-size: 15px; } }
 
-/* Home: 紹介は絵 → 文 → ボタン。絵は本文列の右寄り。 */
+/* Home: 紹介は絵 → 文。絵は本文列の右寄り。 */
 .home-start { display: flex; flex-direction: column; align-items: center; text-align: center; }
 .home-start .hiraba-illust { position: static; align-self: flex-end; width: 89px; height: 70px; margin: 0 21px 17px 0; }
 .home-lead { max-width: none; width: 100%; font-size: 15px; line-height: 28px; font-weight: 700; }
-.home-start .btn-primary { margin-top: 22px; }
 .lead-break-sp { display: inline; }
 .toc { margin-top: 150px; }
 .news { margin-top: 100px; }
@@ -1235,8 +1234,8 @@ html:not(.js) .ref-filters { display: none; }
 .ep-lines { margin-top: 14px; }
 .ep-place { margin-top: 6px; font-size: var(--small); }
 .episode > .video { margin-top: 32px; }
-/* 音声（SoundCloud の埋め込み）: 動画と同じ幅。プレイヤーの高さは埋め込みコードの 166px */
-.audio { margin-left: -15px; margin-right: -15px; background: var(--ph); }
+/* 音声（SoundCloud の埋め込み）: 本文の列に収める。プレイヤーの高さは埋め込みコードの 166px */
+.audio { margin-left: 0; margin-right: 0; background: var(--ph); }
 .audio iframe { display: block; width: 100%; height: 166px; border: 0; }
 .episode > .audio { margin-top: 32px; }
 .episode > .video + .audio { margin-top: 16px; }
@@ -1518,6 +1517,10 @@ a.toc-door:hover { background: var(--accent); color: var(--on-accent); text-deco
 .site-footer a, .site-footer a .latin, .hc-num, .ep-no,
 .flowmap .t-ma, .flowmap .t-room { font-family: "Inter", sans-serif; font-weight: 800; }
 .site-footer a { font-size: var(--small); }
+/* フッター右の案内と著作権表記は、main と同じ通常ウェイト・寸法に戻す。 */
+.site-footer .footer-links a { font-size: inherit; font-weight: 400; }
+.site-footer .fc-2 { font-size: var(--small); font-weight: 400; }
+.theme-toggle .tt-label { font-size: inherit; font-weight: 400; }
 .toc-door.latin, .toc-door > .latin, .local-nav .latin { font-weight: 500; }
 .status, .status .latin, .status .number { font-family: "Noto Sans JP", sans-serif; font-weight: 400; color: var(--muted); }
 .gt-mark, .section-mark { font-size: 0; line-height: 0; }
@@ -1574,4 +1577,5 @@ a.toc-door:hover { background: var(--accent); color: var(--on-accent); text-deco
   .sec > .tag + .cards, .sec > .tag + .chips, .sec > .tag + .dev-grid,
   .channel-menu .cards, .latest .cards { margin-top: 70px; }
   .line-head::before, .cg-head::before { left: -40px; top: 7px; width: 20px; height: 20px; }
+  .site-footer .fc-2 { font-size: 15.6px; }
 }

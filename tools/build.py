@@ -270,6 +270,10 @@ class Site:
                 errors.append("contents.json #%s: site.json の views に「%s」の一言が無い（見方のカードに出す）" % (cid, c["badge"]))
             if c.get("portrait_focus") and not re.fullmatch(r"\d{1,3}% \d{1,3}%", c["portrait_focus"]):
                 errors.append("contents.json #%s: portrait_focus は \"68%% 50%%\" の形で書く" % cid)
+            if c.get("portrait_position", "end") not in ("end", "after_article"):
+                errors.append("contents.json #%s: portrait_position は end か after_article にする" % cid)
+            if "portrait_position" in c and not (c.get("portrait") and c.get("article")):
+                errors.append("contents.json #%s: portrait_position を指定するなら portrait と article も書く" % cid)
             hero = c.get("hero", [])
             if not (isinstance(hero, list) and all(isinstance(x, str) for x in hero)):
                 errors.append("contents.json #%s: hero は写真の名前の並び（[\"photo-1.jpg\", …]）" % cid)
@@ -931,7 +935,7 @@ class Site:
         if not (item.get("soundcloud") and item.get("status") == "published"):
             return ""
         src = ("https://w.soundcloud.com/player/?url=%s&color=%%231414dc&auto_play=false&hide_related=false"
-               "&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" % quote(item["soundcloud"], safe=""))
+               "&show_comments=true&show_user=true&show_reposts=false&show_teaser=false" % quote(item["soundcloud"], safe=""))
         return ('<div class="audio"%s><iframe src="%s" title="%s（SoundCloud）" loading="lazy" '
                 'allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>'
                 % ((' id="%s"' % id_) if id_ else "", esc(src), esc(drop_code(item["title"]) or item["title"])))
@@ -1051,7 +1055,7 @@ class Site:
     # ---------- 各ページ ----------
 
     def latest_episode(self):
-        """動画を公開した回のうち、いちばん新しい回（Home の「最新の動画を観る」の行き先）。
+        """動画を公開した回のうち、いちばん新しい回（Channel の最新の回）。
         読み物や音声だけ先に出た回は、観るものが無いので選ばない。"""
         for x in self.news:
             if x.get("episode") and any(c["kind"] == "tv" and c.get("status") == "published" for c in x["items"]):
@@ -1084,8 +1088,6 @@ class Site:
     <p class="quote-credit" data-m="credit" data-mt>(-{credit})</p>
   </section>
 """.format(lines="\n".join('    <p class="quote-copy">%s</p>' % esc(l) for l in q["lines"]), credit=esc(q["credit"]))
-        latest = self.latest_episode()
-        start = ('<a class="btn-primary" href="%s">最新の動画を観る <span aria-hidden="true">→</span></a>' % h(self.episode_url(latest["program"], latest["episode"]))) if latest else ""
         gates = []
         for i, g in enumerate(self.site["gates"]):
             # 門の見出しは呼び名、英名と矢印、和文の役割の順。
@@ -1126,7 +1128,6 @@ class Site:
   <section class="home-start col" aria-label="このサイトについて">
     {hiraba}
     <p class="home-lead">{desc}</p>
-    {start}
   </section>
   <section class="toc col" id="toc">
     {toc_tag}
@@ -1144,7 +1145,7 @@ class Site:
 """.format(homelogo=self.logo(cur, "home-logo", m="flogo"), name=esc(self.site["name"]), visitors=esc(str(self.site.get("visitors", 1))),
            counter=(' data-counter="%s"' % esc(self.site["counter_api"])) if self.site.get("counter_api") else "",
            figure=self.illust(cur, "figure", "hero-figure", m="figure"),
-           desc=esc(self.site["description"]).replace('、&quot;間&quot; ', '、<br class="lead-break-sp">&quot;間&quot; ', 1).replace('届ける', '届ける<br class="lead-break">', 1), start=start,
+           desc=esc(self.site["description"]).replace('、&quot;間&quot; ', '、<br class="lead-break-sp">&quot;間&quot; ', 1).replace('届ける', '届ける<br class="lead-break">', 1),
            hiraba=self.illust(cur, "hiraba", "hiraba-illust", m="hiraba"), quote=quote,
            toc_tag=self.tag("間を巡る 4 つの門", "b", m="toctag"), gates="\n".join(gates),
            news_tag=self.tag("ニュース", "t", m="newstag"), device=self.illust(cur, "device", "device-illust", m="device"),
@@ -1779,7 +1780,7 @@ class Site:
             self.page(cur, p["ja"], body, main_class="page program-page pg-%s" % p["slug"])
 
     def build_episodes(self):
-        """回のページ: 動画が主役（音声の回は、その下に SoundCloud のプレイヤー）。その下に読む・聴く（見方カード）、出てくる道具、映っている間、次の一歩。
+        """回のページ: 動画、読む・聴く（見方カード）、SoundCloud のプレイヤー、出てくる道具、映っている間、次の一歩。
         見出しは YouTube の題に揃える（回の題と一言を YouTube に合わせる決まり）。公開済みのコンテンツが 1 つも無い回はページを作らない。"""
         for p in self.programs:
             for n, e, items in self.numbered(p):
@@ -1790,12 +1791,12 @@ class Site:
                 lines_ = self.ep_lines(e, items)
                 place = next((c.get("place") for c in items if c.get("place")), "")
                 # 動画がまだの回も、動画の枠は「準備中」で置く（読み物や音声だけ先に出た回で、動画が来ることが分かるように）。
-                # 音声（SoundCloud）はその下に埋め込む（出した最初の 1 つに #radio。ほかのページの見方カードの行き先）。
+                # 音声（SoundCloud）は見方カードの下に埋め込む（出した最初の 1 つに #radio。ほかのページの見方カードの行き先）。
                 # 回のページ自身では、プレイヤーを出した音声のカードは出さない（動画と同じ。準備中の音声はカードで知らせる）
                 radios = [c for c in items if c["kind"] == "radio" and self.radio_media(c)]
                 media = [self.tv_media(c) for c in items if c["kind"] == "tv"]
-                media += [self.radio_media(c, id_="radio" if i == 0 else None) for i, c in enumerate(radios)]
                 videos = "\n    ".join(x for x in media if x)
+                audio = "".join("\n    " + self.radio_media(c, id_="radio" if i == 0 else None) for i, c in enumerate(radios))
                 views = [self.view_card(cur, c, p, e) for c in items if c["kind"] != "tv" and c not in radios]
                 prods = []
                 for c in items:
@@ -1816,7 +1817,7 @@ class Site:
     <div class="ep-about">
       <p class="ep-lines">{lines}</p>{place}
     </div>
-  {views}
+  {views}{audio}
   {prods}
   {els}
     {steps}
@@ -1824,7 +1825,7 @@ class Site:
 """.format(channel=self.href(cur, "channel/"), gname=esc(self.gate("channel")["name"]), prog=self.href(cur, "channel/%s/" % p["slug"]),
            pja=esc(p["ja"]), label=esc(self.ep_label(n, e)), title=esc(self.ep_title(e, items)), meta=self.date_meta(date, new=self.is_new(max((self.item_date(c) for c in pub if self.item_date(c)), default=""))),
            lines="<br>".join(esc(x) for x in lines_), place=('\n      <p class="ep-place">Place: %s</p>' % esc(place)) if place else "",
-           videos=videos, views=self.section("読む・聴く", self.cards(views, "cards-view")),
+           videos=videos, views=self.section("読む・聴く", self.cards(views, "cards-view")), audio=audio,
            prods=self.section("出てくる道具", ('<ul class="dev-grid">\n%s\n    </ul>' % "\n".join(self.product_card(cur, x) for x in prods)) if prods else ""),
            els=self.section("映っている間", self.element_chips(cur, e.get("elements", []), "要素")),
            steps=self.next_steps(cur, ("channel/%s/" % p["slug"], "番組へ戻る"), self.next_episode(p, n)))
@@ -1859,6 +1860,10 @@ class Site:
             focus = (' style="object-position: %s"' % item["portrait_focus"]) if item.get("portrait_focus") else ""
             portrait = ('  <figure class="article-portrait" data-m="aport"><img src="%s" alt="%s" loading="lazy" decoding="async"%s></figure>\n' % (
                 esc(h("assets/" + item["portrait"])), esc(item["portrait_alt"]), focus)) if item.get("portrait") else ""
+            # 指定した記事だけ本文直後に置く。本文の列の外で、末尾に置く場合と同じ幅・切り抜きを保つ。
+            portrait_after_article = ""
+            if item.get("portrait_position", "end") == "after_article":
+                portrait_after_article, portrait = portrait, ""
             if item.get("prologue"):
                 ep_p = self.program(item["program"])
                 where = '<a href="%s">%s</a> #0' % (h("channel/%s/" % ep_p["slug"]), esc(ep_p["ja"]))
@@ -1867,7 +1872,7 @@ class Site:
                 ep_p, ep_e, ep_items = self.find_episode(item)
                 n = self.number_of(ep_p, ep_e)
                 where = '<a href="%s">%s %s</a>' % (h(self.episode_url(ep_p, ep_e)), esc(ep_p["ja"]), esc(self.ep_label(n, ep_e)))
-                # 記事の後ろ（人物の写真の前。戻しの指示）に、同じ回のほかの形（今の記事を除く）と次の一歩
+                # 記事の後ろに、同じ回のほかの形（今の記事を除く）と次の一歩
                 others = self.section("同じ回を、ほかの形で", self.cards(
                     [self.view_card(cur, c, ep_p, ep_e) for c in ep_items if c["id"] != item["id"] and c.get("status") == "published"], "cards-view"), "article-episode")
                 steps = self.next_steps(cur, (self.episode_url(ep_p, ep_e), "この回へ戻る"), self.next_episode(ep_p, n))
@@ -1881,12 +1886,13 @@ class Site:
   <div class="content article" id="article-start">
 {rest}
   </div>
-  <div class="content">
+{portrait_after_article}  <div class="content">
   {others}
     {steps}
   </div>
 {portrait}  <div class="home-end article-end">{logo}</div>
 """.format(hero=hero, where=where, head=head.rstrip("\n"), rest=rest.strip("\n"), others=others, steps=steps, portrait=portrait,
+           portrait_after_article=portrait_after_article,
            logo=self.logo(cur, "home-logo", m="lma"))
             self.page(cur, item["title"] if item.get("badge", "") in item["title"] else "%s %s" % (item.get("badge", ""), item["title"]), body, main_class="page article-page")
             for old in item.get("redirect_from", []):
