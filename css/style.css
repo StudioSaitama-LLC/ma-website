@@ -208,9 +208,9 @@ html:not(.js) .menu-btn, html:not(.js) .ft-sign { display: none; }
 .gate-tab { display: flex; flex-direction: column; color: var(--fg); }
 .gate-tab:hover { text-decoration: none; }
 .gt-label { display: flex; align-items: center; gap: 4px; line-height: 15px; }
-.gt-mark { display: inline-block; flex: none; width: 8px; height: 8px; background: var(--fg); }
+.gt-mark { display: inline-block; flex: none; width: 8px; height: 8px; background: currentColor; }
 .gt-ja { font-size: 10px; font-weight: 400; }
-.gt-en { font-family: "Inter", sans-serif; font-size: 14px; line-height: 20px; font-weight: 800; color: var(--fg); }
+.gt-en { font-family: "Inter", sans-serif; font-size: 14px; line-height: 20px; font-weight: 800; color: inherit; }
 .gate-tab:hover .gt-en, .gate-tab.is-active .gt-en { text-decoration: underline; text-underline-offset: 4px; }
 
 @media (min-width: 1200px) {
@@ -1390,11 +1390,13 @@ html:not(.js) .filter-box { display: none; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.16s; animation-timing-function: ease-out; }
 ::view-transition-group(ln-bar-lab), ::view-transition-group(ln-bar-do) { animation-duration: 0.24s; animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); }
 /* 押せるものの手応え（乗せたときの色の変わり方をなめらかに） */
-.card-link, .local-nav a, .gate-tab .gt-en, .btn-primary, .buy-btn, .pill { transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease; }
+.card-link, .local-nav a, .btn-primary, .buy-btn, .pill { transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease; }
+.gate-tab { transition: color 0.2s ease; }
+.gate-tab:hover, .gate-tab:active, .gate-tab:focus-visible { color: #00ffff; }
 @media (prefers-reduced-motion: reduce) {
   @view-transition { navigation: none; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
-  .card-link, .local-nav a, .gate-tab .gt-en, .btn-primary, .buy-btn, .pill { transition: none; }
+  .card-link, .local-nav a, .gate-tab, .btn-primary, .buy-btn, .pill { transition: none; }
 }
 
 /* ---------- 間の地図（流れの図）: 間 → 章 → 要素 → 部屋。帯の太さはつながりの数 ---------- */
@@ -1434,9 +1436,18 @@ html.light .flowmap.is-focus .rib.on { opacity: 0.6; }
 .toc-link:visited { color: var(--fg); }
 .toc-kicker { font-size: 13px; line-height: 20px; font-weight: 400; }
 .toc-name { color: var(--accent); font-family: "Inter", sans-serif; font-size: 25px; line-height: 30px; font-weight: 800; white-space: nowrap; }
-.toc-go { display: inline-block; font-size: 20px; font-weight: 800; transition: transform 0.18s ease; }
+.toc-go { display: inline-block; font-size: 20px; font-weight: 800; }
+.toc-go, .news .card-go { transition: transform 0.18s ease; }
 .toc-link:hover .toc-name { text-decoration: underline; text-underline-offset: 4px; }
-.toc-link:hover .toc-go { transform: translateX(4px); }
+.toc-link:is(:hover, :active, :focus-visible) .toc-go,
+.news .card-link:is(:hover, :active, :focus-visible) .card-go {
+  transform: translateX(4px);
+  animation: ma-arrow-nudge 0.18s ease both;
+}
+@keyframes ma-arrow-nudge {
+  from { transform: translateX(0); }
+  to { transform: translateX(4px); }
+}
 .toc-ja { grid-column: 1 / -1; font-size: 15px; line-height: 22px; font-weight: 700; }
 .toc-ja .status { margin-left: 8px; vertical-align: 1px; }
 .toc-plain { margin-top: 10px; font-size: 13px; line-height: 20px; color: var(--fg); }
@@ -1450,7 +1461,9 @@ a.toc-door:hover { background: var(--accent); color: var(--on-accent); text-deco
 .toc-doors .is-dim .status { margin-left: 2px; }
 @media (min-width: 1200px) {
   .toc-gates { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 100px; row-gap: 100px; margin-top: 70px; }
-  .toc-gates::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: var(--dash-y); }
+  /* 各行の縦線を中央へ 20px 延ばす。行間 100px の中央に 60px の空きを残す。 */
+  .toc-gate:nth-child(odd)::after { content: ""; position: absolute; top: 0; bottom: -20px; left: calc(100% + 50px); width: 1px; background: var(--dash-y); }
+  .toc-gate:nth-child(3)::after { top: -20px; bottom: 0; }
   .toc-gate:nth-last-child(2) { border: 0; }
   .toc-gate + .toc-gate::before { content: none; }
   .toc-gate:nth-child(n+3)::before { content: ""; top: -50px; }
@@ -1465,7 +1478,11 @@ a.toc-door:hover { background: var(--accent); color: var(--on-accent); text-deco
   .toc-doors { margin-top: 20px; }
   .toc-door { min-height: 35px; padding-top: 7.5px; padding-bottom: 7.5px; font-size: 15px; }
 }
-@media (prefers-reduced-motion: reduce) { .toc-go { transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .toc-go, .news .card-go { transition: none; }
+  .toc-link:is(:hover, :active, :focus-visible) .toc-go,
+  .news .card-link:is(:hover, :active, :focus-visible) .card-go { animation: none; transform: none; }
+}
 
 /* メニュー: 門の名前が押せる見出し、呼び名はその後ろの小さな説明。部屋や番組は左の線の内側に字下げ。門ごとに線で区切る */
 .menu-gates { gap: 0; }
