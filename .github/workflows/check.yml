@@ -12,7 +12,9 @@ permissions:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    # Python 3.9（README の「3.9 以上」の下限）で確かめるため、3.9 を入れられる版に固定する。
+    # ubuntu-latest は 2026-11 に 26.04 になり、setup-python が 3.9 を取れなくなった（#38）。
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
