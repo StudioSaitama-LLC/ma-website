@@ -560,6 +560,7 @@ html:not(.js) .fold-end { display: none; }
 .manifesto-box { margin: var(--lh) 0; padding: 14px 18px; border: 1px solid var(--fg); }
 .manifesto-box p { margin: 0; text-indent: 0 !important; }
 .manifesto-figure { margin: var(--lh) 0; padding: 8px; background: #fff; }
+.manifesto-figure a { display: block; cursor: zoom-in; }
 .manifesto-figure img { display: block; width: 100%; height: auto; margin: 0 auto; }
 @media (min-width: 1200px) {
   .chapters { margin-top: 83.5px; }

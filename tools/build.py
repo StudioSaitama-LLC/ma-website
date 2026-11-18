@@ -1208,8 +1208,8 @@ class Site:
                     # figure は assets/ からの相対パスで、alt は原稿を補う説明文。
                     figure = self.href(cur, "assets/%s" % p["figure"])
                     alt = p.get("alt", "")
-                    out.append('        <figure class="manifesto-figure"><img src="%s" alt="%s" decoding="async"></figure>'
-                               % (figure, esc(alt)))
+                    out.append('        <figure class="manifesto-figure"><a href="%s" target="_blank" rel="noopener"><img src="%s" alt="%s" decoding="async"></a></figure>'
+                               % (figure, figure, esc(alt)))
                 elif isinstance(p, dict) and isinstance(p.get("box"), list):
                     out.append('        <div class="manifesto-box">\n%s\n        </div>'
                                % "\n".join("          <p>%s</p>" % esc(l) for l in p["box"]))

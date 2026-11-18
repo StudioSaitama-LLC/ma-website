@@ -4,7 +4,7 @@
 使い方:
   python3 tools/import_manifesto.py <About 間 宮嶋孝尚 YYYY／MM／DD.docx> [--out src/manifesto.json]
 
-- 文字の取り込みは標準ライブラリだけで動く。埋め込み画像の PNG 変換には macOS の sips を使う。
+- 文字の取り込みは標準ライブラリだけで動く。埋め込み画像は macOS の sips で BMP にし、標準ライブラリで余白を切って PNG にする。
 - 冒頭の目次から章の題をとる。目次の形は 2 つ読める。
   10/22 版から: 「|Notion」「|感じぬ人」「|2026-10-16」「|宮嶋 孝尚」の後に「0.真面目な提案」…（題の無い「4.」などは飛ばす）
   10/16 版まで: 「感じぬ人 / 宮嶋 孝尚」の後に「第0章：「真面目な提案」」…
@@ -12,7 +12,7 @@
   見出しは目次の題で「0. 真面目な提案」の形（半角の数字・点・空白）にそろえる（10/22 まなかの指示）。
 - 段落の中の改行はそのまま残す。文には手を入れない。ただし FIXES に書いた直しだけは当てる（当たらなければ止める）。
 - 図の中の文字枠は {"box": [行, ...]} として、その図がある段落の直後に置く。表は取り込まず、注意を出す。
-- 埋め込み画像は本文の順で {"figure": "figures/notion-章-番号.png", "alt": "説明"} にし、撮影情報を除いて assets/ に置く。
+- 埋め込み画像は本文の順で {"figure": "figures/notion-章-番号.png", "alt": "説明"} にし、周囲の白を 24px 残して切り、撮影情報のない PNG を assets/ に置く。
 """
 import argparse
 import datetime
@@ -27,6 +27,7 @@ import sys
 import unicodedata
 import zipfile
 import xml.etree.ElementTree as ET
+import zlib
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 MC = "{http://schemas.openxmlformats.org/markup-compatibility/2006}"
@@ -50,8 +51,60 @@ FIGURE_ALTS = {
 }
 
 
+def read_bmp_rgb(data):
+    """無圧縮の 24/32 ビット BMP を、上から並ぶ RGB の行にする。"""
+    if len(data) < 54 or data[:2] != b"BM":
+        raise SystemExit("図の BMP ヘッダーが壊れています")
+    offset, header_size = struct.unpack_from("<II", data, 10)
+    width, height, planes, depth, compression = struct.unpack_from("<iiHHI", data, 18)
+    if (header_size < 40 or offset < 14 + header_size or width <= 0 or height == 0
+            or planes != 1 or depth not in (24, 32) or compression != 0):
+        raise SystemExit("図の BMP は無圧縮の 24/32 ビット画像である必要があります")
+    stride = ((width * depth + 31) // 32) * 4
+    if offset + stride * abs(height) > len(data):
+        raise SystemExit("図の BMP 画素が途中で切れています")
+    rows = []
+    step = depth // 8
+    for y in range(abs(height)):
+        source_y = y if height < 0 else height - 1 - y
+        start = offset + source_y * stride
+        row = bytearray()
+        for x in range(width):
+            pixel = start + x * step
+            b, g, r = data[pixel:pixel + 3]
+            alpha = data[pixel + 3] if depth == 32 else 255
+            row.extend((value * alpha + 255 * (255 - alpha) + 127) // 255
+                       for value in (r, g, b))
+        rows.append(bytes(row))
+    return width, abs(height), rows
+
+
+def cropped_figure_png(data):
+    """白でない画素の周囲を 24px 残し、決まった区画だけの PNG にする。"""
+    width, height, rows = read_bmp_rgb(data)
+    left, top, right, bottom = width, height, -1, -1
+    for y, row in enumerate(rows):
+        for x in range(width):
+            if min(row[x * 3:x * 3 + 3]) < 250:
+                left, top = min(left, x), min(top, y)
+                right, bottom = max(right, x), max(bottom, y)
+    if right < 0:
+        raise SystemExit("図が白一色のため、余白を切り出せません")
+    left, top = max(0, left - 24), max(0, top - 24)
+    right, bottom = min(width, right + 25), min(height, bottom + 25)
+    pixels = b"".join(b"\x00" + row[left * 3:right * 3] for row in rows[top:bottom])
+
+    def chunk(kind, payload):
+        return (struct.pack(">I", len(payload)) + kind + payload
+                + struct.pack(">I", zlib.crc32(kind + payload)))
+
+    header = struct.pack(">IIBBBBB", right - left, bottom - top, 8, 2, 0, 0, 0)
+    return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header) + chunk(b"sRGB", b"\x00")
+            + chunk(b"IDAT", zlib.compress(pixels, 9)) + chunk(b"IEND", b""))
+
+
 def export_figures(docx, chapters):
-    """埋め込み画像を取り出し、表示に必要な PNG の区画だけを公開する。"""
+    """埋め込み画像の余白を切り、撮影情報を持たない PNG を公開する。"""
     figures = [(ch, p) for ch in chapters for p in ch["paragraphs"]
                if isinstance(p, dict) and "image" in p]
     if not figures:
@@ -77,23 +130,10 @@ def export_figures(docx, chapters):
             staging.mkdir(parents=True, exist_ok=True)
             source = staging / (stem + Path(member).suffix)
             source.write_bytes(z.read(member))
-            converted = staging / (stem + "-converted.png")
-            subprocess.run(["sips", "-s", "format", "png", str(source), "--out", str(converted)],
+            converted = staging / (stem + ".bmp")
+            subprocess.run(["sips", "-s", "format", "bmp", str(source), "--out", str(converted)],
                            check=True, capture_output=True)
-            data = converted.read_bytes()
-            if data[:8] != b"\x89PNG\r\n\x1a\n":
-                raise SystemExit("図%dの PNG 変換に失敗しました" % index)
-            clean = bytearray(data[:8])
-            offset = 8
-            while offset < len(data):
-                size = struct.unpack(">I", data[offset:offset + 4])[0]
-                end = offset + size + 12
-                kind = data[offset + 4:offset + 8]
-                if end > len(data):
-                    raise SystemExit("図%dの PNG 区画が壊れています" % index)
-                if kind in (b"IHDR", b"PLTE", b"tRNS", b"IDAT", b"IEND", b"sRGB", b"gAMA"):
-                    clean.extend(data[offset:end])
-                offset = end
+            clean = cropped_figure_png(converted.read_bytes())
             name = "figures/" + stem + ".png"
             target = ROOT / "assets" / name
             target.parent.mkdir(parents=True, exist_ok=True)
