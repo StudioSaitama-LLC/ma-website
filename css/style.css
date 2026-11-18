@@ -559,12 +559,15 @@ html:not(.js) .fold-end { display: none; }
 .chapter .prose .fold-end { text-indent: 0; }
 .manifesto-box { margin: var(--lh) 0; padding: 14px 18px; border: 1px solid var(--fg); }
 .manifesto-box p { margin: 0; text-indent: 0 !important; }
+.manifesto-figure { margin: var(--lh) 0; padding: 8px; background: #fff; }
+.manifesto-figure img { display: block; width: 100%; height: auto; margin: 0 auto; }
 @media (min-width: 1200px) {
   .chapters { margin-top: 83.5px; }
   .fold + .fold { margin-top: 12px; }
   .fold-toggle, .fold-close { width: 28px; height: 28px; }
   .fold-toggle::before, .fold-close::before { font-size: 20px; line-height: 28px; }
   .fold-end { margin-bottom: 55px !important; }
+  .manifesto-figure { padding: 14px; }
 }
 
 .lm-notion { position: absolute; left: calc(50% + 138.5px); top: 8px; width: 30px; transform: rotate(30deg); }

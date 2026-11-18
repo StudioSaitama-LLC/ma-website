@@ -1203,10 +1203,17 @@ class Site:
         for i, c in enumerate(m["chapters"]):
             out = []
             for p in c["paragraphs"]:
-                if isinstance(p, dict):
+                if isinstance(p, dict) and isinstance(p.get("figure"), str):
+                    # 原稿内の図は本文の引用照合へ混ぜず、章内の画像としてだけ出す。
+                    # figure は assets/ からの相対パスで、alt は原稿を補う説明文。
+                    figure = self.href(cur, "assets/%s" % p["figure"])
+                    alt = p.get("alt", "")
+                    out.append('        <figure class="manifesto-figure"><img src="%s" alt="%s" decoding="async"></figure>'
+                               % (figure, esc(alt)))
+                elif isinstance(p, dict) and isinstance(p.get("box"), list):
                     out.append('        <div class="manifesto-box">\n%s\n        </div>'
                                % "\n".join("          <p>%s</p>" % esc(l) for l in p["box"]))
-                else:
+                elif isinstance(p, str):
                     out += ['        <p>%s</p>' % esc(l.strip()) for l in p.split("\n") if l.strip()]
             chapters.append(self.fold_chapter(c["no"], c["title"], out, i, label=c["heading"]))
         core, steps = n["core"], n["steps"]
@@ -1272,7 +1279,13 @@ class Site:
         """MA Notion の章の本文を一つの文字列に（引用の一節がそこにあるかを確かめる用）。"""
         for c in self.manifesto["chapters"]:
             if c["no"] == no:
-                return "\n".join(("\n".join(p["box"]) if isinstance(p, dict) else p) for p in c["paragraphs"])
+                text = []
+                for p in c["paragraphs"]:
+                    if isinstance(p, str):
+                        text.append(p)
+                    elif isinstance(p, dict) and isinstance(p.get("box"), list):
+                        text.extend(line for line in p["box"] if isinstance(line, str))
+                return "\n".join(text)
         return ""
 
     def lab_term(self, key):
