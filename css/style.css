@@ -1,5 +1,5 @@
 /* 間｜MA — 共通書式は PC 1920px / SP 390px の見本に合わせる。
-   本文は PC 幅 900px、SP 左右 45px。1200px 以上は PC の寸法を使う。
+   本文は PC 幅 900px、SP 左右 45px。1200px 以上は PC の寸法を使う（960〜1199px は 1200px の組みを縮めて使う）。
    和文は Noto Sans JP 400/700、欧文の部品は Inter 300/500/800。 */
 
 :root {
@@ -53,7 +53,7 @@ html.light {
   --bg-clear: rgba(204, 204, 204, 0);
   color-scheme: light;
 }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   :root {
     /* PC（1920px）の寸法 */
     --fs: 18px;
@@ -133,12 +133,39 @@ html:not(.js) .menu-btn, html:not(.js) .ft-sign { display: none; }
   @supports (height: 100svh) { html.zoom-vh { --scr: calc(100svh / 0.8533); } }
 }
 
-/* 481〜1199px（タブレットなど）はデザインが無い。PC の寸法は 1200px 以上でないと収まらないので、
-   スマホの寸法のまま 480px の列にして中央に置く */
-@media (min-width: 481px) and (max-width: 1199px) {
+/* 481〜1199px（タブレットや、PC でブラウザの横を狭めたとき）は、見本のデザインが無い。見本のある組みをそのまま縮めたり広げたりして使う。
+   - 481〜959px: スマホの寸法の 480px の列を中央に置き、幅に合わせて 1.1〜1.4 倍に広げる（字は 15px から 21px まで 0.1 倍ずつ）
+   - 960〜1199px: PC の 1200px の組みを、そのまま 0.8〜0.95 倍に縮める（本文の字は 14.4px 以上）
+   倍率は段で変える（幅に合わせて連続で変える calc は、対応しないブラウザがあるため） */
+@media (min-width: 481px) and (max-width: 959.98px) {
   body > header, body > main, body > footer { max-width: 480px; margin-left: auto; margin-right: auto; }
-  .menu-overlay { right: auto; left: 50%; width: 480px; margin-left: -240px; box-shadow: 0 0 0 100vmax var(--bg); }
+  /* 全画面のメニューも 480px の列に（下の .menu-overlay の inset: 0 が後に書いてあり、同じ強さだと負けて列が左へずれるので body を付ける） */
+  body .menu-overlay { right: auto; left: 50%; width: 480px; margin-left: -240px; box-shadow: 0 0 0 100vmax var(--bg); }
 }
+
+@media (min-width: 528px) and (max-width: 575.98px) { body { zoom: 1.1; } }
+@media (min-width: 576px) and (max-width: 623.98px) { body { zoom: 1.2; } }
+@media (min-width: 624px) and (max-width: 671.98px) { body { zoom: 1.3; } }
+@media (min-width: 672px) and (max-width: 959.98px) { body { zoom: 1.4; } }
+/* 960〜1199px: 本文の幅（--gut）は 50vw から決めているが、zoom の中の vw はブラウザで扱いが違うので、1200px のときの値に固める。
+   body も 1200px の幅に固めて中央に置く（倍率の段の間では、左右に最大 30px ほど地の色が見える） */
+@media (min-width: 960px) and (max-width: 1199.98px) {
+  :root { --gut: 150px; }
+  body { width: 1200px; margin-left: auto; margin-right: auto; }
+}
+@media (min-width: 960px) and (max-width: 1019.98px) { body { zoom: 0.8; } }
+@media (min-width: 1020px) and (max-width: 1079.98px) { body { zoom: 0.85; } }
+@media (min-width: 1080px) and (max-width: 1139.98px) { body { zoom: 0.9; } }
+@media (min-width: 1140px) and (max-width: 1199.98px) { body { zoom: 0.95; } }
+/* zoom の中で画面の高さ（100svh）も倍率どおりに描くブラウザ（html.zoom-vh）では、割り戻して画面の高さにそろえる */
+@media (min-width: 528px) and (max-width: 575.98px) { html.zoom-vh { --scr: calc(100vh / 1.1); } @supports (height: 100svh) { html.zoom-vh { --scr: calc(100svh / 1.1); } } }
+@media (min-width: 576px) and (max-width: 623.98px) { html.zoom-vh { --scr: calc(100vh / 1.2); } @supports (height: 100svh) { html.zoom-vh { --scr: calc(100svh / 1.2); } } }
+@media (min-width: 624px) and (max-width: 671.98px) { html.zoom-vh { --scr: calc(100vh / 1.3); } @supports (height: 100svh) { html.zoom-vh { --scr: calc(100svh / 1.3); } } }
+@media (min-width: 672px) and (max-width: 959.98px) { html.zoom-vh { --scr: calc(100vh / 1.4); } @supports (height: 100svh) { html.zoom-vh { --scr: calc(100svh / 1.4); } } }
+@media (min-width: 960px) and (max-width: 1019.98px) { html.zoom-vh { --scr: calc(100vh / 0.8); } @supports (height: 100svh) { html.zoom-vh { --scr: calc(100svh / 0.8); } } }
+@media (min-width: 1020px) and (max-width: 1079.98px) { html.zoom-vh { --scr: calc(100vh / 0.85); } @supports (height: 100svh) { html.zoom-vh { --scr: calc(100svh / 0.85); } } }
+@media (min-width: 1080px) and (max-width: 1139.98px) { html.zoom-vh { --scr: calc(100vh / 0.9); } @supports (height: 100svh) { html.zoom-vh { --scr: calc(100svh / 0.9); } } }
+@media (min-width: 1140px) and (max-width: 1199.98px) { html.zoom-vh { --scr: calc(100vh / 0.95); } @supports (height: 100svh) { html.zoom-vh { --scr: calc(100svh / 0.95); } } }
 
 /* ---------- ヘッダー ---------- */
 
@@ -170,8 +197,8 @@ html:not(.js) .menu-btn, html:not(.js) .ft-sign { display: none; }
   cursor: pointer;
 }
 .menu-btn { position: fixed; z-index: 30; }
-/* 481〜1199px は 480px の列の右上に（上の .menu-btn, .menu-close の right を上書きする） */
-@media (min-width: 481px) and (max-width: 1199px) { .menu-btn { right: calc(50% - 225px); } }
+/* 481〜959px は 480px の列の右上に（上の .menu-btn, .menu-close の right を上書きする） */
+@media (min-width: 481px) and (max-width: 959.98px) { .menu-btn { right: calc(50% - 225px); } }
 .menu-btn span, .menu-close span {
   position: absolute;
   left: 1px;
@@ -213,7 +240,7 @@ html:not(.js) .menu-btn, html:not(.js) .ft-sign { display: none; }
 .gt-en { font-family: "Inter", sans-serif; font-size: 14px; line-height: 20px; font-weight: 800; color: inherit; }
 .gate-tab:hover .gt-en, .gate-tab.is-active .gt-en { text-decoration: underline; text-underline-offset: 4px; }
 
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .site-title { top: 32px; font-size: 25px; line-height: 37px; }
   .menu-btn, .menu-close { top: 38px; right: 40px; width: 50px; height: 24px; }
   .menu-btn span { left: 0; right: 0; }
@@ -267,7 +294,7 @@ html:not(.js) .menu-btn, html:not(.js) .ft-sign { display: none; }
 .menu-links { display: grid; margin-top: 26px; }
 .menu-links a { color: var(--accent); line-height: 28px; }
 .menu-figure { position: absolute; width: 27.5px; left: calc(50% + 112.5px); top: 592.5px; }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .menu-overlay .bar { height: 80px; }
   .menu-inner { max-width: 1186px; margin: 0 auto; padding: 279px 0 120px 0; }
   .menu-home { font-size: 18px; line-height: 22px; margin-left: 2px; }
@@ -321,7 +348,7 @@ html.light .theme-toggle { flex-direction: row-reverse; padding: 0 2px 0 8px; }
 }
 .home-page + .site-footer { margin-top: 36px; }
 .device-page + .site-footer { margin-top: 114px; }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .site-footer { height: 71.5px; margin-top: 88.5px; }
   .fc-name, .fc-follow { display: inline; }
   .fc-name { margin-right: 0.8em; }
@@ -344,7 +371,7 @@ html.light .theme-toggle { flex-direction: row-reverse; padding: 0 2px 0 8px; }
 .pending-note { }
 .crumb { font-size: 11px; line-height: 20px; }
 .crumb a { color: var(--accent); }
-@media (min-width: 1200px) { .crumb { font-size: 15px; line-height: 24px; } }
+@media (min-width: 960px) { .crumb { font-size: 15px; line-height: 24px; } }
 
 /* ■ と見出し。■ の左端は本文より SP 20px / PC 40px 外側。 */
 .tag, .frame-label {
@@ -363,7 +390,7 @@ html.light .theme-toggle { flex-direction: row-reverse; padding: 0 2px 0 8px; }
 }
 .section-mark { display: inline-block; flex: none; width: 15px; height: 15px; background: var(--fg); }
 .section-text { min-width: 0; }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .tag, .frame-label { gap: 10px; }
   .section-mark { width: 20px; height: 20px; }
 }
@@ -373,7 +400,7 @@ html.light .theme-toggle { flex-direction: row-reverse; padding: 0 2px 0 8px; }
 .gh-title, .ph-title .en, .sh-en { color: var(--fg); font-size: var(--head); line-height: var(--lh); font-weight: 400; }
 .gh-title strong { font-weight: 700; }
 .gh-sub, .sh-ja { line-height: var(--lh); }
-@media (min-width: 1200px) { .gate-head, .program-head, .simple-head { padding-top: 146px; } }
+@media (min-width: 960px) { .gate-head, .program-head, .simple-head { padding-top: 146px; } }
 
 .logo-mark { display: block; width: 36px; height: auto; }
 
@@ -392,7 +419,7 @@ html.light .theme-toggle { flex-direction: row-reverse; padding: 0 2px 0 8px; }
 }
 .arrow-btn::after { content: ""; position: absolute; left: -8px; top: 0; width: 9px; height: 11px; background: inherit; }
 .arrow-btn:hover { text-decoration: none; background: var(--accent); color: var(--on-accent); }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .arrow-btn { width: 50px; height: 87px; font-size: 38px; }
   .arrow-btn::after { left: -12px; width: 13px; height: 14px; }
 }
@@ -420,7 +447,7 @@ html.light .new { color: #a000a0; animation-name: ma-new-light; }
 }
 @media (prefers-reduced-motion: reduce) { .new, html.light .new { animation: none; } }
 .status { display: inline-block; margin-left: 8px; padding: 0; border: 0; color: var(--muted); font-family: "Noto Sans JP", sans-serif; font-size: 10px; font-weight: 400; line-height: 18px; vertical-align: 1px; }
-@media (min-width: 1200px) { .status { font-size: 11px; } }
+@media (min-width: 960px) { .status { font-size: 11px; } }
 .badge { display: inline-block; margin-right: 6px; padding: 0 6px; background: var(--fg); color: var(--bg); font-size: 0.8em; line-height: 1.4; vertical-align: 1px; }
 
 /* 並び（News・Latest News・関連コンテンツ） */
@@ -498,7 +525,7 @@ html.light .new { color: #a000a0; animation-name: ma-new-light; }
 .news .news-item:first-child { padding-top: 0; }
 .news .news-item:last-child { padding-bottom: 0; }
 
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .hero { --h1: max(607px, calc(var(--scr) - var(--hdr-h))); height: calc(var(--h1) + 292.5px); }
   .hero-block { top: calc((var(--h1) - 487.2px) / 2); height: 487.2px; }
   .hero-now { top: 0; }
@@ -562,7 +589,7 @@ html:not(.js) .fold-end { display: none; }
 .manifesto-figure { margin: var(--lh) 0; padding: 8px; background: #fff; }
 .manifesto-figure a { display: block; cursor: zoom-in; }
 .manifesto-figure img { display: block; width: 100%; height: auto; margin: 0 auto; }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .chapters { margin-top: 83.5px; }
   .fold + .fold { margin-top: 12px; }
   .fold-toggle, .fold-close { width: 28px; height: 28px; }
@@ -608,7 +635,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .flow-doors li { position: relative; width: 64.8px; height: 35.4px; border: 1px solid var(--fg); font-size: 12px; line-height: 33.4px; text-align: center; white-space: nowrap; }
 .flow-doors li::before { content: ""; position: absolute; left: calc(50% - 0.5px); top: -16px; width: 1px; height: 15px; background: var(--fg); }
 .book-illust { width: 85.3px; margin: 50.9px 0 0 8.6px; }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .lm-notion { left: calc(50% + 246px); top: 30px; width: 46px; }
   .core { margin-top: 195.5px; height: 297.5px; }
   .part-heading { margin-top: 32.5px; }
@@ -635,12 +662,12 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .door-list li { line-height: var(--lh); }
 .door-list .is-dim { color: var(--muted); }
 .door-list + .pending-note { margin-top: calc(var(--lh) * 2); }
-@media (min-width: 1200px) { .door-list { gap: 12px; margin-top: 83.5px; } }
+@media (min-width: 960px) { .door-list { gap: 12px; margin-top: 83.5px; } }
 
 /* ---------- Channel ---------- */
 
 .pc-only { display: none !important; }
-@media (min-width: 1200px) { .pc-only { display: block !important; } .sp-only { display: none !important; } }
+@media (min-width: 960px) { .pc-only { display: block !important; } .sp-only { display: none !important; } }
 
 .intro { margin-top: 47px; }
 .intro p { margin: 0 0 var(--lh); }
@@ -665,7 +692,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .news-text { margin-top: 12px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
 .distribution-illust { width: 217px; margin: 90px 0 0 76px; }
 .channel-page + .site-footer { margin-top: 30.5px; }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .intro { margin-top: 83.5px; }
   .channel-menu { margin-top: 143.5px; }
   .lm-channel { left: 336px; top: -38px; width: 52px; }
@@ -751,7 +778,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .lm-related { width: 30px; transform: rotate(-22deg); }
 .related .entries { margin-top: 27px; }
 .related .entry + .entry { margin-top: 27px; padding-top: 27px; }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   /* PC は紹介文と絵が中央の列なので、右端の矢印は上がってよい（画面 1080px でデザインの 1015px） */
   .program-top, .pg-ma-development-process .program-top, .pg-ma-crosstalk .program-top { --p-min: 416px; height: max(1015px, calc(var(--p1) + 113px)); }
   .program-head { padding-top: 148px; }
@@ -780,7 +807,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 }
 /* 幅 1260px 未満の PC では、Development Process の絵（右端＝中央から 499.7px）の線が矢印に掛かるので、矢印は絵の下で止める
    （1260〜1279px は絵の外枠だけが掛かり、線との重なりは矢印の 1% 未満なので、画面の右下のままにする） */
-@media (min-width: 1200px) and (max-width: 1259.98px) {
+@media (min-width: 960px) and (max-width: 1259.98px) {
   .pg-ma-development-process .program-top { --p-min: 806px; }
 }
 
@@ -835,7 +862,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .article-end .home-logo { width: 33px; margin: 0 0 0 calc(var(--gut) + 48.5px); transform: rotate(-56deg); }
 .article-page + .site-footer { margin-top: 30px; }
 
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .article-hero { width: 770px; max-width: calc(100% - 80px); margin: 149px auto 0; aspect-ratio: 1; }
   .article-head { padding-top: 62px; }
   .article-head .badge { padding: 0 7px; font-size: 19.2px; line-height: 31px; }
@@ -892,7 +919,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .dc-btn { margin-top: 9.5px; font-size: 15px; line-height: 26px; }
 .dc-btn:hover, .buy-btn:hover { text-decoration: none; }
 .dev-empty { margin-top: 24px; text-align: center; }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .dev-search { height: 46px; margin-top: 151px; }
   .dev-search input { padding: 0 20px; }
   .dev-search input::placeholder { font-size: 12px; }
@@ -957,7 +984,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .feature { margin: 0; }
 .feature img { display: block; width: 100%; height: auto; margin: 0 0 21.5px; background: var(--ph); }
 .feature-ttl { margin: 0; font-weight: 700; line-height: var(--lh); }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .product-page .dev-search { margin-top: 40px; }
   .product-page .crumb { margin-top: 28px; }
   .product-top { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: "gallery info" "gallery colors"; gap: 0 40px; margin-top: 9px; }
@@ -1013,7 +1040,7 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .desk a { color: var(--fg); }
 .desk a.mail { color: var(--accent); }
 .contact-page + .site-footer { margin-top: 104.5px; }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .company-photo { width: 442px; height: 442px; margin: 91px auto 0; }
   .company-page .chapters { margin-top: 90.5px; }
   .profile { margin-top: 143px; }
@@ -1122,7 +1149,7 @@ html:not(.js) .ref-filters { display: none; }
 .ref-main .chips { margin-top: 8px; }
 .ref-empty { margin-top: 24px; }
 .research-list + .pending-note { margin-top: calc(var(--lh) * 2); }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .lab-page .crumb { margin-bottom: 12px; }
   .lab-lead, .lab-page .frame-label, .term-list, .ref-list, .research-list { margin-top: 83.5px; }
   .lab-doors { gap: 28px; }
@@ -1157,7 +1184,7 @@ html:not(.js) .ref-filters { display: none; }
 /* セクションの見出し（白札）と間隔 */
 .sec { margin-top: 64px; }
 .sec > .tag + .cards, .sec > .tag + .chips, .sec > .tag + .dev-grid { margin-top: 26px; }
-@media (min-width: 1200px) { .sec { margin-top: 110px; } }
+@media (min-width: 960px) { .sec { margin-top: 110px; } }
 
 /* カード: 全ページで同じ白い点線と余白を使う。 */
 .cards { display: grid; gap: 10px; }
@@ -1185,7 +1212,7 @@ html:not(.js) .ref-filters { display: none; }
 .card.is-soon .card-body > * { color: var(--muted); }
 .card.is-soon .status { margin-left: 0; }
 .cards-program .card-note { -webkit-line-clamp: 3; line-clamp: 3; }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .cards-program { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .cards-view { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .card-link, .card-body { padding: 32px 52px 32px 30px; }
@@ -1200,7 +1227,7 @@ html:not(.js) .ref-filters { display: none; }
 .next-steps { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; margin-top: 56px; padding-top: 16px; border-top: 1px solid transparent; background: var(--dash-x) top left / 100% 1px no-repeat; background-origin: border-box; }
 .next-steps .is-soon { color: var(--muted); }
 .door-soon { margin-top: 14px; color: var(--muted); }
-@media (min-width: 1200px) { .btn-primary { min-height: 35px; padding-top: 7.5px; padding-bottom: 7.5px; font-size: 15px; } }
+@media (min-width: 960px) { .btn-primary { min-height: 35px; padding-top: 7.5px; padding-bottom: 7.5px; font-size: 15px; } }
 
 /* Home: 紹介は絵 → 文。絵は本文列の右寄り。 */
 .home-start { display: flex; flex-direction: column; align-items: center; text-align: center; }
@@ -1218,7 +1245,7 @@ html:not(.js) .ref-filters { display: none; }
 .quote { font-family: "Noto Sans JP", sans-serif; height: auto; margin-top: 0; margin-bottom: 63px; font-size: 15px; line-height: 28px; }
 .quote p { text-indent: 1em; }
 .quote .quote-credit { position: static; margin-top: 28px; text-indent: 0; }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .home-start .hiraba-illust { width: 150px; height: 118px; margin: 0 100px 40px 0; }
   .home-lead { font-size: 18px; line-height: 33px; }
   .lead-break-sp { display: none; }
@@ -1251,7 +1278,7 @@ html:not(.js) .ref-filters { display: none; }
 .episode > .audio { margin-top: 32px; }
 .episode > .video + .audio { margin-top: 16px; }
 .episode-page + .site-footer { margin-top: 60px; }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .episode-head { padding-top: 146px; }
   .episode > .video { width: 768px; max-width: 100%; margin: 56px auto 0; }
   .episode > .audio { width: 768px; max-width: 100%; margin: 56px auto 0; }
@@ -1271,7 +1298,7 @@ html:not(.js) .ref-filters { display: none; }
 .ft-sign::before { content: "＋"; position: absolute; inset: 0; color: var(--tag-fg); font-size: 14px; line-height: 20px; text-align: center; }
 .fold:not(.is-folded) .ft-sign::before { content: "−"; }
 .fold-close::before { content: "−"; }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .ft-sign { width: 28px; height: 28px; }
   .ft-sign::before { font-size: 18px; line-height: 28px; }
 }
@@ -1286,7 +1313,7 @@ html:not(.js) .ref-filters { display: none; }
 .dc-link .dc-img img { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: var(--ph); }
 .dc-link .card-go { position: static; grid-column: 2; margin-top: 8px; }
 .dev-grid { margin-top: 36px; }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .device-page .gate-head { padding-top: 146px; }
   .dev-grid { margin-top: 70px; }
   .dc-link { display: flex; flex-direction: column; align-items: stretch; }
@@ -1301,20 +1328,20 @@ html:not(.js) .ref-filters { display: none; }
 
 /* Home: 最初の画面の下に、このサイトの一言と「最新の回を観る」が見えるよう、平場の段を詰める */
 .hero { height: max(390px, calc(var(--h1) - 150px)); }
-@media (min-width: 1200px) { .hero { height: max(590px, calc(var(--h1) - 90px)); } }
+@media (min-width: 960px) { .hero { height: max(590px, calc(var(--h1) - 90px)); } }
 /* スマホの冒頭はカウンターと人物を画面高の段の中央に置き、引用はスクロールした先へ。
    --scr は 100svh（未対応なら 100vh）。小画面での zoom の補正も引き継ぐ。 */
-@media (max-width: 767px) {
+@media (max-width: 959.98px) {
   .home-page .hero { height: auto; min-height: var(--scr); display: flex; align-items: center; }
   .home-page .hero-block { position: relative; top: auto; width: 100%; }
   .home-page .quote { margin-top: 64px; }
 }
 /* 番組の冒頭の段: 矢印を外したので高さは中身と絵で決める（絵の下端が収まる最小の高さだけ残す） */
 .program-top { height: auto; min-height: calc(var(--p-min) - 88px); }
-@media (min-width: 1200px) { .program-top, .pg-ma-development-process .program-top, .pg-ma-crosstalk .program-top { height: auto; min-height: 900px; } }
+@media (min-width: 960px) { .program-top, .pg-ma-development-process .program-top, .pg-ma-crosstalk .program-top { height: auto; min-height: 900px; } }
 .channel-menu .lm-channel { top: 18px; }
 .ep-about { margin-top: 24px; }
-@media (min-width: 1200px) { .ep-about { margin-top: 40px; } }
+@media (min-width: 960px) { .ep-about { margin-top: 40px; } }
 
 /* 並んだカードは高さをそろえる（PC の 3 列・2 列） */
 .cards > .card { display: flex; }
@@ -1323,7 +1350,7 @@ html:not(.js) .ref-filters { display: none; }
 /* スマホの番組の冒頭の段: 絵の下端が収まる高さ（dev-process の絵は 500px から・crosstalk は 476〜615px） */
 .pg-ma-development-process .program-top { height: auto; min-height: 625px; }
 .pg-ma-crosstalk .program-top { height: auto; min-height: 640px; }
-@media (min-width: 1200px) { .pg-ma-development-process .program-top, .pg-ma-crosstalk .program-top { min-height: 900px; } }
+@media (min-width: 960px) { .pg-ma-development-process .program-top, .pg-ma-crosstalk .program-top { min-height: 900px; } }
 /* 商品ページの「出てくる回」は見出しの白札で区切るので、旧版の線と余白は使わない */
 .sec.product-media { padding-top: 0; border-top: 0; }
 html:not(.js) .fold-toggle { color: var(--fg); pointer-events: none; cursor: default; }
@@ -1339,7 +1366,7 @@ html:not(.js) .fold-toggle { color: var(--fg); pointer-events: none; cursor: def
 .local-nav a:hover { text-decoration: underline; text-underline-offset: 6px; }
 /* 後ろで色を決めている文中のリンクにも、訪れた色を当てる */
 .crumb a:visited, .toc-head a:visited, .facilities a:visited, .desk a.mail:visited, .site-footer a:visited { color: var(--visited); }
-@media (min-width: 1200px) { .menu-links a:visited { color: var(--fg); } }
+@media (min-width: 960px) { .menu-links a:visited { color: var(--fg); } }
 html:not(.js) .filter-box { display: none; }
 
 /* ---------- 扉の帯（門の中の道案内）: 門の見出しのすぐ下に横 1 段。いまいる所は白の太字＋下線（2 つの印） ---------- */
@@ -1355,13 +1382,13 @@ html:not(.js) .filter-box { display: none; }
 .ln-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--fg); }
 .local-nav .is-dim { color: var(--muted); }
 .local-nav .status { margin-left: 6px; }
-@media (min-width: 1200px) { .local-nav { margin-top: 26px; } .local-nav ul { gap: 4px 32px; font-size: inherit; } .local-nav li { line-height: 48px; } }
+@media (min-width: 960px) { .local-nav { margin-top: 26px; } .local-nav ul { gap: 4px 32px; font-size: inherit; } .local-nav li { line-height: 48px; } }
 /* 扉のページの見出し: 上に門の名前、帯、扉の名前 */
 .lab-page .lab-lead { margin-top: 24px; }
 
 /* Lab の入口: 部屋のカード → 要素の地図 */
 .lab-rooms { margin-top: 48px; }
-@media (min-width: 1200px) { .cards-room { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 960px) { .cards-room { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 /* 資料庫の絞り込み: 「絞り込む」の枠でまとめる */
 .filter-box { margin-top: 32px; padding: 14px 16px 12px; border: 1px solid var(--line); }
@@ -1369,7 +1396,7 @@ html:not(.js) .filter-box { display: none; }
 .filter-box .ref-filters { margin-top: 12px; }
 .filter-box .ref-filters + .ref-filters { margin-top: 12px; }
 .filter-box .ref-count { margin-top: 12px; font-size: var(--small); }
-@media (min-width: 1200px) { .filter-box { margin-top: 48px; padding: 20px 24px 16px; } }
+@media (min-width: 960px) { .filter-box { margin-top: 48px; padding: 20px 24px 16px; } }
 
 /* Channel: 新しい回は 1 枚だけ大きく */
 .channel-latest { margin-top: 48px; }
@@ -1380,11 +1407,11 @@ html:not(.js) .filter-box { display: none; }
 .room-head { margin-top: 28px; }
 .room-title { font-size: var(--head); line-height: var(--lh); font-weight: 700; }
 .room-sub { line-height: var(--lh); }
-@media (min-width: 1200px) { .room-head { margin-top: 44px; } }
+@media (min-width: 960px) { .room-head { margin-top: 44px; } }
 
 /* Notion の式は三段の図の後ろに、中央で */
 .formula-notion { margin-top: 72px; }
-@media (min-width: 1200px) { .formula-notion { margin-top: 96px; } }
+@media (min-width: 960px) { .formula-notion { margin-top: 96px; } }
 
 /* ---------- 切り替えの動き ----------
    ページを移るとき（同じサイトの中）は、上の段・門の塊・扉の帯をその場に残し、中身だけを溶かして替える。
@@ -1433,7 +1460,7 @@ html.light .flowmap.is-focus .rib.on { opacity: 0.6; }
 .fm-sp text { font-size: 12px; }
 .fm-sp .t-room { font-size: 13px; }
 .fm-sp .t-n { font-size: 11px; }
-@media (min-width: 1200px) { .flowmap { margin-top: 40px; } }
+@media (min-width: 960px) { .flowmap { margin-top: 40px; } }
 @media (prefers-reduced-motion: reduce) { .flowmap .rib { transition: none; } }
 
 /* ---------- 第 7 段: Home の目次・メニュー・スマホの地図（押せる所と階層を見分けやすく） ---------- */
@@ -1470,7 +1497,7 @@ a.toc-door:visited { color: var(--accent); }
 a.toc-door:hover { background: var(--accent); color: var(--on-accent); text-decoration: none; }
 .toc-doors .is-dim .toc-door { border-style: solid; border-color: var(--muted); color: var(--muted); }
 .toc-doors .is-dim .status { margin-left: 2px; }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .toc-gates { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 100px; row-gap: 100px; margin-top: 70px; }
   /* 各行の縦線を中央へ 20px 延ばす。行間 100px の中央に 60px の空きを残す。 */
   .toc-gate:nth-child(odd)::after { content: ""; position: absolute; top: 0; bottom: -20px; left: calc(100% + 50px); width: 1px; background: var(--dash-y); }
@@ -1513,7 +1540,7 @@ a.toc-door:hover { background: var(--accent); color: var(--on-accent); text-deco
 .menu-home { font-size: 17px; line-height: 28px; margin-bottom: 14px; }
 .menu-links { display: flex; gap: 24px; margin-top: 22px; }
 .menu-links a { color: var(--accent); }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .menu-gates { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 40px; }
   .menu-gate { padding: 20px 0 24px; border-bottom: 1px solid var(--line); }
   .mg-head { display: inline-flex; }
@@ -1529,8 +1556,8 @@ a.toc-door:hover { background: var(--accent); color: var(--on-accent); text-deco
 .fm-sp .t-ma-sp { font-size: 16px; font-weight: 700; }
 /* メニューの絵は区切り線にかからないよう、いちばん下の Contact の右へ */
 .menu-overlay .menu-figure { top: auto; bottom: 30px; }
-@media (min-width: 1200px) { .menu-overlay .menu-figure { top: auto; bottom: 60px; } }
-@media (min-width: 1200px) {
+@media (min-width: 960px) { .menu-overlay .menu-figure { top: auto; bottom: 60px; } }
+@media (min-width: 960px) {
   .menu-inner { padding-top: 170px; }
   .menu-home { margin-bottom: 30px; }
   .menu-overlay .menu-figure { bottom: 24px; }
@@ -1601,7 +1628,7 @@ a.toc-door:hover { background: var(--accent); color: var(--on-accent); text-deco
 /* 通常の小見出しにも白い■を使う。本文中の見出しは原稿のままにする。 */
 .line-head, .cg-head { position: relative; font-size: var(--tag); font-weight: 400; line-height: var(--tag-h); }
 .line-head::before, .cg-head::before { content: ""; position: absolute; left: -20px; top: 7px; width: 15px; height: 15px; background: var(--fg); }
-@media (min-width: 1200px) {
+@media (min-width: 960px) {
   .menu-inner { max-width: 900px; }
   .menu-gates { column-gap: 20px; }
   .menu-gate { background-image: var(--dash-x), var(--dash-x); background-position: left top, left bottom; }

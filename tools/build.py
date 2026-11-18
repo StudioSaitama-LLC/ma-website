@@ -874,7 +874,7 @@ class Site:
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{full}</title>{robots}
-<script>document.documentElement.classList.add("js");function maTheme(){{try{{document.documentElement.classList.toggle("light",localStorage.getItem("ma-theme")==="light")}}catch(e){{}}}}maTheme();if(document.prerendering)document.addEventListener("prerenderingchange",maTheme,{{once:true}});(function(){{try{{if(!matchMedia("(max-width:359.98px)").matches)return;var d=document.documentElement,z=document.createElement("div");z.style.cssText="position:absolute;visibility:hidden;width:0;height:100vh;zoom:.5";d.appendChild(z);var h=z.getBoundingClientRect().height;z.remove();if(h>0&&h<innerHeight*.75)d.classList.add("zoom-vh")}}catch(e){{}}}})()</script>
+<script>document.documentElement.classList.add("js");function maTheme(){{try{{document.documentElement.classList.toggle("light",localStorage.getItem("ma-theme")==="light")}}catch(e){{}}}}maTheme();if(document.prerendering)document.addEventListener("prerenderingchange",maTheme,{{once:true}});(function(){{try{{var d=document.documentElement,z=document.createElement("div");z.style.cssText="position:absolute;visibility:hidden;width:0;height:100vh;zoom:.5";d.appendChild(z);var h=z.getBoundingClientRect().height;z.remove();if(h>0&&h<innerHeight*.75)d.classList.add("zoom-vh")}}catch(e){{}}}})()</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
