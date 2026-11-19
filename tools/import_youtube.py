@@ -10,6 +10,7 @@
   yt_title・yt_lead は取り除く（build.py の検査もこれを止める）。
 - 書くのは yt_title（動画の題そのまま）と yt_lead（説明文のうち「TIMELINE」の見出しか、「0:00 …」のような
   時刻で始まる行が 2 行続く所より前。前後の空行は除く）。build.py はこの 2 つがあれば、回の題と一言にこれを使う。
+- 説明文の「Place: …」の行は yt_lead に入れない（回のページでは一言の下に小さく出す Place の行なので、contents.json の place に手で書く）。
 - 説明文が空の動画は yt_lead を空にする（このときは caption が一言として出る）。
 - 読むのは YouTube の動画ページ（ページに埋め込まれた動画の情報）。YouTube 側の作りが変わると読めなくなるので、
   そのときは「読めなかった」と出して終了コード 1 にする（contents.json は書き換えない）。
@@ -37,6 +38,8 @@ TRIES = 3
 # 時刻で始まる行が 2 行続く所（「0:00 …」「1:23 …」の目次。「20:00 から配信」のような 1 行は一言に残す）
 HEADING = re.compile(r"\s*(?:[^\w\s]\s*)*TIMELINE\b", flags=re.I)
 TIME = re.compile(r"\s*\d{1,2}:\d{2}(?::\d{2})?(?!\d)")
+# 撮った場所の行（「Place: 北海道札幌市」など）は一言に入れない（ページは contents.json の place から Place の行を出す）
+PLACE = re.compile(r"\s*Place\s*[:：]", flags=re.I)
 
 
 def player_response(html):
@@ -50,7 +53,7 @@ def player_response(html):
 
 
 def lead_of(description):
-    """説明文のうち、TIMELINE の見出しか時刻で始まる行より前。行の終わりの空白と、前後の空行は除く。"""
+    """説明文のうち、TIMELINE の見出しか時刻で始まる行より前（Place の行は除く）。行の終わりの空白と、前後の空行は除く。"""
     rows = (description or "").replace("\r\n", "\n").split("\n")
     out = []
     for i, line in enumerate(rows):
@@ -60,6 +63,8 @@ def lead_of(description):
             rest = [x for x in rows[i + 1:] if x.strip()]
             if rest and TIME.match(rest[0]):
                 break
+        if PLACE.match(line):
+            continue
         out.append(line.rstrip())
     return "\n".join(out).strip("\n").strip()
 
