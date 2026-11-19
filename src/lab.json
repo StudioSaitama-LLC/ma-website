@@ -1,5 +1,5 @@
 {
-  "_about": "Lab の試作データ。MA Notion（src/manifesto.json）の考えを要素（elements）に分解し、用語（Dictionary）・資料（Reference）・検証（Research）をその要素に結びつけて並べる。quote は MA Notion の本文にそのまま含まれる一節でなければならない（build.py が確かめる）。11/17 版の MA Notion と引用を照合した。",
+  "_about": "Lab の試作データ。MA Notion（src/manifesto.json）の考えを要素（elements）に分解し、用語（Dictionary）・資料（Reference）・検証（Research）をその要素に結びつけて並べる。quote は MA Notion の本文にそのまま含まれる一節でなければならない（build.py が確かめる）。11/18 版の MA Notion と引用を照合した。",
   "version": "2026-10-22 試作 v0.3",
   "intro": [
     "Lab は、「間」を定義するための研究室。MA Notion『感じぬ人、死、生』に書かれた考えを要素に分解し、その要素が映っているものを集める。",
@@ -484,7 +484,7 @@
       "gloss": "MA Notion の造語。「転調を促す宝物の様な概念？ヒント？術？」を縮めた呼び名。",
       "sense": "筆者が 5 年ほどの旅の途中で辿り着き、お裾分けしたくなったもの。何なのかは、0〜6 章ではまだ明かされない。",
       "ch": 0,
-      "quote": "そんな中たまたま、転調を促す宝物の様な概念？ヒント？術？（以降転調材と明記）に辿り着き、それをお裾分けしてみたくなった。",
+      "quote": "そんな中たまたま、転調を促す宝物の様な概念？ヒント？術？（以降転調材と明記）に帰着し、それをお裾分けしてみたくなった。",
       "onomatopoeia": [
         "がらり",
         "ふっ",

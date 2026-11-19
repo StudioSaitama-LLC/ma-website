@@ -9,7 +9,10 @@
   10/22 版から: 「|Notion」「|感じぬ人」「|2026-10-16」「|宮嶋 孝尚」の後に「0.真面目な提案」…（題の無い「4.」などは飛ばす）
   10/16 版まで: 「感じぬ人 / 宮嶋 孝尚」の後に「第0章：「真面目な提案」」…
 - 本文は、最初の段落を第 0 章の見出し、「1.旅のはじまり」「３．おおよそ」のように番号で始まる段落を各章の見出しとみなして分ける。
-  見出しは目次の題で「0. 真面目な提案」の形（半角の数字・点・空白）にそろえる（10/22 まなかの指示）。
+  見出しは目次の題で「0. 真面目な提案」の形（半角の数字・点・空白）にそろえる。
+- 目次にだけあって本文に見出しの無い章は、本文の無い章（paragraphs が空）として題だけ取り込み、続きがあると分かるようにする。
+  題は目次の文のまま（「仮）」なども手を入れない）。ただし本文の無い章の題は TITLE_ONLY_TITLES（書き手の指定）を優先し、目次に無い章も題だけ足す。
+  本文が届いた章は原稿の題を正とする。
 - 段落の中の改行はそのまま残す。文には手を入れない。ただし FIXES に書いた直しだけは当てる（当たらなければ止める）。
 - 図の中の文字枠は {"box": [行, ...]} として、その図がある段落の直後に置く。表は取り込まず、注意を出す。
 - 埋め込み画像は本文の順で {"figure": "figures/notion-章-番号.png", "alt": "説明"} にし、周囲の白を 24px 残して切り、撮影情報のない PNG を assets/ に置く。
@@ -35,10 +38,21 @@ A = "{http://schemas.openxmlformats.org/drawingml/2006/main}"
 R = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
 ROOT = Path(__file__).resolve().parent.parent
 
-# 原稿に当てる直し（段落の終わりの文字列 → 置き換え）。まなかの指示があったものだけ書く。
+# 原稿に当てる直し（段落の終わりの文字列 → 置き換え）。指定されたものだけ書く。
 # 当たる段落がちょうど 1 つでなければ止める（原稿が替わったら見直す）。
 # 11/17 版では該当の一節が書き直されたため、10/22 版の末尾「ｆ」の直しを外した。
 FIXES = []
+
+# 本文がまだ無い章の題は、書き手の指定（2026-11-19）を正とする（原稿の目次は 11 章までで、題も古い）。
+# 表は本文の無い章にだけ効く。本文が届いた章は、原稿の題を正とする（その章はこの表から外してよい）
+TITLE_ONLY_TITLES = {
+    7: "仮）Y字路",
+    8: "仮）調が転がる",
+    9: "仮）医者の不養生",
+    10: "仮）AIのばかやろー",
+    11: "仮）感ずる人",
+    12: "仮）旅の終わり",
+}
 
 # 本文の図番号に対応する説明。Word 内部の図の名前・番号は使わない。
 FIGURE_ALTS = {
@@ -211,7 +225,9 @@ def main():
         if m:
             toc.append((int(m.group(1)), m.group(2)))
         elif n:
-            toc.append((int(n.group(1)), n.group(2).strip()))
+            # 番号は NFKC で読むが、題は原稿の文字のまま（全角の「）」なども変えない）
+            raw = re.match(r"^\s*[0-9０-９]+\s*[.．]\s*(.*)$", line)
+            toc.append((int(n.group(1)), (raw.group(1) if raw else n.group(2)).strip()))
         elif "/" in line and not title:
             title, author = [x.strip() for x in line.split("/", 1)]
     if not toc:
@@ -249,6 +265,24 @@ def main():
     for ch in chapters:
         ch["title"] = titles.get(ch["no"], ch["heading"])
         ch["heading"] = "%d. %s" % (ch["no"], ch["title"])
+    have = set(ch["no"] for ch in chapters)
+    for no, t in toc:
+        if no not in have:
+            chapters.append({"no": no, "title": t, "heading": "%d. %s" % (no, t), "paragraphs": []})
+            have.add(no)
+            print("注意: 「%d. %s」は本文が無いので、題だけ取り込みました" % (no, t), file=sys.stderr)
+    for no, t in sorted(TITLE_ONLY_TITLES.items()):
+        ch = next((c for c in chapters if c["no"] == no), None)
+        if ch is None:
+            chapters.append({"no": no, "title": t, "heading": "%d. %s" % (no, t), "paragraphs": []})
+            print("注意: 「%d. %s」は原稿の目次に無いので、指定の題だけ足しました" % (no, t), file=sys.stderr)
+        elif ch["paragraphs"]:
+            print("注意: 第%d章は本文が届いたので、原稿の題「%s」を使いました（TITLE_ONLY_TITLES の第%d章は外してよい）"
+                  % (no, ch["title"], no), file=sys.stderr)
+        elif ch["title"] != t:
+            print("注意: 「%s」の題を、指定の「%s」にしました" % (ch["heading"], t), file=sys.stderr)
+            ch["title"], ch["heading"] = t, "%d. %s" % (no, t)
+    chapters.sort(key=lambda c: c["no"])
     for old, new, why in FIXES:
         hits = [(ch, i) for ch in chapters for i, p in enumerate(ch["paragraphs"])
                 if isinstance(p, str) and p.endswith(old)]

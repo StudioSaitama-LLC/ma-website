@@ -1201,6 +1201,12 @@ class Site:
         n = self.site["notion"]
         chapters = []
         for i, c in enumerate(m["chapters"]):
+            if not c["paragraphs"]:
+                # 本文がまだ無い章（題だけ先に出す章）: 開けないので開閉のボタンを付けず、題だけを出す
+                chapters.append('    <section class="chapter chapter-title-only" id="ch%d">\n'
+                                '      <h2 class="fold-head"><span class="ft-title" data-m="ch%d" data-mt>%s</span></h2>\n'
+                                '    </section>' % (c["no"], i, esc(c["heading"])))
+                continue
             out = []
             for p in c["paragraphs"]:
                 if isinstance(p, dict) and isinstance(p.get("figure"), str):
@@ -1269,7 +1275,7 @@ class Site:
     # ---------- Lab（試作） ----------
 
     def ch_label(self, no):
-        """章の呼び名。MA Notion の見出しと同じ「0. 真面目な提案」の形（10/22 まなかの指示）。"""
+        """章の呼び名。MA Notion の見出しと同じ「0. 真面目な提案」の形。"""
         for c in self.manifesto["chapters"]:
             if c["no"] == no:
                 return c["heading"]
@@ -1335,7 +1341,7 @@ class Site:
         h = lambda t: self.href(cur, t)
         rooms = [("dictionary", "Dictionary", "語", lab["terms"]), ("reference", "Reference", "点", lab["references"]),
                  ("research", "Research", "テーマ", lab["research"])]
-        chapters = self.manifesto["chapters"]
+        chapters = [c for c in self.manifesto["chapters"] if c["paragraphs"]]  # 題だけの章（本文がまだ無い）は地図に出さない
         order = sorted(lab["elements"], key=lambda e: (e["ch"], lab["elements"].index(e)))
         val = {e["key"]: [sum(1 for x in items if e["key"] in x.get("elements", [])) for _, _, _, items in rooms] for e in order}
         etot = {k: sum(v) for k, v in val.items()}

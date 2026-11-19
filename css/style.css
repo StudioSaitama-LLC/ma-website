@@ -593,6 +593,8 @@ html.light .new { color: #a000a0; animation-name: ma-new-light; }
 .js .fold.is-folded .fold-body { display: none; }
 html:not(.js) .fold-end { display: none; }
 .chapter .prose p { text-indent: 1em; margin: 0; }
+/* 本文がまだ無い章（題だけ）。開けないので押せる色（水色）にせず、地の文の色で題だけを出す */
+.fold + .chapter-title-only, .chapter-title-only + .chapter-title-only { margin-top: 7px; }
 .chapter .prose .fold-end { text-indent: 0; }
 .manifesto-box { margin: var(--lh) 0; padding: 14px 18px; border: 1px solid var(--fg); }
 .manifesto-box p { margin: 0; text-indent: 0 !important; }
