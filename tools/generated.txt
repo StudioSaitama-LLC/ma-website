@@ -14,6 +14,7 @@ channel/beyond-the-vanishingpoint/nishina/index.html
 channel/index.html
 channel/ma-crosstalk/flagship-store/index.html
 channel/ma-crosstalk/index.html
+channel/ma-crosstalk/seihai/index.html
 channel/ma-development-process/2-1-1/index.html
 channel/ma-development-process/2-1-2/index.html
 channel/ma-development-process/index.html
