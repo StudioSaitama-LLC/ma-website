@@ -166,6 +166,16 @@ html:not(.js) .menu-btn, html:not(.js) .ft-sign { display: none; }
 @media (min-width: 1020px) and (max-width: 1079.98px) { html.zoom-vh { --scr: calc(100vh / 0.85); } @supports (height: 100svh) { html.zoom-vh { --scr: calc(100svh / 0.85); } } }
 @media (min-width: 1080px) and (max-width: 1139.98px) { html.zoom-vh { --scr: calc(100vh / 0.9); } @supports (height: 100svh) { html.zoom-vh { --scr: calc(100svh / 0.9); } } }
 @media (min-width: 1140px) and (max-width: 1199.98px) { html.zoom-vh { --scr: calc(100vh / 0.95); } @supports (height: 100svh) { html.zoom-vh { --scr: calc(100svh / 0.95); } } }
+/* zoom の中の埋め込み（YouTube・SoundCloud）は、枠だけ倍率を戻す。ブラウザによっては埋め込みの中身に倍率が二重に掛かり、
+   はみ出したり余白が出たりするため。枠の大きさ（%）は変わらない */
+@media (min-width: 528px) and (max-width: 575.98px) { iframe { zoom: calc(1 / 1.1); } }
+@media (min-width: 576px) and (max-width: 623.98px) { iframe { zoom: calc(1 / 1.2); } }
+@media (min-width: 624px) and (max-width: 671.98px) { iframe { zoom: calc(1 / 1.3); } }
+@media (min-width: 672px) and (max-width: 959.98px) { iframe { zoom: calc(1 / 1.4); } }
+@media (min-width: 960px) and (max-width: 1019.98px) { iframe { zoom: calc(1 / 0.8); } }
+@media (min-width: 1020px) and (max-width: 1079.98px) { iframe { zoom: calc(1 / 0.85); } }
+@media (min-width: 1080px) and (max-width: 1139.98px) { iframe { zoom: calc(1 / 0.9); } }
+@media (min-width: 1140px) and (max-width: 1199.98px) { iframe { zoom: calc(1 / 0.95); } }
 
 /* ---------- ヘッダー ---------- */
 
