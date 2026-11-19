@@ -7,7 +7,7 @@
   "visitors": 1,
   "counter_api": "https://ma-counter.studiosaitama.workers.dev",
   "quote": {
-    "author": "(宮嶋 孝尚, Yoshinao Miyajima, Chief Creative Officer of Manaka Ltd.)",
+    "author": "宮嶋 孝尚, Yoshinao Miyajima, Chief Creative Officer of Manaka Ltd.",
     "_about": "トップの引用。MA Notion（src/manifesto.json）の本文から一字一句で抜き出した一節。読み込むたびに 1 つを選んで出す（1 つ目は HTML に書くので、JavaScript が無くても出る）。text は ch の章の本文にそのまま含まれること（build.py が確かめる）。",
     "picks": [
       {
