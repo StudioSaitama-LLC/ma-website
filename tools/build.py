@@ -414,6 +414,19 @@ class Site:
         if photo and not os.path.exists(os.path.join(ROOT, "assets", photo)):
             errors.append("company.json: assets/%s が無い" % photo)
         self.validate_lab(errors)
+        notion_chapters = set(c["no"] for c in self.manifesto["chapters"] if c["paragraphs"])
+        picks = self.site.get("quote", {}).get("picks", [])
+        if not isinstance(picks, list):
+            errors.append("site.json quote: picks は {ch, text} の並び")
+            picks = []
+        for i, p_ in enumerate(picks):
+            if not isinstance(p_, dict) or type(p_.get("ch")) is not int or p_.get("ch") not in notion_chapters:
+                errors.append("site.json quote picks[%d]: ch は本文のある MA Notion の章の番号: %r" % (i, p_))
+            elif not isinstance(p_.get("text"), str) or not p_["text"].strip():
+                errors.append("site.json quote picks[%d]: text（MA Notion の一節）が要る" % i)
+            elif p_["text"] not in self.chapter_text(p_["ch"]):
+                errors.append("site.json quote picks[%d]: text が第 %d 章の本文に見つからない（一字一句そのまま写す。Notion を取り込み直したら見直す）"
+                              % (i, p_["ch"]))
         # 回と道具の要素の札（Lab の要素の key）。付けるかどうかはまなか側が決める（無ければ札は出ない）
         el_keys = set(e.get("key") for e in self.lab.get("elements", []))
         for p_ in self.programs:
@@ -1101,15 +1114,20 @@ class Site:
         cur = "index.html"
         h = lambda t: self.href(cur, t)
         q = self.site["quote"]
-        # 引用は掲載が決まるまで欄ごと出さない（空いたままの欄は画面 1 枚分の空白になる）
+        # 引用は MA Notion の一節。1 つ目を HTML に書き、残りはページの中のデータとして持って、読み込みのときに 1 つ選んで差し替える
+        # （外へ取りに行かない。段のすぐ後で差し替えるので、画面に出る前に替わる）。出どころは章の名前で、Notion のその章へ飛ぶ
         quote = ""
-        if q.get("lines"):
+        picks = q.get("picks", [])
+        if picks:
+            rows = [{"t": p_["text"], "c": "MA Notion " + self.ch_label(p_["ch"]), "h": h("notion/#ch%d" % p_["ch"])} for p_ in picks]
+            data = json.dumps(rows, ensure_ascii=False).replace("</", "<\\/")
             quote = """
   <section class="quote col" id="quote" aria-label="引用">
-{lines}
-    <p class="quote-credit" data-m="credit" data-mt>(-{credit})</p>
+    <p class="quote-copy">{text}</p>
+    <p class="quote-credit" data-m="credit" data-mt>(-<a href="{href}">{credit}</a>)</p>
   </section>
-""".format(lines="\n".join('    <p class="quote-copy">%s</p>' % esc(l) for l in q["lines"]), credit=esc(q["credit"]))
+  <script>(function(){{try{{var d={data},i=Math.floor(Math.random()*d.length),s=document.getElementById("quote");if(!i||!s)return;var a=s.querySelector(".quote-credit a");s.querySelector(".quote-copy").textContent=d[i].t;a.textContent=d[i].c;a.setAttribute("href",d[i].h)}}catch(e){{}}}})()</script>
+""".format(text=esc(rows[0]["t"]), href=esc(rows[0]["h"]), credit=esc(rows[0]["c"]), data=data)
         gates = []
         for i, g in enumerate(self.site["gates"]):
             # 門の見出しは呼び名、英名と矢印、和文の役割の順。
