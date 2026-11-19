@@ -1189,6 +1189,9 @@ html:not(.js) .ref-filters { display: none; }
 .gh-title strong { font-weight: 700; }
 .gh-title .status, .toc-head .status, .mg-head + .status { margin-left: 8px; vertical-align: 2px; }
 .gh-plain { margin-top: 12px; }
+/* MA Notion の見出し: 題と名前は太字、最終更新日は一回り小さく */
+.g-notion .gh-sub { font-weight: 700; }
+.g-notion .gh-plain { font-size: var(--small); }
 .ph-title .ja { font-size: var(--head); font-weight: 700; white-space: normal; }
 .ph-en { font-size: var(--small); line-height: 20px; }
 .program-head .crumb, .episode-head .crumb { margin-bottom: 8px; }
