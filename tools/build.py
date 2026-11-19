@@ -1125,9 +1125,10 @@ class Site:
   <section class="quote col" id="quote" aria-label="引用">
     <p class="quote-copy">{text}</p>
     <p class="quote-credit" data-m="credit" data-mt>(-<a href="{href}">{credit}</a>)</p>
+    <p class="quote-author" tabindex="0">{author}</p>
   </section>
   <script>(function(){{try{{var d={data},i=Math.floor(Math.random()*d.length),s=document.getElementById("quote");if(!i||!s)return;var a=s.querySelector(".quote-credit a");s.querySelector(".quote-copy").textContent=d[i].t;a.textContent=d[i].c;a.setAttribute("href",d[i].h)}}catch(e){{}}}})()</script>
-""".format(text=esc(rows[0]["t"]), href=esc(rows[0]["h"]), credit=esc(rows[0]["c"]), data=data)
+""".format(text=esc(rows[0]["t"]), href=esc(rows[0]["h"]), credit=esc(rows[0]["c"]), author=esc(q["author"]), data=data)
         gates = []
         for i, g in enumerate(self.site["gates"]):
             # 門の見出しは呼び名、英名と矢印、和文の役割の順。

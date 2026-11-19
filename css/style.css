@@ -1257,6 +1257,9 @@ html:not(.js) .ref-filters { display: none; }
 .quote { font-family: "Noto Sans JP", sans-serif; height: auto; margin-top: 0; margin-bottom: 63px; font-size: 15px; line-height: 28px; }
 .quote p { text-indent: 1em; }
 .quote .quote-credit { position: static; margin-top: 28px; text-indent: 0; }
+/* 書き手は1行で表示し、狭い画面では文字を縮めず横にスクロールして読める。 */
+.home-page .quote .quote-author { margin-top: var(--lh); text-indent: 0; white-space: nowrap; overflow-x: auto; }
+.home-page .quote .quote-author:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 @media (min-width: 960px) {
   .home-start .hiraba-illust { width: 150px; height: 118px; margin: 0 100px 40px 0; }
   .home-lead { font-size: 18px; line-height: 33px; }
