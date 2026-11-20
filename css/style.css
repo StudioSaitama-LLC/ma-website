@@ -1656,3 +1656,72 @@ a.toc-door:hover { background: var(--accent); color: var(--on-accent); text-deco
   .line-head::before, .cg-head::before { left: -40px; top: 7px; width: 20px; height: 20px; }
   .site-footer .fc-2 { font-size: 15.6px; }
 }
+
+/* ---------- 2026-11 のデザインの直し（Notion のページを中心に） ---------- */
+/* 今いるページ（ヘッダーの門）に色をつける。押せるリンクなので水色（アクセント） */
+.gate-tab.is-active { color: var(--accent); }
+/* 頭のオブジェクトは新しい絵（傾きは絵に入っている）。回さない */
+.logo-mark { transform: none; }
+.lm-notion { left: calc(50% + 115px); top: 0; width: 40.13px; transform: none; }
+.channel-menu .lm-channel { left: 235px; top: 2px; width: 40.13px; }
+/* Notion の見出しの大きさと太さ（SP）。PC は下の @media */
+.g-notion .gh-title { font-size: 22px; line-height: 22px; }
+.g-notion .gh-sub { margin-top: 20px; font-size: 20px; line-height: 20px; }
+.g-notion .gh-plain { margin-top: 13px; line-height: 13px; }
+.spectrum { margin-top: 17.5px; height: 204px; }
+.sp-mitsu { left: 83.5px; }
+.sp-ma { left: 306.5px; }
+.sp-mid { top: 66.5px; }
+.sp-word { top: 88.5px; }
+.spectrum figcaption { top: 137.5px; }
+.dots-dense { left: 55px; top: 51px; }
+.dots-sparse { left: 269.3px; top: 46px; }
+.steps { margin-top: 104px; }
+/* 図（暮らしへのインストール）: 丸を Lab の箱の真上へ・文字 15px／行 25 */
+.flow { margin: 30px 0 0 10px; font-size: 15px; line-height: 25px; }
+.flow-root { left: 34px; line-height: 25px; }
+/* 本のイラストは新しい絵（PNG）。明るい表示は logo-mark と同じく灰色にする */
+.book-illust { width: 84px; margin: 57.6px 0 0 30.4px; }
+html.light .book-illust { filter: brightness(0.55); }
+/* 式の文字（SP 22px） */
+.formula-notion { line-height: 22px; font-size: 22px; }
+.formula-notion .fm-left { line-height: 22px; }
+.formula-notion .fm-eq { margin: 15px 0; font-size: 15px; line-height: 15px; }
+.formula-notion .fm-frac { margin-top: 15px; }
+.formula-notion .fm-bar { width: 190px; height: 3px; margin: 10px 0; background: repeating-linear-gradient(90deg, var(--fg) 0 7.5px, transparent 7.5px 9.6px); }
+.formula-notion .fm-den { line-height: 22px; }
+@media (min-width: 960px) {
+  .lm-notion { left: calc(50% + 230px); top: 22.1px; width: 62.65px; }
+  .channel-menu .lm-channel { left: 140px; top: 5px; width: 60.71px; }
+  .g-notion { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 20px; }
+  .g-notion .gh-title { flex: 0 0 100%; font-size: 30px; line-height: 30px; }
+  .g-notion .gh-sub { margin-top: 25px; font-size: 25px; line-height: 25px; }
+  .g-notion .gh-plain { margin-top: 0; line-height: 15px; }
+  .chapters { margin-top: 67px; }
+  .core { height: 326px; }
+  .spectrum { margin: 0; height: 326px; }
+  .sp-name { top: 92px; }
+  .sp-mitsu { left: 628.4px; }
+  .sp-ma { left: 884.4px; }
+  .sp-mid, .sp-word { left: 662.4px; }
+  .sp-mid { top: 166px; }
+  .sp-word { top: 191px; }
+  .spectrum figcaption { left: 612.4px; top: 257px; }
+  .dots-dense { left: 594px; top: 145.3px; }
+  .dots-sparse { left: 839.5px; top: 138.9px; }
+  .steps { margin-top: 150px; }
+  .flow { left: 625px; margin: 0; }
+  .flow-root { left: 35px; }
+  .book-illust { left: 90.7px; top: 577.7px; width: 138.4px; margin: 0; }
+  .formula-notion { gap: 25px; font-size: 28px; line-height: 28px; }
+  .formula-notion .fm-left { line-height: 28px; }
+  .formula-notion .fm-eq { margin: 0; font-size: 28px; line-height: 28px; }
+  .formula-notion .fm-frac { margin-top: 0; }
+  .formula-notion .fm-bar { width: 243.3px; height: 4.2px; margin: 10px 0; background: repeating-linear-gradient(90deg, var(--fg) 0 9.6px, transparent 9.6px 12.3px); }
+  .formula-notion .fm-den { line-height: 28px; }
+}
+/* ■ の見出しの下の間を全ページでそろえる（見出しの上端 → 次の部品の上端 SP 60px・PC 95px） */
+main :is(.tag, .frame-label).section-title + :not(.illust), main :is(.tag, .frame-label).section-title ~ .flowmap, main .news > .section-title ~ .news-list, main .news > .section-title ~ .cards { margin-top: calc(60px - var(--tag-h)); }
+@media (min-width: 960px) {
+  main :is(.tag, .frame-label).section-title + :not(.illust), main :is(.tag, .frame-label).section-title ~ .flowmap, main .news > .section-title ~ .news-list, main .news > .section-title ~ .cards { margin-top: calc(95px - var(--tag-h)); }
+}
