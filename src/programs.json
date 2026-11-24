@@ -85,13 +85,19 @@
     "episodes": [
       {
         "key": "flagship-store",
-        "title": "Flagship Store",
+        "title": "加藤 ちあき (スタジオサイタマ合同会社)",
         "caption": "",
         "text": ""
       },
       {
         "key": "seihai",
-        "title": "星牌",
+        "title": "宮嶋 孝尚 (株式会社まなか)",
+        "caption": "",
+        "text": ""
+      },
+      {
+        "key": "tsunashima",
+        "title": "綱島 一裕 (KAZU SIGNS)",
         "caption": "",
         "text": ""
       }

@@ -160,7 +160,7 @@
     "kind": "tv",
     "program": "ma-crosstalk",
     "episode": "flagship-store",
-    "title": "Flagship Store [1]",
+    "title": "加藤 ちあき (スタジオサイタマ合同会社) [1]",
     "recorded": "2026-06-24",
     "status": "published",
     "memo": "8 月版のサイトに Flagship Store の動画（mDg3PherfCQ）がある",
@@ -174,7 +174,7 @@
     "kind": "tv",
     "program": "ma-crosstalk",
     "episode": "flagship-store",
-    "title": "Flagship Store [2]",
+    "title": "加藤 ちあき (スタジオサイタマ合同会社) [2]",
     "recorded": "2026-07-06",
     "status": "published",
     "youtube": "1PsfoOXJpK0",
@@ -187,11 +187,23 @@
     "kind": "tv",
     "program": "ma-crosstalk",
     "episode": "seihai",
-    "title": "星牌",
+    "title": "宮嶋 孝尚 (株式会社まなか)",
     "status": "published",
     "youtube": "zj8EgZAOjq4",
     "yt_title": "触れる、想う、暮らす。「星牌」が繋いだ始まりの記憶",
     "yt_lead": "大切な人に語りかけたい、触れたい、という素朴な想いから生まれた「ふれることのできる位牌・星牌(せいはい)」。この星牌は、素材や文字、そして暮らしとの距離感を問い直すなかで、やがて「祈りの道具屋まなか」としての現在地へとつながっていきます。合理化が加速するいま、暮らしのなかに立ち止まる瞬間や「間」をひらくことの意味とは。\nはじまりの記憶と、これから届けたい想いについて、まなか宮嶋 が静かに語り合う。",
     "date": "2026-11-19"
+  },
+  {
+    "id": "2-1-8",
+    "kind": "tv",
+    "program": "ma-crosstalk",
+    "episode": "tsunashima",
+    "title": "綱島 一裕 (KAZU SIGNS)",
+    "status": "published",
+    "youtube": "k6rANy9rV2k",
+    "yt_title": "香りを持たない香のブランド「日々香好日TOKYO」の旗艦店、築地の外壁にQRコードをあえて手書きで描く職人・綱島一裕の不完全という完全とは",
+    "yt_lead": "ぱっと出力すれば一瞬で終わる。それをあえて、手で描く職人の姿を追う。\n英国で本場のサインペインティングを学び「これしかない」と人生を決めた若き職人、サインライター・綱島一裕（30歳）が、 「日々香好日TOKYO」の旗艦店、築地の外壁に3日間筆を走らせた。\n現場は非常にタフだった、と語る彼の特に印象的な一言。\n「不完全って、完全ですよね、一番」\nその言葉の奥にあるものとは何なのか。スピードと効率があふれる日常で、立ち止まるための「間」や手仕事の体温を、まなか宮嶋 と静かに語り合う。",
+    "date": "2026-11-24"
   }
 ]
