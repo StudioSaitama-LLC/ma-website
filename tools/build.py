@@ -366,6 +366,10 @@ class Site:
             for k in ("plain", "state"):
                 if k in g and not isinstance(g[k], str):
                     errors.append("site.json gates %s: %s は文字" % (g.get("key"), k))
+            if "home_plain_lines" in g:
+                rows = g["home_plain_lines"]
+                if not (isinstance(rows, list) and rows and all(isinstance(row, str) and row.strip() for row in rows)):
+                    errors.append("site.json gates %s: home_plain_lines は空でない文字列の並び" % g.get("key"))
         if not isinstance(self.site.get("views", {}), dict) or not all(isinstance(v, str) for v in self.site.get("views", {}).values()):
             errors.append("site.json views: 見方の一言は文字（{\"随想記事\": \"…\"}）")
         for c in self.contents:
@@ -1136,6 +1140,8 @@ class Site:
             head = ('<a class="toc-link" href="%s"><span class="toc-kicker">%s</span>'
                     '<span class="toc-name latin">%s <span class="toc-go latin" aria-hidden="true">→</span></span>'
                     '<span class="toc-ja">%s%s</span></a>' % (h(g["url"]), esc(g["short"]), esc(g["name"]), esc(g["ja"]), state))
+            home_lines = g.get("home_plain_lines")
+            plain = brs(home_lines) if home_lines else esc(g.get("plain"))
             subs = []
             if g["key"] == "channel":
                 for p in self.programs:
@@ -1151,7 +1157,7 @@ class Site:
             gates.append("""      <li class="toc-gate">
         {head}
         <p class="toc-plain">{plain}</p>{subs}
-      </li>""".format(head=head, plain=esc(g.get("plain", "")),
+      </li>""".format(head=head, plain=plain,
                       subs=('\n        <ul class="toc-doors">\n          %s\n        </ul>' % "\n          ".join(subs)) if subs else ""))
         body = """
   <h1 class="visually-hidden">{name}</h1>
