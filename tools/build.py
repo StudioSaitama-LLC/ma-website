@@ -480,8 +480,8 @@ class Site:
             return ok
 
         need("intro", "入口", lab, ("elements_intro", "map_intro", "rooms_intro"))
-        if len(lab["intro"]) < 2 or any(not isinstance(line, str) or not line.strip() for line in lab["intro"]):
-            errors.append("lab.json intro: 見出しと本文を空でない文字列の並びで書く")
+        if len(lab["intro"]) != 2 or any(not isinstance(line, str) or not line.strip() for line in lab["intro"]):
+            errors.append("lab.json intro: 入口の説明と案内を空でない文字列 2 つで書く")
         for key in ("dictionary", "reference", "research"):
             info = lab.get("doors", {}).get(key)
             if not isinstance(info, dict) or not need("doors", key, info, ("ja", "role")):
@@ -756,13 +756,14 @@ class Site:
 
     def gate_head(self, g, el="h1", sub=None, plain=None):
         """門のページの見出し: 名前（Lab など）といまの言葉の 2 段。平易な説明は見出しの下の導入文に置く。
-        sub・plain を渡すと、いまの言葉と説明の代わりに出す（Notion は原稿の題・書き手と最終更新日）。"""
+        sub・plain を渡すと、いまの言葉と説明の代わりに出す。plain に文の並びを渡すと、1 文ずつ段落にする。"""
         state = self.state_badge(g.get("state"))
         plain = plain if plain is not None else g.get("plain")
-        plain = ('\n    <p class="gh-plain">%s</p>' % esc(plain)) if plain else ""
-        # 同じ門のページどうしでは、この塊を同じ形・同じ高さで出す（部屋を移っても上が動かない。g-<門> は移るときの動きの目印）
+        lines = (plain,) if isinstance(plain, str) else plain or ()
+        paragraphs = "".join('\n    <p class="gh-plain">%s</p>' % esc(line) for line in lines if line)
+        # g-<門> は同じ門のページどうしを移るときの動きの目印。
         return ('<div class="gate-head g-%s">\n    <%s class="gh-title" data-m="gh" data-mt><strong class="gh-en latin">%s</strong>%s</%s>\n'
-                '    <p class="gh-sub" data-m="gs" data-mt>%s</p>%s\n  </div>' % (g["key"], el, esc(g["name"]), state, el, esc(sub if sub is not None else g["ja"]), plain))
+                '    <p class="gh-sub" data-m="gs" data-mt>%s</p>%s\n  </div>' % (g["key"], el, esc(g["name"]), state, el, esc(sub if sub is not None else g["ja"]), paragraphs))
 
     def new_badge(self):
         return '<span class="new latin">&lt;NEW&gt;</span>'
@@ -1591,7 +1592,6 @@ class Site:
     def lab_head(self, cur, door):
         """扉のページの見出し: 上に門の名前（小さく）、扉の帯、扉の名前（h1）と副題・役割。"""
         g = self.gate("lab")
-        # 入口と同じ門の名前・言葉・説明に続けて、扉の帯と部屋の名前（h1）を置く。
         return ('%s\n    %s\n    <div class="room-head">\n      <h1 class="room-title"><strong>%s</strong></h1>\n'
                 '      <p class="room-sub">%s</p>\n    </div>\n    <p class="lab-lead">%s</p>'
                 % (self.gate_head(g, el="p"), self.local_nav(cur, g, door["url"]), esc(door["en"]), esc(door["ja"]), esc(door["role"])))
@@ -1666,10 +1666,6 @@ class Site:
         body = """
   <div class="content lab-page">
     {head}
-    <div class="lab-lead prose">
-      <h2 class="lab-intro-title">{intro_title}</h2>
-{intro}
-    </div>
     <section class="sec lab-elements">
       {el_label}
       <p class="lab-section-intro">{el_intro}</p>
@@ -1695,7 +1691,7 @@ class Site:
       <p class="pending-note">{version}</p>
     </section>
   </div>
-""".format(head=self.gate_head(g), intro_title=esc(lab["intro"][0]), intro="\n".join("      <p>%s</p>" % esc(x) for x in lab["intro"][1:]),
+""".format(head=self.gate_head(g, plain=lab["intro"]),
            el_label=self.tag("間が、立ち上がるとき", "t"), el_intro=esc(lab["elements_intro"]), bundles="\n".join(bundles),
            map_tag=self.tag("間の地図", "t"), map_intro=esc(lab["map_intro"]), map=flow[0], map_note=flow[1],
            rooms_tag=self.tag("3 つの部屋", "t"), rooms_intro=esc(lab["rooms_intro"]), rooms=self.cards(rooms, "cards-room"),
