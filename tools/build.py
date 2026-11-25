@@ -483,6 +483,8 @@ class Site:
             info = lab.get("doors", {}).get(key)
             if not isinstance(info, dict) or not need("doors", key, info, ("ja", "role")):
                 errors.append("lab.json doors: %s に ja と role を書く" % key)
+        if "reference_labels" in lab:
+            need("reference_labels", "形ごとの呼び名", lab["reference_labels"], lab["forms"])
         if not all(isinstance(x, dict) for x in lab["elements"] + lab["terms"] + lab["references"] + lab["research"]):
             errors.append("lab.json: elements / terms / references / research の各項目は {} の形で書く")
             return
@@ -517,6 +519,10 @@ class Site:
                 errors.append("lab.json %s: どの要素が映っているか（elements）を 1 つ以上書く（決めていないなら status を 相談中 に）" % r["id"])
             if not isinstance(r.get("year", ""), str) or not isinstance(r.get("note", ""), str):
                 errors.append("lab.json %s: year と note は文字列で書く（年だけでも \"1971\" のように）" % r.get("id"))
+            if "who" in r:
+                need("references", r.get("id"), r, ("who",))
+            if not isinstance(r.get("person", True), bool):
+                errors.append("lab.json %s: person は true または false で書く" % r.get("id"))
             if r.get("form") not in forms:
                 errors.append("lab.json %s: form は forms のどれか: %r" % (r.get("id"), r.get("form")))
             if type(r.get("pole")) is not int or not 0 <= r["pole"] <= 100:
@@ -1709,13 +1715,22 @@ class Site:
                                     % (key, labels[key], labels[key],
                                        " ".join('<button class="pill" type="button" data-v="%s">%s</button>' % (esc(v), esc(l)) for v, l in items)))
         rows = []
+        reference_labels = lab.get("reference_labels", {})
         for r in lab["references"]:
-            by = esc(r["creator"]) + (("、" + esc(r["year"])) if r.get("year") else "")
+            year = esc(r.get("year", ""))
+            label = reference_labels.get(r["form"])
+            who = ""
+            if label and r.get("person", True):
+                who = '<span class="ref-who">%sの%s</span> ' % (esc(r.get("who", r["creator"])), esc(label))
+                details = ' <span class="ref-year">%s</span>' % year if year else ""
+            else:
+                by = esc(r["creator"]) + ("、" + year if year else "")
+                details = '<span class="ref-by">%s</span>' % by
             note = ('\n      <p class="ref-note">※ %s</p>' % esc(r["note"])) if r.get("note") else ""
             rows.append("""    <li class="ref" id="r-{id}" data-form="{form}" data-elements="{els}">
       <div class="ref-main">
         <p class="ref-meta">{glyph}<span class="badge">{form}</span><span class="ref-field">{field}</span><span class="status">{status}</span></p>
-        <h2 class="ref-title">{title}<span class="ref-by">{by}</span></h2>
+        <h2 class="ref-title">{who}{title}{details}</h2>
         {chips}
         {pole}
       </div>
@@ -1726,7 +1741,7 @@ class Site:
         {termlinks}{note}
       </div>
     </li>""".format(id=esc(r["id"]), form=esc(r["form"]), els=esc(" ".join(r.get("elements", []))), glyph=self.lab_glyph(r["form"]), field=esc(r["field"]), status=esc(r["status"]),
-                     title=esc(r["title"]), by=by, chips=self.lab_chips(cur, r.get("elements", [])), pole=self.lab_pole(r["pole"]),
+                     who=who, title=esc(r["title"]), details=details, chips=self.lab_chips(cur, r.get("elements", [])), pole=self.lab_pole(r["pole"]),
                      quote=self.lab_quote(cur, r), why=esc(r["why"]), q=esc(r["question"]), termlinks=self.lab_terms(cur, r["terms"]), note=note))
         body = """
   <div class="content lab-page">

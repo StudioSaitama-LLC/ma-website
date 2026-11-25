@@ -26,6 +26,14 @@
     "写真",
     "場"
   ],
+  "reference_labels": {
+    "言葉": "名言",
+    "文章": "名著",
+    "音": "名盤",
+    "映像": "名作",
+    "写真": "名作",
+    "場": "名作"
+  },
   "doors": {
     "dictionary": {
       "ja": "感覚と感情の往復",
@@ -1433,6 +1441,7 @@
   "references": [
     {
       "id": "kojien-kanzuru",
+      "person": false,
       "form": "言葉",
       "field": "辞書",
       "title": "「感ずる」の語義",
@@ -1457,6 +1466,7 @@
     },
     {
       "id": "mhlw-sanmitsu",
+      "person": false,
       "form": "言葉",
       "field": "時代",
       "title": "「3 つの密」（密閉・密集・密接）",
@@ -1729,6 +1739,7 @@
       "field": "建築",
       "title": "展覧会「間 ― 日本の時空間」",
       "creator": "磯崎新（構成）、パリ装飾美術館",
+      "who": "磯崎新",
       "year": "1978",
       "terms": [
         "ma"
@@ -1836,6 +1847,7 @@
     },
     {
       "id": "ono-onomatope",
+      "person": false,
       "form": "言葉",
       "field": "辞書",
       "title": "『日本語オノマトペ辞典』（擬音語・擬態語 4500）",
@@ -1900,6 +1912,7 @@
     },
     {
       "id": "tsukubasan",
+      "person": false,
       "form": "場",
       "field": "山",
       "title": "筑波山",
@@ -1922,6 +1935,7 @@
     },
     {
       "id": "ai-koudou-genri",
+      "person": false,
       "form": "言葉",
       "field": "辞書",
       "title": "「行動原理」の語義",
