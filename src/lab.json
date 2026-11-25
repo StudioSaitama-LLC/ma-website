@@ -2,9 +2,20 @@
   "_about": "Lab の試作データ。MA Notion（src/manifesto.json）の考えを要素（elements）に分解し、用語（Dictionary）・資料（Reference）・検証（Research）をその要素に結びつけて並べる。quote は MA Notion の本文にそのまま含まれる一節でなければならない（build.py が確かめる）。11/18 版の MA Notion と引用を照合した。",
   "version": "2026-10-22 試作 v0.3",
   "intro": [
-    "Lab は、「間」を定義するための研究室。MA Notion『感じぬ人、死、生』に書かれた考えを要素に分解し、その要素が映っているものを集める。",
-    "要素はいまのところ十五（Lab の見立て）。それぞれに「密」の側と「間」の側がある。本文に無い言い換えには ※ を付けた。資料は、どの要素が映っているかで引ける。"
+    "Lab｜間、定義化への試み",
+    "「間」って、なんだろう。",
+    "答えが出ないから行ったり来たりしてほしい。気になった場所からのぞいてみてください"
   ],
+  "elements_intro": "間が立ち上がる時を、いくつかならべました。ぎゅうぎゅうに詰まっているとき、ふっと呼吸が戻るとき。触れているうちに、何かが立ち上がるかもしれません",
+  "bundles": [
+    {"name": "心が動くとき", "elements": ["kokoro", "kaishaku", "kizuki"]},
+    {"name": "急がないとき", "elements": ["muda", "yutori", "yukkuri"]},
+    {"name": "迷って、掘るとき", "elements": ["gimon", "jimae", "yodomi", "mokuteki-naki"]},
+    {"name": "重ねて、受けとめるとき", "elements": ["kasaneru", "juyou", "bottou"]},
+    {"name": "限りを思い出すとき", "elements": ["yugen", "baton"]}
+  ],
+  "map_intro": "言葉や気配は、ひとつずつ離れてはいない。MA Notion の一節から要素へ、要素から言葉や資料へ。線をたどって、寄り道してみてください。",
+  "rooms_intro": "ここから先は、三つの部屋。言葉を引いたり、先人の遺したものを掘ったり、自分たちで確かめたり。順番はないので、気の向くほうへ。",
   "rule": {
     "label": "並べ方の決まり（試作）",
     "lines": [

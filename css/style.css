@@ -1132,18 +1132,36 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 /* JS 無しでは札は動かないので出さない（資料は全部見える） */
 html:not(.js) .ref-filters { display: none; }
 .ref-count { margin-top: 18px; font-size: var(--small); line-height: 20px; }
-/* 要素の地図と要素の欄（文字ばかりにならないように、地図・対の欄・札で見せる） */
-/* 地図: スマホは左右の余白を使って全幅（375px で札の字が約 15px）。PC は 600px を中央に */
+/* Lab の入口 */
+.lab-intro-title { margin-bottom: 8px; font-weight: 700; }
+.lab-section-intro, .lab-rooms .cards, .lab-rules + .pending-note { margin-top: var(--lh); }
 .map-note, .el-legend { margin-top: 10px; font-size: var(--small); line-height: 20px; }
-.el-legend { margin-top: 8px; }
+.el-legend { margin-top: var(--lh); }
 .guess { margin-left: 2px; color: var(--fg); }
 .chip-none { }
 .lab-doors { margin-top: 33px; }
-/* 要素のパネル: 押せないので枠のカードにしない（枠は押せるカードだけ）。上に細い線、密／間は 1 行ずつ左に札 */
-.el-grid { list-style: none; margin: var(--lh) 0 0; padding: 0; display: grid; gap: 34px; }
-.el { position: relative; padding-top: 16px; border-top: 1px solid var(--line); }
-.el-no { position: absolute; right: 0; top: 14px; font-size: var(--small); line-height: 20px; font-variant-numeric: tabular-nums; }
-.el-name { color: var(--fg); font-size: var(--tag); line-height: 1.3; font-weight: 700; }
+/* 要素の束と開閉できる項目。密／間は開いた本文に並べる。 */
+.el-bundle { margin-top: calc(var(--lh) * 1.5); }
+.el-bundle-name { font-size: var(--tag); font-weight: 700; }
+.el-grid { display: grid; gap: 8px; margin-top: 12px; }
+.el { border-top: 1px solid var(--line); }
+.el-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 12px;
+  padding-block: 12px;
+  list-style: none;
+  cursor: pointer;
+}
+.el-summary::-webkit-details-marker { display: none; }
+.el:target > .el-summary:not(:focus-visible) { outline: 1px solid var(--accent); outline-offset: 3px; }
+.el-name { color: var(--accent); font-weight: 700; }
+.el-summary:hover .el-name { text-decoration: underline; }
+.el-teaser { grid-column: 1; }
+.el-sign { grid-area: 1 / 2; color: var(--accent); }
+.el-sign::before { content: "＋"; }
+.el[open] .el-sign::before { content: "−"; }
+.el[open] .el-teaser { display: none; }
 .el-sub { margin-top: 2px; }
 .el-pair { display: grid; gap: 10px; margin: 16px 0 0; }
 .el-row { display: grid; grid-template-columns: 2em minmax(0, 1fr); gap: 12px; align-items: baseline; }
@@ -1173,8 +1191,7 @@ html:not(.js) .ref-filters { display: none; }
   .ref-filters { margin-top: 48px; }
   .pole { max-width: 560px; }
   .lab-doors { margin-top: 48px; }
-  .el-grid { grid-template-columns: 1fr 1fr; gap: 48px 56px; }
-  .el { padding-top: 20px; }
+  .el-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 40px; }
   .el-row dd { font-size: var(--fs); line-height: var(--lh); }
   .el-quote { font-size: 15px; line-height: 27px; }
   /* 資料は左に札と目盛り、右に一節と一言 */
@@ -1403,8 +1420,7 @@ html:not(.js) .filter-box { display: none; }
 /* 扉のページの見出し: 上に門の名前、帯、扉の名前 */
 .lab-page .lab-lead { margin-top: 24px; }
 
-/* Lab の入口: 部屋のカード → 要素の地図 */
-.lab-rooms { margin-top: 48px; }
+/* Lab の入口の部屋のカード */
 @media (min-width: 960px) { .cards-room { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 /* 資料庫の絞り込み: 「絞り込む」の枠でまとめる */

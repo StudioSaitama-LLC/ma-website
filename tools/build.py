@@ -448,7 +448,7 @@ class Site:
     def validate_lab(self, errors):
         """Lab の試作データ（src/lab.json）。引用の一節が MA Notion の本文に無ければ止める（MA Notion を軸にする決まり）。"""
         lab = self.lab
-        shape = {"version": str, "intro": list, "rule": dict, "poles": dict, "forms": list, "doors": dict,
+        shape = {"version": str, "intro": list, "bundles": list, "rule": dict, "poles": dict, "forms": list, "doors": dict,
                  "elements": list, "terms": list, "references": list, "research": list}
         for k, typ in shape.items():
             if not isinstance(lab.get(k), typ):
@@ -479,6 +479,9 @@ class Site:
                     ok = False
             return ok
 
+        need("intro", "入口", lab, ("elements_intro", "map_intro", "rooms_intro"))
+        if len(lab["intro"]) < 2 or any(not isinstance(line, str) or not line.strip() for line in lab["intro"]):
+            errors.append("lab.json intro: 見出しと本文を空でない文字列の並びで書く")
         for key in ("dictionary", "reference", "research"):
             info = lab.get("doors", {}).get(key)
             if not isinstance(info, dict) or not need("doors", key, info, ("ja", "role")):
@@ -499,6 +502,20 @@ class Site:
                 errors.append("lab.json elements %s: name は %d 字まで（地図の札に入れるため）: %r" % (e["key"], LAB_NAME_MAX, e["name"]))
             if any(g not in ("mitsu", "ma") for g in e.get("guess", [])):
                 errors.append("lab.json elements %s: guess（本文に無い見立ての印）は mitsu / ma のどれか" % e.get("key"))
+        bundled = set()
+        for i, bundle in enumerate(lab["bundles"], 1):
+            if not need("bundles", i, bundle, ("name",), ("elements",)):
+                continue
+            if not bundle["elements"]:
+                errors.append("lab.json bundles %s: elements に要素の key を 1 つ以上書く" % bundle["name"])
+            for key in bundle["elements"]:
+                if key not in ekeys:
+                    errors.append("lab.json bundles %s: 要素（elements）に無い key: %r" % (bundle["name"], key))
+                elif key in bundled:
+                    errors.append("lab.json bundles: 要素が重複: %s" % key)
+                bundled.add(key)
+        for key in sorted(ekeys - bundled, key=str):
+            errors.append("lab.json bundles: 束に入っていない要素: %s" % key)
         keys = set()
         for t in lab["terms"]:
             if not re.fullmatch(SLUG, t.get("key", "")):
@@ -1540,7 +1557,7 @@ class Site:
         sp = ('<svg class="flowmap fm-sp sp-only" viewBox="0 0 %d %.0f" role="group" aria-label="間の地図。間から MA Notion の章、%d の要素を経て、Dictionary・Reference・Research へ。帯の太さはつながりの数">'
               '<title>間の地図</title>%s%s%s</svg>' % (W2, H2, len(order), "".join(ribs2), "".join(nodes2), "".join(labels2)))
         empty_ch = [c for c in chapters if not ctot[c["no"]]]
-        note = "帯の太さは、その要素が映っている言葉・資料・テーマの数（つながりは全部で %d）。名前を押すと、要素は下の欄へ、章は Notion へ、部屋はその部屋へ。" % total
+        note = "帯の太さは、その要素が映っている言葉・資料・テーマの数（つながりは全部で %d）。名前を押すと、要素は該当する項目へ、章は Notion へ、部屋はその部屋へ。" % total
         if empty_ch:
             note += "".join("「%s」からは、まだ要素を取り出していない。" % esc(self.ch_label(c["no"])) for c in empty_ch)
         unmapped = [(en, sum(1 for x in items if not x.get("elements"))) for _, en, _, items in rooms]
@@ -1574,7 +1591,7 @@ class Site:
     def lab_head(self, cur, door):
         """扉のページの見出し: 上に門の名前（小さく）、扉の帯、扉の名前（h1）と副題・役割。"""
         g = self.gate("lab")
-        # 上の塊（門の名前・言葉・説明・扉の帯）は入口と同じ形で出し、その下に部屋の名前（h1）を置く。部屋を移っても上が動かない
+        # 入口と同じ門の名前・言葉・説明に続けて、扉の帯と部屋の名前（h1）を置く。
         return ('%s\n    %s\n    <div class="room-head">\n      <h1 class="room-title"><strong>%s</strong></h1>\n'
                 '      <p class="room-sub">%s</p>\n    </div>\n    <p class="lab-lead">%s</p>'
                 % (self.gate_head(g, el="p"), self.local_nav(cur, g, door["url"]), esc(door["en"]), esc(door["ja"]), esc(door["role"])))
@@ -1584,7 +1601,7 @@ class Site:
         g = self.gate("lab")
         counts = {"dictionary": len(lab["terms"]), "reference": len(lab["references"]), "research": len(lab["research"])}
         units = {"dictionary": "用語", "reference": "資料", "research": "テーマ"}
-        # 入口: 要素の地図と要素の欄
+        # 入口: 要素の束をたどってから、地図と部屋へ進む。
         cur = "lab/index.html"
         by_el = {}
         for r in lab["references"]:
@@ -1594,8 +1611,8 @@ class Site:
         for t in lab["terms"]:
             for k in t.get("elements", []):
                 term_of.setdefault(k, []).append(t)
-        cards = []
-        for i, e in enumerate(lab["elements"], 1):
+        cards = {}
+        for e in lab["elements"]:
             mark = lambda side: '<span class="guess" role="img" aria-label="（Lab の見立て）" title="本文に無い、Lab の見立て">※</span>' if side in e.get("guess", []) else ""
             acts = "・".join(esc(a) for a in e.get("acts", []))  # 押せないので札にしない（丸い札は絞り込みだけ）
             nref = len(by_el.get(e["key"], []))
@@ -1603,27 +1620,38 @@ class Site:
             ch = '<a class="lab-ch" href="%s">%s</a>' % (self.href(cur, "notion/#ch%d" % e["ch"]), esc(self.ch_label(e["ch"])))
             # 一節が密／間の側の文そのものなら、同じ文を 2 度出さず、その行に章へのリンクを付ける
             side_of_quote = "mitsu" if e["quote"] == e["mitsu"] else ("ma" if e["quote"] == e["ma"] else "")
-            quote = "" if side_of_quote else '\n        <p class="el-quote"><q>%s</q> %s</p>' % (esc(e["quote"]), ch)
+            quote = "" if side_of_quote else '\n              <p class="el-quote"><q>%s</q> %s</p>' % (esc(e["quote"]), ch)
             row = lambda side, label: '<div class="el-row el-%s"><dt>%s</dt><dd>%s%s%s</dd></div>' % (
                 side, esc(label), esc(e[side]), mark(side), (" " + ch) if side_of_quote == side else "")
             links = ['<span class="el-label">Reference</span><a href="%s">%d 件</a>' % (self.href(cur, "lab/reference/#e-%s" % e["key"]), nref)]
             if terms:
                 links.append('<span class="el-label">Dictionary</span>' + "・".join('<a href="%s">%s</a>' % (self.href(cur, "lab/dictionary/#t-%s" % t["key"]), esc(t["word"])) for t in terms))
-            cards.append("""      <li class="el" id="e-{key}">
-        <p class="el-no">{no:02d}</p>
-        <h2 class="el-name">{name}</h2>
-        <p class="el-sub">{sub}</p>
-        <dl class="el-pair">
-          {mitsu}
-          {ma}
-        </dl>{quote}
-{acts}
-        <p class="el-links">{links}</p>
-      </li>""".format(key=esc(e["key"]), no=i, name=esc(e["name"]), sub=esc(e["sub"]),
-                       mitsu=row("mitsu", lab["poles"]["left"]), ma=row("ma", lab["poles"]["right"]), quote=quote,
-                       acts=('\n        <p class="el-acts"><span class="el-label">当てはまる行い</span>%s</p>' % acts) if acts else "",
-                       links="　".join(links)))
-        # 3 つの部屋はカードにして、導入文のすぐ後（地図より先）に置く（部門の入口は下の階層へすぐ進めることが先）
+            cards[e["key"]] = """          <li>
+            <details class="el" id="e-{key}">
+              <summary class="el-summary">
+                <span class="el-name">{name}</span>
+                <span class="el-teaser">{teaser}</span>
+                <span class="el-sign" aria-hidden="true"></span>
+              </summary>
+              <p class="el-sub">{sub}</p>
+              <dl class="el-pair">
+                {mitsu}
+                {ma}
+              </dl>{quote}{acts}
+              <p class="el-links">{links}</p>
+            </details>
+          </li>""".format(key=esc(e["key"]), name=esc(e["name"]), teaser=esc(e["ma"]), sub=esc(e["sub"]),
+                         mitsu=row("mitsu", lab["poles"]["left"]), ma=row("ma", lab["poles"]["right"]), quote=quote,
+                         acts=('\n              <p class="el-acts"><span class="el-label">当てはまる行い</span>%s</p>' % acts) if acts else "",
+                         links="　".join(links))
+        bundles = []
+        for bundle in lab["bundles"]:
+            bundles.append("""      <div class="el-bundle">
+        <h3 class="el-bundle-name">{name}</h3>
+        <ul class="el-grid" role="list">
+{cards}
+        </ul>
+      </div>""".format(name=esc(bundle["name"]), cards="\n".join(cards[key] for key in bundle["elements"])))
         rooms = []
         for d in g["doors"]:
             key = d["url"].rstrip("/").split("/")[-1]
@@ -1636,34 +1664,40 @@ class Site:
         body = """
   <div class="content lab-page">
     {head}
-    {nav}
     <div class="lab-lead prose">
+      <h2 class="lab-intro-title">{intro_title}</h2>
 {intro}
     </div>
-    <section class="sec lab-rooms">
-      {rooms_tag}
-    {rooms}
+    <section class="sec lab-elements">
+      {el_label}
+      <p class="lab-section-intro">{el_intro}</p>
+{bundles}
+      <p class="el-legend">密は詰まった側、間は余白の側。※ と「当てはまる行い」は、本文に無い Lab の見立て。</p>
     </section>
     <section class="sec lab-map-sec">
       {map_tag}
-    {map}
-    <p class="map-note">{map_note}</p>
+      <p class="lab-section-intro">{map_intro}</p>
+      {map}
+      <p class="map-note">{map_note}</p>
     </section>
-    {el_label}
-    <p class="el-legend">密は詰まった側、間は余白の側。※ と「当てはまる行い」は、本文に無い Lab の見立て。</p>
-    <ol class="el-grid">
-{cards}
-    </ol>
-    {rule}
-    <ol class="lab-rules">
+    <section class="sec lab-rooms">
+      {rooms_tag}
+      <p class="lab-section-intro">{rooms_intro}</p>
+    {rooms}
+    </section>
+    <section class="sec">
+      {rule}
+      <ol class="lab-rules">
 {rules}
-    </ol>
-    <p class="pending-note">{version}</p>
+      </ol>
+      <p class="pending-note">{version}</p>
+    </section>
   </div>
-""".format(head=self.gate_head(g), nav=self.local_nav(cur, g, g["url"]), intro="\n".join("      <p>%s</p>" % esc(x) for x in lab["intro"]),
-           rooms_tag=self.tag("部屋", "t"), rooms=self.cards(rooms, "cards-room"), map_tag=self.tag("間の地図", "t"), map=flow[0], map_note=flow[1],
-           el_label=self.frame("間の要素（%d・Lab の見立て）" % len(lab["elements"])), cards="\n".join(cards),
-           rule=self.frame(lab["rule"]["label"]), rules="\n".join("      <li>%s</li>" % esc(x) for x in lab["rule"]["lines"]),
+""".format(head=self.gate_head(g), intro_title=esc(lab["intro"][0]), intro="\n".join("      <p>%s</p>" % esc(x) for x in lab["intro"][1:]),
+           el_label=self.tag("間が、立ち上がるとき", "t"), el_intro=esc(lab["elements_intro"]), bundles="\n".join(bundles),
+           map_tag=self.tag("間の地図", "t"), map_intro=esc(lab["map_intro"]), map=flow[0], map_note=flow[1],
+           rooms_tag=self.tag("3 つの部屋", "t"), rooms_intro=esc(lab["rooms_intro"]), rooms=self.cards(rooms, "cards-room"),
+           rule=self.tag(lab["rule"]["label"], "t"), rules="\n".join("        <li>%s</li>" % esc(x) for x in lab["rule"]["lines"]),
            version=esc(lab["version"]))
         self.page(cur, "Lab", body)
 
