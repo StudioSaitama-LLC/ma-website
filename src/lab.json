@@ -8,11 +8,10 @@
   ],
   "elements_intro": "間が立ち上がる時を、いくつかならべました。ぎゅうぎゅうに詰まっているとき、ふっと呼吸が戻るとき。触れているうちに、何かが立ち上がるかもしれません",
   "bundles": [
-    {"name": "心が動くとき", "elements": ["kokoro", "kaishaku", "kizuki"]},
-    {"name": "急がないとき", "elements": ["muda", "yutori", "yukkuri"]},
-    {"name": "迷って、掘るとき", "elements": ["gimon", "jimae", "yodomi", "mokuteki-naki"]},
-    {"name": "重ねて、受けとめるとき", "elements": ["kasaneru", "juyou", "bottou"]},
-    {"name": "限りを思い出すとき", "elements": ["yugen", "baton"]}
+    {"name": "ゆるむ", "note": "速さから降りる", "elements": ["muda", "yutori", "yukkuri", "yodomi", "mokuteki-naki"]},
+    {"name": "潜る", "note": "内へ入っていく", "elements": ["gimon", "jimae", "bottou", "kizuki"]},
+    {"name": "受けとめる", "note": "来たものを迎え入れる", "elements": ["kokoro", "kaishaku", "juyou"]},
+    {"name": "つながる", "note": "いつか・誰かへ伸びる", "elements": ["kasaneru", "yugen", "baton"]}
   ],
   "map_intro": "言葉や気配は、ひとつずつ離れてはいない。MA Notion の一節から要素へ、要素から言葉や資料へ。線をたどって、寄り道してみてください。",
   "rooms_intro": "ここから先は、三つの部屋。言葉を引いたり、先人の遺したものを掘ったり、自分たちで確かめたり。順番はないので、気の向くほうへ。",

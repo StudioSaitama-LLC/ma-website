@@ -504,7 +504,7 @@ class Site:
                 errors.append("lab.json elements %s: guess（本文に無い見立ての印）は mitsu / ma のどれか" % e.get("key"))
         bundled = set()
         for i, bundle in enumerate(lab["bundles"], 1):
-            if not need("bundles", i, bundle, ("name",), ("elements",)):
+            if not need("bundles", i, bundle, ("name", "note"), ("elements",)):
                 continue
             if not bundle["elements"]:
                 errors.append("lab.json bundles %s: elements に要素の key を 1 つ以上書く" % bundle["name"])
@@ -1648,10 +1648,12 @@ class Site:
         for bundle in lab["bundles"]:
             bundles.append("""      <div class="el-bundle">
         <h3 class="el-bundle-name">{name}</h3>
+        <p><small>{note}</small></p>
         <ul class="el-grid" role="list">
 {cards}
         </ul>
-      </div>""".format(name=esc(bundle["name"]), cards="\n".join(cards[key] for key in bundle["elements"])))
+      </div>""".format(name=esc(bundle["name"]), note=esc(bundle["note"]),
+                       cards="\n".join(cards[key] for key in bundle["elements"])))
         rooms = []
         for d in g["doors"]:
             key = d["url"].rstrip("/").split("/")[-1]
