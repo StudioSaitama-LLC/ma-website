@@ -1717,20 +1717,22 @@ class Site:
         rows = []
         reference_labels = lab.get("reference_labels", {})
         for r in lab["references"]:
+            title = esc(r["title"])
             year = esc(r.get("year", ""))
             label = reference_labels.get(r["form"])
-            who = ""
             if label and r.get("person", True):
-                who = '<span class="ref-who">%sの%s</span> ' % (esc(r.get("who", r["creator"])), esc(label))
-                details = ' <span class="ref-year">%s</span>' % year if year else ""
+                who = esc(r.get("who", r["creator"]))
+                date = ' <span class="ref-year">%s</span>' % year if year else ""
+                heading = ('<h2 class="ref-title">%sの%s</h2>\n'
+                           '        <p class="ref-work">%s%s</p>') % (who, esc(label), title, date)
             else:
                 by = esc(r["creator"]) + ("、" + year if year else "")
-                details = '<span class="ref-by">%s</span>' % by
+                heading = '<h2 class="ref-title">%s<span class="ref-by">%s</span></h2>' % (title, by)
             note = ('\n      <p class="ref-note">※ %s</p>' % esc(r["note"])) if r.get("note") else ""
             rows.append("""    <li class="ref" id="r-{id}" data-form="{form}" data-elements="{els}">
       <div class="ref-main">
         <p class="ref-meta">{glyph}<span class="badge">{form}</span><span class="ref-field">{field}</span><span class="status">{status}</span></p>
-        <h2 class="ref-title">{who}{title}{details}</h2>
+        {heading}
         {chips}
         {pole}
       </div>
@@ -1741,7 +1743,7 @@ class Site:
         {termlinks}{note}
       </div>
     </li>""".format(id=esc(r["id"]), form=esc(r["form"]), els=esc(" ".join(r.get("elements", []))), glyph=self.lab_glyph(r["form"]), field=esc(r["field"]), status=esc(r["status"]),
-                     who=who, title=esc(r["title"]), details=details, chips=self.lab_chips(cur, r.get("elements", [])), pole=self.lab_pole(r["pole"]),
+                     heading=heading, chips=self.lab_chips(cur, r.get("elements", [])), pole=self.lab_pole(r["pole"]),
                      quote=self.lab_quote(cur, r), why=esc(r["why"]), q=esc(r["question"]), termlinks=self.lab_terms(cur, r["terms"]), note=note))
         body = """
   <div class="content lab-page">

@@ -1111,7 +1111,8 @@ html.light .dots { filter: hue-rotate(50deg) saturate(1.3) brightness(0.85); }
 .ref-meta .status { margin-left: 0; }
 .ref-title { margin-top: 6px; }
 .ref-by { display: block; color: var(--fg); font-size: var(--fs); font-weight: 400; }
-.ref-who, .ref-year { display: block; font-size: var(--small); line-height: 20px; font-weight: 400; }
+.ref-work { font-size: var(--fs); line-height: 1.5; }
+.ref-year { display: block; font-size: var(--small); line-height: 20px; font-weight: 400; }
 .ref .lab-quote, .rs .lab-quote { margin-top: 14px; }
 .ref-why, .rs-lines { margin-top: 14px; }
 .ref-terms { margin-top: 14px; font-size: var(--small); line-height: 20px; }
