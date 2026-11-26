@@ -1217,6 +1217,8 @@ html:not(.js) .ref-filters { display: none; }
 .card-link:hover .card-title { text-decoration: underline; text-underline-offset: 4px; }
 .card-go { position: absolute; right: 20px; bottom: 18px; color: var(--accent); font-family: "Inter", sans-serif; font-weight: 800; line-height: 1; }
 .card-title { color: var(--accent); font-size: 15px; line-height: 22px; font-weight: 700; }
+.episode-person, .episode-affiliation { white-space: nowrap; }
+.episode-affiliation { display: block; font-size: 0.85em; line-height: 1.5; font-weight: 400; }
 .card-kicker, .card-meta, .card-update, .card-note { color: var(--fg); font-size: 13px; line-height: 20px; }
 .card-note { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
 .card.is-soon .card-body {
