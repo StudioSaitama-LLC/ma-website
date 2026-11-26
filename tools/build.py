@@ -481,8 +481,9 @@ class Site:
             return ok
 
         need("top", "", lab, ("top_plain", "top_invite", "map_lead", "rooms_lead"))
-        if len(lab["map_lines"]) != 2 or not all(isinstance(line, str) and line.strip() for line in lab["map_lines"]):
-            errors.append("lab.json: map_lines は空でない文字列 2 行で書く")
+        for field in ("intro", "map_lines"):
+            if not lab[field] or not all(isinstance(line, str) and line.strip() for line in lab[field]):
+                errors.append("lab.json: %s は空でない文字列の並びで書く" % field)
         for key in ("dictionary", "reference", "research"):
             need("doors", key, lab["doors"].get(key), ("ja", "role", "invite"))
         if not all(isinstance(x, dict) for x in lab["elements"] + lab["terms"] + lab["references"] + lab["research"]):
@@ -752,7 +753,7 @@ class Site:
         sub・plain を渡すと、いまの言葉と説明の代わりに出す（Notion は原稿の題・書き手と最終更新日）。"""
         state = self.state_badge(g.get("state"))
         plain = plain if plain is not None else g.get("plain")
-        plain = ('\n    <p class="gh-plain">%s</p>' % esc(plain)) if plain else ""
+        plain = ('\n    <p class="gh-plain">%s</p>' % lines(plain)) if plain else ""
         # 同じ門のページどうしでは、この塊を同じ形・同じ高さで出す（部屋を移っても上が動かない。g-<門> は移るときの動きの目印）
         return ('<div class="gate-head g-%s">\n    <%s class="gh-title" data-m="gh" data-mt><strong class="gh-en latin">%s</strong>%s</%s>\n'
                 '    <p class="gh-sub" data-m="gs" data-mt>%s</p>%s\n  </div>' % (g["key"], el, esc(g["name"]), state, el, esc(sub if sub is not None else g["ja"]), plain))
@@ -1631,7 +1632,7 @@ class Site:
         <ol class="el-grid">
 {cards}
         </ol>
-      </details>""".format(name=esc(bundle["name"]), line=esc(bundle["line"]),
+      </details>""".format(name=esc(bundle["name"]), line=lines(bundle["line"]),
                           cards="\n".join(cards[key] for key in bundle["elements"])))
         rooms = []
         for d in g["doors"]:
@@ -1651,15 +1652,14 @@ class Site:
       <p class="lab-section-lead">{map_lead}</p>
       {map}
       <div class="map-note">
-{map_notes}
+        <p>{map_notes}</p>
       </div>
     </section>
     <section class="sec lab-elements">
       {el_label}
       <div class="lab-section-lead prose">
-{intro}
+        <p>{intro}</p>
       </div>
-      <p class="el-legend">密は詰まった側、間は余白の側。※ と「当てはまる行い」は、本文に無い Lab の見立て。</p>
 {bundles}
     </section>
     <section class="sec lab-rooms">
@@ -1675,11 +1675,11 @@ class Site:
       </ol>
     </details>
   </div>
-""".format(head=self.gate_head(g, plain=lab["top_plain"]), top_invite=esc(lab["top_invite"]),
-           map_tag=self.tag("間の地図", "t"), map_lead=esc(lab["map_lead"]), map=self.lab_flow(cur),
-           map_notes="\n".join("        <p>%s</p>" % esc(x) for x in lab["map_lines"]),
-           el_label=self.tag("間が、立ち上がるとき", "t"), intro="\n".join("        <p>%s</p>" % esc(x) for x in lab["intro"]),
-           bundles="\n".join(bundles), rooms_tag=self.tag("部屋", "t"), rooms_lead=esc(lab["rooms_lead"]),
+""".format(head=self.gate_head(g, plain=lab["top_plain"]), top_invite=lines(lab["top_invite"]),
+           map_tag=self.tag("間をめぐるつながり", "t"), map_lead=lines(lab["map_lead"]), map=self.lab_flow(cur),
+           map_notes=brs(lab["map_lines"]),
+           el_label=self.tag("「間」の感情が立ち上がる", "t"), intro=brs(lab["intro"]),
+           bundles="\n".join(bundles), rooms_tag=self.tag("3つの扉", "t"), rooms_lead=lines(lab["rooms_lead"]),
            rooms=self.cards(rooms, "cards-room"), rule=esc(lab["rule"]["label"]),
            rules="\n".join("        <li>%s</li>" % esc(x) for x in lab["rule"]["lines"]),
            version=esc(lab["version"]))
