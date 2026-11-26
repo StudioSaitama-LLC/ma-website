@@ -25,6 +25,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SRC = os.path.join(ROOT, "src")
 MARK = "<!-- このファイルは tools/build.py が src/ から生成しています。直接編集せず src/ を直して再生成してください。 -->"
 STATUS = {"published": "", "editing": "準備中", "planned": "準備中"}  # 来た人に作る側の段階の違いは要らないので、公開前は「準備中」の 1 つ
+EP_AFFILIATION = re.compile(r"\s*([(（][^()（）]*[)）])\s*$")
 LAB_STATUS = ("確認済み", "候補", "相談中")  # Lab の資料の出典の確かめ具合（確認済み＝書誌を国会図書館・CiNii・版元で確かめた）
 LAB_QUOTE_MIN = 8  # Lab の引用は、この字数以上の一節を写す（1 字の一致で通らないように）
 LAB_NAME_MAX = 6  # Lab の要素の名前の長さ（地図の札に入る長さ）
@@ -664,10 +665,20 @@ class Site:
 
     def ep_name(self, e):
         """カードで使う短い呼び名（題の後ろの括弧書きを外す。例「仁科 正史 (Pro Snowboarder/Artist)」→「仁科 正史」）。"""
-        return re.sub(r"\s*[(（][^()（）]*[)）]\s*$", "", e["title"]).strip() or e["title"]
+        return EP_AFFILIATION.sub("", e["title"]).strip() or e["title"]
 
     def ep_label(self, n, e):
         return "#%d %s" % (n, self.ep_name(e))
+
+    def ep_label_html(self, program, n, episode, card=False):
+        number = '<span class="number latin">#%d</span>' % n if card else "#%d" % n
+        name = "%s %s" % (number, esc(self.ep_name(episode)))
+        if program["slug"] == "ma-crosstalk":
+            title = episode["title"]
+            affiliation = EP_AFFILIATION.search(title)
+            if affiliation and title[:affiliation.start()].strip():
+                return '<span class="episode-person">%s</span> <span class="episode-affiliation">%s</span>' % (name, esc(affiliation[1]))
+        return name
 
     def is_published(self, items):
         return any(c.get("status") == "published" for c in items)
@@ -1018,7 +1029,7 @@ class Site:
         meta = " ".join(x for x in (self.new_badge() if self.is_new(date) else "", '<span class="number">%s</span>' % esc(short_date(first)), esc(views)) if x)
         rows = [
             '<span class="card-kicker">%s</span>' % esc(p["ja"]) if show_program else "",
-            '<span class="card-title"><span class="number latin">#%d</span> %s</span>' % (n, esc(self.ep_name(e))),
+            '<span class="card-title">%s</span>' % self.ep_label_html(p, n, e, card=True),
             '<span class="card-note">%s</span>' % esc(note) if note else "",
             ('<span class="card-meta">%s</span>' % meta) if pub else '<span class="card-meta">%s</span>' % self.status_badge("planned").strip(),
             '<span class="card-update">%s</span>' % esc(added) if added else "",
@@ -1889,7 +1900,7 @@ class Site:
     {steps}
   </div>
 """.format(channel=self.href(cur, "channel/"), gname=esc(self.gate("channel")["name"]), prog=self.href(cur, "channel/%s/" % p["slug"]),
-           pja=esc(p["ja"]), label=esc(self.ep_label(n, e)), title=esc(self.ep_title(e, items)), meta=self.date_meta(date, new=self.is_new(max((self.item_date(c) for c in pub if self.item_date(c)), default=""))),
+           pja=esc(p["ja"]), label=self.ep_label_html(p, n, e), title=esc(self.ep_title(e, items)), meta=self.date_meta(date, new=self.is_new(max((self.item_date(c) for c in pub if self.item_date(c)), default=""))),
            lines="<br>".join(esc(x) for x in lines_), place=('\n      <p class="ep-place">Place: %s</p>' % esc(place)) if place else "",
            videos=videos, views=self.section("読む・聴く", self.cards(views, "cards-view")), audio=audio,
            prods=self.section("出てくる道具", ('<ul class="dev-grid">\n%s\n    </ul>' % "\n".join(self.product_card(cur, x) for x in prods)) if prods else ""),
