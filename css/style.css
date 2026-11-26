@@ -1137,7 +1137,6 @@ html:not(.js) .ref-filters { display: none; }
 .guess { margin-left: 2px; color: var(--fg); }
 .chip-none { }
 .lab-doors { margin-top: 33px; }
-/* 要素のパネル: 押せないので枠のカードにしない（枠は押せるカードだけ）。上に細い線、密／間は 1 行ずつ左に札 */
 .el-grid { list-style: none; margin: var(--lh) 0 0; padding: 0; display: grid; gap: 34px; }
 .el { position: relative; padding-top: 16px; border-top: 1px solid var(--line); }
 .el-no { position: absolute; right: 0; top: 14px; font-size: var(--small); line-height: 20px; font-variant-numeric: tabular-nums; }
@@ -1401,8 +1400,19 @@ html:not(.js) .filter-box { display: none; }
 /* 扉のページの見出し: 上に門の名前、帯、扉の名前 */
 .lab-page .lab-lead { margin-top: 24px; }
 
-/* Lab の入口: 部屋のカード → 要素の地図 */
-.lab-rooms { margin-top: 48px; }
+.lab-section-lead { margin-top: 24px; }
+.lab-bundle { margin-top: 24px; border-top: 1px solid var(--line); }
+.lab-bundle summary { position: relative; list-style: none; padding: 14px 2em 14px 0; cursor: pointer; }
+.lab-bundle summary::-webkit-details-marker { display: none; }
+.lab-bundle summary::after { content: "+" / ""; position: absolute; top: 14px; right: 0; color: var(--accent); }
+.lab-bundle[open] summary::after { content: "−" / ""; }
+.bundle-name { display: block; font-size: var(--small); }
+.bundle-line { display: block; font-size: var(--tag); line-height: 1.5; font-weight: 700; }
+.lab-rooms .cards-room { margin-top: 24px; }
+.room-invite { margin: 4px 0; }
+.lab-version { margin-top: 32px; font-size: var(--small); }
+.lab-rules-fold { margin-top: 12px; font-size: var(--small); }
+.lab-rules-fold summary { cursor: pointer; }
 @media (min-width: 960px) { .cards-room { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 /* 資料庫の絞り込み: 「絞り込む」の枠でまとめる */
