@@ -777,8 +777,8 @@ class Site:
 
     def logo(self, cur, cls="logo-mark", m=None):
         # 飾りのロゴ（ページの題は別にある）なので、読み上げでは飛ばす
-        return '<img class="%s" src="%s" width="496" height="512" alt="" loading="lazy" decoding="async"%s>' % (
-            cls, self.href(cur, "assets/logo.png"), (' data-m="%s"' % m) if m else "")
+        return '<img class="%s" src="%s" width="251" height="275" alt="" loading="lazy" decoding="async"%s>' % (
+            cls, self.href(cur, "assets/ma-object.png"), (' data-m="%s"' % m) if m else "")
 
     def header(self, cur):
         h = lambda t: self.href(cur, t)
@@ -1294,7 +1294,7 @@ class Site:
            chapters="\n\n".join(chapters), core_label=self.frame(core["label"], m="corel"), core_heading=esc(core["heading"]),
            core_lines=brs(core["lines"]), dense=self.href(cur, "assets/figures/dots-dense.svg"), sparse=self.href(cur, "assets/figures/dots-sparse.svg"), cap0=esc(cap[0]), cap1=esc(cap[1]), cap2=esc(cap[2]),
            steps_label=self.frame(steps["label"], m="stepl"), steps_lines=brs(steps["lines"]),
-           flow="\n".join(flow), book=self.illust(cur, "book", "book-illust", m="book"))
+           flow="\n".join(flow), book='<img class="illust book-illust" src="%s" width="560" height="624" alt="" loading="lazy" decoding="async" data-m="book">' % self.href(cur, "assets/illust/book.png"))
         self.page(cur, "Notion", body)
 
     # ---------- Lab（試作） ----------
